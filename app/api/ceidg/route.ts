@@ -37,9 +37,18 @@ export const GET = async (request: Request) => {
   const companyId = company.id;
   const companyDetails = await getCompanyDetailsDetails(companyId);
 
-  return Response.json({
+  // Zwróć pełną strukturę danych dla debugowania
+  const response = {
     ...companyDetails.basicData,
-    correspondenceAddress: companyDetails.addressData.correspondenceAddress,
-    pkdCodes: companyDetails.additionalData.otherPkd,
-  });
+    correspondenceAddress: companyDetails.addressData?.correspondenceAddress,
+    // Dodatkowo zwróć inne możliwe adresy
+    address: companyDetails.addressData?.address,
+    businessAddress: companyDetails.addressData?.businessAddress,
+    registeredAddress: companyDetails.addressData?.registeredAddress,
+    pkdCodes: companyDetails.additionalData?.otherPkd,
+    // Pełna struktura addressData dla debugowania
+    _debug_addressData: companyDetails.addressData,
+  };
+
+  return Response.json(response);
 };

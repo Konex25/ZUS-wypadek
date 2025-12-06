@@ -73,84 +73,118 @@ export const Krok0RodzajZgloszenia: React.FC<Krok0RodzajZgloszeniaProps> = React
         {/* Zawiadomienie o wypadku */}
         <Card
           className={`
-            transition-all duration-200
+            transition-all duration-200 cursor-pointer
             ${selectedType === "zawiadomienie" || selectedType === "oba"
               ? "ring-4 ring-blue-500 border-blue-500 bg-blue-50"
-              : "hover:shadow-lg"
+              : "hover:shadow-lg hover:border-blue-300"
             }
           `}
+          onClick={() => {
+            if (selectedType === "zawiadomienie" || selectedType === "oba") {
+              if (selectedType === "oba") {
+                updateSelection("wyjasnienia");
+              } else {
+                updateSelection(undefined);
+              }
+            } else {
+              updateSelection("zawiadomienie");
+            }
+          }}
         >
-          <div className="flex items-start space-x-4">
-            <Checkbox
-              checked={selectedType === "zawiadomienie" || selectedType === "oba"}
-              onCheckedChange={(checked) => {
-                if (checked) {
-                  updateSelection("zawiadomienie");
-                } else {
-                  updateSelection(undefined);
-                }
-              }}
-            />
-            <div className="flex-1">
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Zawiadomienie o wypadku
-              </h3>
-              <p className="text-sm text-gray-600 mb-4">
-                Podstawowe zgłoszenie wypadku przy pracy. Zawiera dane osobowe, 
-                informacje o wypadku oraz okolicznościach zdarzenia.
-              </p>
-              <ul className="text-xs text-gray-500 space-y-1">
-                <li>✓ Dane osobowe poszkodowanego</li>
-                <li>✓ Informacje o wypadku</li>
-                <li>✓ Opis okoliczności i przyczyn</li>
-              </ul>
+          <div className="p-6">
+            <div className="flex items-start mb-4">
+              <div onClick={(e) => e.stopPropagation()}>
+                <Checkbox
+                  checked={selectedType === "zawiadomienie" || selectedType === "oba"}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      updateSelection("zawiadomienie");
+                    } else {
+                      updateSelection(undefined);
+                    }
+                  }}
+                />
+              </div>
+              <div className="flex-1 ml-3">
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  Zawiadomienie o wypadku
+                </h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Podstawowe zgłoszenie wypadku przy pracy. Zawiera dane osobowe, 
+                  informacje o wypadku oraz okolicznościach zdarzenia.
+                </p>
+              </div>
             </div>
+            <ul className="text-xs text-gray-500 space-y-1 ml-7">
+              <li>✓ Dane osobowe poszkodowanego</li>
+              <li>✓ Informacje o wypadku</li>
+              <li>✓ Opis okoliczności i przyczyn</li>
+            </ul>
           </div>
         </Card>
 
         {/* Zapis wyjaśnień poszkodowanego */}
         <Card
           className={`
-            transition-all duration-200
+            transition-all duration-200 cursor-pointer
             ${selectedType === "wyjasnienia" || selectedType === "oba"
               ? "ring-4 ring-blue-500 border-blue-500 bg-blue-50"
-              : "hover:shadow-lg"
+              : "hover:shadow-lg hover:border-blue-300"
             }
           `}
+          onClick={() => {
+            if (selectedType === "wyjasnienia" || selectedType === "oba") {
+              if (selectedType === "oba") {
+                updateSelection("zawiadomienie");
+              } else {
+                updateSelection(undefined);
+              }
+            } else {
+              if (selectedType === "zawiadomienie") {
+                updateSelection("oba");
+              } else {
+                updateSelection("wyjasnienia");
+              }
+            }
+          }}
         >
-          <div className="flex items-start space-x-4">
-            <Checkbox
-              checked={selectedType === "wyjasnienia" || selectedType === "oba"}
-              onCheckedChange={(checked) => {
-                if (checked) {
-                  if (selectedType === "zawiadomienie") {
-                    updateSelection("oba");
-                  } else {
-                    updateSelection("wyjasnienia");
-                  }
-                } else {
-                  if (selectedType === "oba") {
-                    updateSelection("zawiadomienie");
-                  } else {
-                    updateSelection(undefined);
-                  }
-                }
-              }}
-            />
-            <div className="flex-1">
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
-                Zapis wyjaśnień poszkodowanego
-              </h3>
-              <p className="text-sm text-gray-600 mb-4">
-                Szczegółowe wyjaśnienia dotyczące wypadku. Zawiera informacje 
-                o czynnościach przed wypadkiem, środkach ochrony, BHP i innych szczegółach.
-              </p>
-              <ul className="text-xs text-gray-500 space-y-1">
-                <li>✓ Szczegółowy opis zdarzenia</li>
-                <li>✓ Informacje o BHP i środkach ochrony</li>
-                <li>✓ Informacje o maszynach i urządzeniach</li>
-              </ul>
+          <div className="p-6">
+            <div className="flex items-start mb-4">
+              <div onClick={(e) => e.stopPropagation()}>
+                <Checkbox
+                  checked={selectedType === "wyjasnienia" || selectedType === "oba"}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      if (selectedType === "zawiadomienie") {
+                        updateSelection("oba");
+                      } else {
+                        updateSelection("wyjasnienia");
+                      }
+                    } else {
+                      if (selectedType === "oba") {
+                        updateSelection("zawiadomienie");
+                      } else {
+                        updateSelection(undefined);
+                      }
+                    }
+                  }}
+                />
+              </div>
+              <div className="flex-1 ml-3">
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                  Zapis wyjaśnień poszkodowanego
+                </h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Szczegółowe wyjaśnienia dotyczące wypadku. Zawiera informacje 
+                  o czynnościach przed wypadkiem, środkach ochrony, BHP i innych szczegółach.
+                </p>
+              </div>
             </div>
+            <ul className="text-xs text-gray-500 space-y-1 ml-7">
+              <li>✓ Szczegółowy opis zdarzenia</li>
+              <li>✓ Informacje o BHP i środkach ochrony</li>
+              <li>✓ Informacje o maszynach i urządzeniach</li>
+            </ul>
           </div>
         </Card>
       </div>
@@ -159,27 +193,34 @@ export const Krok0RodzajZgloszenia: React.FC<Krok0RodzajZgloszeniaProps> = React
       <div className="flex justify-center">
         <Card
           className={`
-            transition-all duration-200 w-full max-w-md
+            transition-all duration-200 w-full max-w-md cursor-pointer
             ${selectedType === "oba"
               ? "ring-4 ring-blue-500 border-blue-500 bg-blue-50"
-              : "hover:shadow-lg"
+              : "hover:shadow-lg hover:border-blue-300"
             }
           `}
+          onClick={() => {
+            updateSelection(selectedType === "oba" ? undefined : "oba");
+          }}
         >
-          <div className="flex items-center justify-center space-x-4">
-            <Checkbox
-              checked={selectedType === "oba"}
-              onCheckedChange={(checked) => {
-                updateSelection(checked ? "oba" : undefined);
-              }}
-            />
-            <div className="text-center">
-              <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                Złóż oba dokumenty
-              </h3>
-              <p className="text-sm text-gray-600">
-                Złóż zarówno zawiadomienie o wypadku, jak i zapis wyjaśnień poszkodowanego
-              </p>
+          <div className="p-6">
+            <div className="flex items-center justify-center space-x-4">
+              <div onClick={(e) => e.stopPropagation()}>
+                <Checkbox
+                  checked={selectedType === "oba"}
+                  onCheckedChange={(checked) => {
+                    updateSelection(checked ? "oba" : undefined);
+                  }}
+                />
+              </div>
+              <div className="text-center">
+                <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                  Złóż oba dokumenty
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Złóż zarówno zawiadomienie o wypadku, jak i zapis wyjaśnień poszkodowanego
+                </p>
+              </div>
             </div>
           </div>
         </Card>

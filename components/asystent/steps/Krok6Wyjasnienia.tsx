@@ -165,15 +165,17 @@ export const Krok6Wyjasnienia: React.FC<Krok6WyjasnieniaProps> = React.memo(({
 
         {/* Maszyny i narzędzia */}
         <Card className="p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <Checkbox
-              checked={machineryTools}
-              onCheckedChange={(checked) => {
-                setMachineryTools(checked as boolean);
-                setValue("maszynyNarzedzia.dotyczy", checked as boolean);
-              }}
-            />
-            <h4 className="text-md font-semibold text-gray-900">
+          <div className="flex items-start gap-3 mb-4">
+            <div className="pt-1">
+              <Checkbox
+                checked={machineryTools}
+                onCheckedChange={(checked) => {
+                  setMachineryTools(checked as boolean);
+                  setValue("maszynyNarzedzia.dotyczy", checked as boolean);
+                }}
+              />
+            </div>
+            <h4 className="text-md font-semibold text-gray-900 flex-1">
               Maszyny i narzędzia
             </h4>
           </div>
@@ -221,15 +223,17 @@ export const Krok6Wyjasnienia: React.FC<Krok6WyjasnieniaProps> = React.memo(({
 
         {/* Środki ochrony */}
         <Card className="p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <Checkbox
-              checked={protectiveMeasures}
-              onCheckedChange={(checked) => {
-                setProtectiveMeasures(checked as boolean);
-                setValue("srodkiOchrony.stosowane", checked as boolean);
-              }}
-            />
-            <h4 className="text-md font-semibold text-gray-900">
+          <div className="flex items-start gap-3 mb-4">
+            <div className="pt-1">
+              <Checkbox
+                checked={protectiveMeasures}
+                onCheckedChange={(checked) => {
+                  setProtectiveMeasures(checked as boolean);
+                  setValue("srodkiOchrony.stosowane", checked as boolean);
+                }}
+              />
+            </div>
+            <h4 className="text-md font-semibold text-gray-900 flex-1">
               Środki ochrony
             </h4>
           </div>
@@ -261,15 +265,17 @@ export const Krok6Wyjasnienia: React.FC<Krok6WyjasnieniaProps> = React.memo(({
 
         {/* BHP */}
         <Card className="p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <Checkbox
-              checked={healthAndSafety}
-              onCheckedChange={(checked) => {
-                setHealthAndSafety(checked as boolean);
-                setValue("bhp.przestrzegane", checked as boolean);
-              }}
-            />
-            <h4 className="text-md font-semibold text-gray-900">
+          <div className="flex items-start gap-3 mb-4">
+            <div className="pt-1">
+              <Checkbox
+                checked={healthAndSafety}
+                onCheckedChange={(checked) => {
+                  setHealthAndSafety(checked as boolean);
+                  setValue("bhp.przestrzegane", checked as boolean);
+                }}
+              />
+            </div>
+            <h4 className="text-md font-semibold text-gray-900 flex-1">
               Przestrzeganie zasad BHP
             </h4>
           </div>
@@ -308,15 +314,17 @@ export const Krok6Wyjasnienia: React.FC<Krok6WyjasnieniaProps> = React.memo(({
 
         {/* Pierwsza pomoc */}
         <Card className="p-6">
-          <div className="flex items-center gap-3 mb-4">
-            <Checkbox
-              checked={firstAid}
-              onCheckedChange={(checked) => {
-                setFirstAid(checked as boolean);
-                setValue("pierwszaPomoc.udzielona", checked as boolean);
-              }}
-            />
-            <h4 className="text-md font-semibold text-gray-900">
+          <div className="flex items-start gap-3 mb-4">
+            <div className="pt-1">
+              <Checkbox
+                checked={firstAid}
+                onCheckedChange={(checked) => {
+                  setFirstAid(checked as boolean);
+                  setValue("pierwszaPomoc.udzielona", checked as boolean);
+                }}
+              />
+            </div>
+            <h4 className="text-md font-semibold text-gray-900 flex-1">
               Pierwsza pomoc
             </h4>
           </div>

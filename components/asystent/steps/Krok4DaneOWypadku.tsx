@@ -126,6 +126,20 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
     setValue("pierwszaPomoc.udzielona", true);
     setValue("pierwszaPomoc.nazwaPlacowki", "Szpital Miejski w Warszawie");
     setValue("pierwszaPomoc.adresPlacowki", "ul. Szpitalna 1, 00-001 Warszawa");
+    
+    // Postępowanie organów
+    setPostepowanieOrganow(false);
+    
+    // Maszyny i urządzenia
+    setMaszynyUrzadzenia(true);
+    setValue("maszynyUrzadzenia.dotyczy", true);
+    setValue("maszynyUrzadzenia.nazwa", "Piła tarczowa");
+    setValue("maszynyUrzadzenia.typ", "Elektryczna");
+    setValue("maszynyUrzadzenia.sprawne", true);
+    setValue("maszynyUrzadzenia.zgodneZProducentem", true);
+    setValue("maszynyUrzadzenia.atest", true);
+    setValue("maszynyUrzadzenia.deklaracjaZgodnosci", true);
+    setValue("maszynyUrzadzenia.wEwidencjiSrodkowTrwalych", false);
   };
 
   return (
@@ -574,10 +588,17 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
                     />
                   </div>
                   <Checkbox
-                    label="Maszyna/urządzenie posiadało atest / deklarację zgodności"
+                    label="Maszyna/urządzenie posiadało atest"
                     checked={watch("maszynyUrzadzenia.atest") || false}
                     onCheckedChange={(checked) => {
                       setValue("maszynyUrzadzenia.atest", checked || false);
+                    }}
+                  />
+                  <Checkbox
+                    label="Maszyna/urządzenie posiadało deklarację zgodności"
+                    checked={watch("maszynyUrzadzenia.deklaracjaZgodnosci") || false}
+                    onCheckedChange={(checked) => {
+                      setValue("maszynyUrzadzenia.deklaracjaZgodnosci", checked || false);
                     }}
                   />
                   <Checkbox

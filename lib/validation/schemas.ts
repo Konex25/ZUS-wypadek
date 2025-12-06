@@ -25,6 +25,37 @@ export const daneOsoboweSchema = z.object({
   miejsceUrodzenia: z.string().min(2, "Miejsce urodzenia jest wymagane"),
   telefon: z.string().regex(/^[0-9+\-\s()]+$/, "Nieprawidłowy format numeru telefonu"),
   email: z.string().email("Nieprawidłowy adres email").optional().or(z.literal("")),
+  // Opcjonalne: dane osoby zawiadamiającej
+  innaOsobaZawiadamia: z.boolean().optional(),
+  osobaZawiadamiajaca: z.object({
+    pesel: z.string().optional(),
+    dokumentTozsamosci: z.object({
+      rodzaj: z.enum(["dowód osobisty", "paszport", "inny"]),
+      seria: z.string().optional(),
+      numer: z.string().min(1, "Numer dokumentu jest wymagany"),
+    }).optional(),
+    imie: z.string().min(2, "Imię musi mieć co najmniej 2 znaki"),
+    nazwisko: z.string().min(2, "Nazwisko musi mieć co najmniej 2 znaki"),
+    dataUrodzenia: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Data musi być w formacie YYYY-MM-DD"),
+    telefon: z.string().regex(/^[0-9+\-\s()]+$/, "Nieprawidłowy format numeru telefonu").optional(),
+    adresZamieszkania: z.object({
+      ulica: z.string().min(1, "Ulica jest wymagana"),
+      numerDomu: z.string().min(1, "Numer domu jest wymagany"),
+      numerLokalu: z.string().optional(),
+      kodPocztowy: z.string().regex(/^\d{2}-\d{3}$/, "Kod pocztowy musi być w formacie XX-XXX"),
+      miejscowosc: z.string().min(2, "Miejscowość jest wymagana"),
+      panstwo: z.string().optional(),
+    }).optional(),
+  }).optional(),
+}).refine((data) => {
+  // Jeśli zaznaczono "inna osoba zawiadamia", wymagaj danych osoby zawiadamiającej
+  if (data.innaOsobaZawiadamia && !data.osobaZawiadamiajaca) {
+    return false;
+  }
+  return true;
+}, {
+  message: "Wypełnij dane osoby zawiadamiającej",
+  path: ["osobaZawiadamiajaca"],
 });
 
 // Schemat dla adresu

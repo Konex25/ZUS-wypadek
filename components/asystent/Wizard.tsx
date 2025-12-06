@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -16,13 +16,20 @@ export interface WizardProps {
   onComplete?: () => void;
   onStepChange?: (stepIndex: number) => void;
   currentStep?: number;
+  progressBar?: React.ReactNode; // Opcjonalny progress bar
 }
 
-export const Wizard: React.FC<WizardProps> = ({ steps, onComplete, onStepChange, currentStep: externalCurrentStep }) => {
+export const Wizard: React.FC<WizardProps> = ({ 
+  steps, 
+  onComplete, 
+  onStepChange, 
+  currentStep: externalCurrentStep,
+  progressBar 
+}) => {
   const [internalCurrentStep, setInternalCurrentStep] = useState(0);
   const currentStep = externalCurrentStep !== undefined ? externalCurrentStep : internalCurrentStep;
 
-  const goToNext = () => {
+  const goToNext = useCallback(() => {
     if (currentStep < steps.length - 1) {
       const nextStep = currentStep + 1;
       if (externalCurrentStep === undefined) {
@@ -32,9 +39,9 @@ export const Wizard: React.FC<WizardProps> = ({ steps, onComplete, onStepChange,
     } else {
       onComplete?.();
     }
-  };
+  }, [currentStep, steps.length, externalCurrentStep, onStepChange, onComplete]);
 
-  const goToPrevious = () => {
+  const goToPrevious = useCallback(() => {
     if (currentStep > 0) {
       const prevStep = currentStep - 1;
       if (externalCurrentStep === undefined) {
@@ -42,7 +49,7 @@ export const Wizard: React.FC<WizardProps> = ({ steps, onComplete, onStepChange,
       }
       onStepChange?.(prevStep);
     }
-  };
+  }, [currentStep, externalCurrentStep, onStepChange]);
 
   const goToStep = (stepIndex: number) => {
     // Nie pozwalaj na przeskakiwanie do przodu bez wypełnienia poprzednich kroków
@@ -61,10 +68,37 @@ export const Wizard: React.FC<WizardProps> = ({ steps, onComplete, onStepChange,
     }
   };
 
+  // Skróty klawiszowe
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Ctrl+→ lub Cmd+→ - następny krok
+      if ((e.ctrlKey || e.metaKey) && e.key === "ArrowRight") {
+        e.preventDefault();
+        goToNext();
+      }
+      // Ctrl+← lub Cmd+← - poprzedni krok
+      if ((e.ctrlKey || e.metaKey) && e.key === "ArrowLeft") {
+        e.preventDefault();
+        goToPrevious();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [goToNext, goToPrevious]);
+
+  // Scroll do góry przy zmianie kroku
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [currentStep]);
+
   return (
     <div className="w-full max-w-4xl mx-auto">
-      {/* Progress Bar */}
-      <div className="mb-8">
+      {/* Progress Bar - użyj zewnętrznego jeśli podano, w przeciwnym razie domyślny */}
+      {progressBar || (
+        <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
           {steps.map((step, index) => (
             <div key={step.id} className="flex items-center flex-1">
@@ -104,7 +138,8 @@ export const Wizard: React.FC<WizardProps> = ({ steps, onComplete, onStepChange,
           </p>
           <p className="text-xs text-gray-500 mt-1">{steps[currentStep].title}</p>
         </div>
-      </div>
+        </div>
+      )}
 
       {/* Current Step Content */}
       <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 min-h-[400px] relative">

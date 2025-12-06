@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { Wizard, WizardStep } from "@/components/asystent/Wizard";
 import { Krok0RodzajZgloszenia } from "@/components/asystent/steps/Krok0RodzajZgloszenia";
 import { Krok1DaneOsobowe } from "@/components/asystent/steps/Krok1DaneOsobowe";
@@ -10,12 +10,58 @@ import { Krok5WeryfikacjaElementow } from "@/components/asystent/steps/Krok5Wery
 import { Krok6Wyjasnienia } from "@/components/asystent/steps/Krok6Wyjasnienia";
 import { Krok7Swiadkowie } from "@/components/asystent/steps/Krok7Swiadkowie";
 import { Krok8Podsumowanie } from "@/components/asystent/steps/Krok8Podsumowanie";
+import { Krok9Zalaczniki } from "@/components/asystent/steps/Krok9Zalaczniki";
 import { RodzajZgloszeniaForm, DaneOsoboweForm, DaneWypadkuForm, WyjasnieniaForm, SwiadkowieForm } from "@/lib/validation/schemas";
 import { AccidentReport } from "@/types";
+import { useAutoSave } from "@/hooks/useAutoSave";
+import { detectMissingElements, getStepCompleteness, getFormCompletionPercentage } from "@/lib/validation/completeness";
+import { ProgressBar } from "@/components/asystent/ProgressBar";
 
 export default function AsystentPage() {
   const [formData, setFormData] = useState<Partial<AccidentReport>>({});
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [showRestoreDialog, setShowRestoreDialog] = useState(false);
+
+  // Auto-save
+  const { restoreData, clearData, hasSavedData } = useAutoSave(formData, true);
+
+  // Przywróć zapisane dane przy pierwszym załadowaniu
+  useEffect(() => {
+    if (hasSavedData && Object.keys(formData).length === 0) {
+      const saved = restoreData();
+      if (saved && Object.keys(saved).length > 0) {
+        setShowRestoreDialog(true);
+      }
+    }
+  }, []); // Tylko przy pierwszym renderze
+
+  const handleRestoreData = () => {
+    const saved = restoreData();
+    if (saved) {
+      setFormData(saved);
+      setShowRestoreDialog(false);
+    }
+  };
+
+  const handleDiscardData = () => {
+    clearData();
+    setShowRestoreDialog(false);
+  };
+
+  // Ostrzeżenie przed opuszczeniem strony z niezapisanych zmian
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (Object.keys(formData).length > 0) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+
+    window.addEventListener("beforeunload", handleBeforeUnload);
+    return () => {
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+    };
+  }, [formData]);
 
   const handleKrok0Complete = useCallback((data: RodzajZgloszeniaForm) => {
     setFormData((prev) => {
@@ -47,6 +93,41 @@ export default function AsystentPage() {
         phone: data.telefon,
         email: data.email,
       },
+      // Opcjonalne: dane osoby zawiadamiającej
+      representativeData: data.innaOsobaZawiadamia && data.osobaZawiadamiajaca ? {
+        pesel: data.osobaZawiadamiajaca.pesel,
+        idDocument: data.osobaZawiadamiajaca.dokumentTozsamosci ? {
+          type: data.osobaZawiadamiajaca.dokumentTozsamosci.rodzaj,
+          series: data.osobaZawiadamiajaca.dokumentTozsamosci.seria,
+          number: data.osobaZawiadamiajaca.dokumentTozsamosci.numer,
+        } : undefined,
+        firstName: data.osobaZawiadamiajaca.imie,
+        lastName: data.osobaZawiadamiajaca.nazwisko,
+        dateOfBirth: data.osobaZawiadamiajaca.dataUrodzenia,
+        phone: data.osobaZawiadamiajaca.telefon,
+        addresses: {
+          residentialAddress: data.osobaZawiadamiajaca.adresZamieszkania ? {
+            street: data.osobaZawiadamiajaca.adresZamieszkania.ulica,
+            houseNumber: data.osobaZawiadamiajaca.adresZamieszkania.numerDomu,
+            apartmentNumber: data.osobaZawiadamiajaca.adresZamieszkania.numerLokalu,
+            postalCode: data.osobaZawiadamiajaca.adresZamieszkania.kodPocztowy,
+            city: data.osobaZawiadamiajaca.adresZamieszkania.miejscowosc,
+            country: data.osobaZawiadamiajaca.adresZamieszkania.panstwo,
+          } : {
+            street: "",
+            houseNumber: "",
+            postalCode: "",
+            city: "",
+          },
+          businessAddress: {
+            street: "",
+            houseNumber: "",
+            postalCode: "",
+            city: "",
+          },
+        },
+        powerOfAttorneyProvided: false, // Będzie wypełnione w kroku załączników
+      } : undefined,
     }));
   }, []);
 
@@ -99,7 +180,29 @@ export default function AsystentPage() {
           city: data.adresDzialalnosci.miejscowosc,
           phone: data.adresDzialalnosci.telefon,
         },
+        childcareAddress: data.opiekaNadDzieckiem && data.adresOpiekiNadDzieckiem ? {
+          street: data.adresOpiekiNadDzieckiem.ulica,
+          houseNumber: data.adresOpiekiNadDzieckiem.numerDomu,
+          apartmentNumber: data.adresOpiekiNadDzieckiem.numerLokalu,
+          postalCode: data.adresOpiekiNadDzieckiem.kodPocztowy,
+          city: data.adresOpiekiNadDzieckiem.miejscowosc,
+          phone: data.adresOpiekiNadDzieckiem.telefon,
+        } : undefined,
       },
+      // Zapisz dane działalności z CEIDG (jeśli dostępne)
+      businessData: (data.nip || data.regon || data.pkdCode) ? {
+        nip: data.nip,
+        regon: data.regon,
+        pkdCode: data.pkdCode,
+        businessScope: data.businessScope,
+        address: {
+          street: data.adresDzialalnosci.ulica,
+          houseNumber: data.adresDzialalnosci.numerDomu,
+          apartmentNumber: data.adresDzialalnosci.numerLokalu,
+          postalCode: data.adresDzialalnosci.kodPocztowy,
+          city: data.adresDzialalnosci.miejscowosc,
+        },
+      } : prev.businessData,
     }));
   }, []);
 
@@ -284,7 +387,7 @@ export default function AsystentPage() {
     setCurrentStepIndex((prev) => {
       // Używamy funkcjonalnej aktualizacji, aby uniknąć zależności od steps
       // Faktyczna liczba kroków to 8 (indeksy 0-7), więc maksymalny indeks to 7
-      const MAX_STEP_INDEX = 7;
+      const MAX_STEP_INDEX = 8;
       if (prev < MAX_STEP_INDEX) {
         return prev + 1;
       }
@@ -314,8 +417,29 @@ export default function AsystentPage() {
       miejsceUrodzenia: formData.personalData.placeOfBirth,
       telefon: formData.personalData.phone,
       email: formData.personalData.email,
+      innaOsobaZawiadamia: !!formData.representativeData,
+      osobaZawiadamiajaca: formData.representativeData ? {
+        pesel: formData.representativeData.pesel,
+        dokumentTozsamosci: formData.representativeData.idDocument ? {
+          rodzaj: formData.representativeData.idDocument.type as "dowód osobisty" | "paszport" | "inny",
+          seria: formData.representativeData.idDocument.series,
+          numer: formData.representativeData.idDocument.number,
+        } : undefined,
+        imie: formData.representativeData.firstName,
+        nazwisko: formData.representativeData.lastName,
+        dataUrodzenia: formData.representativeData.dateOfBirth,
+        telefon: formData.representativeData.phone,
+        adresZamieszkania: formData.representativeData.addresses?.residentialAddress ? {
+          ulica: formData.representativeData.addresses.residentialAddress.street || "",
+          numerDomu: formData.representativeData.addresses.residentialAddress.houseNumber || "",
+          numerLokalu: formData.representativeData.addresses.residentialAddress.apartmentNumber,
+          kodPocztowy: formData.representativeData.addresses.residentialAddress.postalCode || "",
+          miejscowosc: formData.representativeData.addresses.residentialAddress.city || "",
+          panstwo: formData.representativeData.addresses.residentialAddress.country,
+        } : undefined,
+      } : undefined,
     };
-  }, [formData.personalData]);
+  }, [formData.personalData, formData.representativeData]);
 
   // Memoize initialData dla kroku 2 - konwersja z formatu interfejsu do formatu formularza
   const krok2InitialData = useMemo(() => {
@@ -367,6 +491,15 @@ export default function AsystentPage() {
         miejscowosc: formData.addresses.businessAddress.city || "",
         telefon: formData.addresses.businessAddress.phone,
       },
+      opiekaNadDzieckiem: !!formData.addresses.childcareAddress,
+      adresOpiekiNadDzieckiem: formData.addresses.childcareAddress ? {
+        ulica: formData.addresses.childcareAddress.street || "",
+        numerDomu: formData.addresses.childcareAddress.houseNumber || "",
+        numerLokalu: formData.addresses.childcareAddress.apartmentNumber,
+        kodPocztowy: formData.addresses.childcareAddress.postalCode || "",
+        miejscowosc: formData.addresses.childcareAddress.city || "",
+        telefon: formData.addresses.childcareAddress.phone,
+      } : undefined,
     };
   }, [formData.addresses]);
 
@@ -564,14 +697,39 @@ export default function AsystentPage() {
       ),
     });
 
-    // Krok 8 - Podsumowanie
+    // Krok 8 - Załączniki
+    baseSteps.push({
+      id: "zalaczniki",
+      title: "Załączniki",
+      description: "Wybierz załączniki i sposób odbioru odpowiedzi",
+      component: () => (
+        <Krok9Zalaczniki
+          key="krok8"
+          onNext={(attachments, responseDeliveryMethod, signatureDate) => {
+            setFormData((prev) => ({
+              ...prev,
+              attachments,
+              responseDeliveryMethod,
+              signatureDate,
+            }));
+            goToNextStep();
+          }}
+          onPrevious={goToPreviousStep}
+          initialAttachments={formData.attachments}
+          initialResponseDeliveryMethod={formData.responseDeliveryMethod}
+          initialSignatureDate={formData.signatureDate}
+        />
+      ),
+    });
+
+    // Krok 9 - Podsumowanie
     baseSteps.push({
       id: "podsumowanie",
       title: "Podsumowanie",
       description: "Sprawdź dane i wygeneruj dokumenty",
       component: () => (
         <Krok8Podsumowanie
-          key="krok8"
+          key="krok9"
           onPrevious={goToPreviousStep}
           onGenerateDocuments={handleGenerateDocuments}
           formData={formData}
@@ -598,23 +756,131 @@ export default function AsystentPage() {
     formData,
   ]);
 
+  // Oblicz kompletność dla progress bara
+  const completionPercentage = useMemo(
+    () => getFormCompletionPercentage(formData),
+    [formData]
+  );
+
+  const missingElements = useMemo(
+    () => detectMissingElements(formData),
+    [formData]
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-8">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">
-              Wirtualny Asystent
-            </h1>
-            <p className="text-lg text-gray-600">
-              Pomoc w zgłoszeniu wypadku przy pracy
-            </p>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex-1" />
+              <div className="flex-1 text-center">
+                <h1 className="text-4xl font-bold text-gray-900 mb-2">
+                  Wirtualny Asystent
+                </h1>
+                <p className="text-lg text-gray-600">
+                  Pomoc w zgłoszeniu wypadku przy pracy
+                </p>
+              </div>
+              <div className="flex-1 flex justify-end">
+                {hasSavedData && (
+                  <button
+                    onClick={() => {
+                      if (confirm("Czy na pewno chcesz wyczyścić zapisane dane?")) {
+                        clearData();
+                        setFormData({});
+                        setCurrentStepIndex(0);
+                      }
+                    }}
+                    className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                    title="Wyczyść zapisane dane"
+                  >
+                    🗑️ Wyczyść dane
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
+
+          {/* Dialog przywracania danych */}
+          {showRestoreDialog && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg p-6 max-w-md mx-4">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Przywrócić zapisane dane?
+                </h3>
+                <p className="text-sm text-gray-600 mb-4">
+                  Znaleziono zapisane dane formularza. Czy chcesz je przywrócić?
+                </p>
+                <div className="flex gap-3 justify-end">
+                  <button
+                    onClick={handleDiscardData}
+                    className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200"
+                  >
+                    Odrzuć
+                  </button>
+                  <button
+                    onClick={handleRestoreData}
+                    className="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700"
+                  >
+                    Przywróć
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Wskaźnik brakujących elementów */}
+          {missingElements.length > 0 && (
+            <div className="mb-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="flex items-start">
+                <svg
+                  className="w-5 h-5 text-yellow-600 mt-0.5 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                  />
+                </svg>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-yellow-800">
+                    Brakuje {missingElements.length} elementów do uzupełnienia
+                  </p>
+                  <p className="text-xs text-yellow-700 mt-1">
+                    Procent uzupełnienia: {completionPercentage}%
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           <Wizard
             steps={steps}
             onComplete={handleWizardComplete}
             onStepChange={handleStepChange}
             currentStep={currentStepIndex}
+            progressBar={
+              <ProgressBar
+                steps={steps.map((s) => ({
+                  id: s.id,
+                  title: s.title,
+                  description: s.description,
+                }))}
+                currentStep={currentStepIndex}
+                formData={formData}
+                onStepClick={(index) => {
+                  if (index <= currentStepIndex) {
+                    setCurrentStepIndex(index);
+                    handleStepChange(index);
+                  }
+                }}
+              />
+            }
           />
         </div>
       </div>

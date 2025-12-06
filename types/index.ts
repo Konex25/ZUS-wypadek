@@ -14,6 +14,9 @@ export interface AccidentReport {
   victimStatement?: VictimStatement;
   witnesses?: Witness[];
   documents?: File[];
+  attachments?: AttachmentInfo[]; // Informacje o załącznikach
+  responseDeliveryMethod?: "zus_office" | "pue_zus"; // Sposób odbioru odpowiedzi
+  signatureDate?: string; // Data podpisu
 }
 
 export interface VictimPersonalData {
@@ -51,6 +54,7 @@ export interface Addresses {
   lastResidentialAddressInPoland?: Address; // jeśli za granicą
   correspondenceAddress?: CorrespondenceAddress;
   businessAddress: Address;
+  childcareAddress?: Address; // Adres sprawowania opieki nad dzieckiem (dla niań)
 }
 
 export interface Address {
@@ -144,10 +148,16 @@ export interface AccidentData {
     operational?: boolean;
     compliantWithManufacturer?: boolean;
     usageMethod?: string;
-    certified?: boolean;
-    conformityDeclaration?: boolean;
-    inFixedAssetsRegister?: boolean;
+    certified?: boolean; // Czy maszyna ma atest
+    conformityDeclaration?: boolean; // Czy maszyna ma deklarację zgodności
+    inFixedAssetsRegister?: boolean; // Czy maszyna jest w ewidencji środków trwałych
   };
+}
+
+export interface AttachmentInfo {
+  type: "hospital_card" | "prosecutor_decision" | "death_certificate" | "power_of_attorney" | "other";
+  description?: string; // Dla typu "other"
+  file?: File; // Opcjonalny plik
 }
 
 export interface VictimStatement {

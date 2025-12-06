@@ -1,12 +1,14 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { daneOsoboweSchema, DaneOsoboweForm } from "@/lib/validation/schemas";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { ExampleDataButton } from "@/components/asystent/ExampleDataButton";
 import { validatePESEL } from "@/lib/utils";
 
@@ -21,6 +23,10 @@ export const Krok1DaneOsobowe: React.FC<Krok1DaneOsoboweProps> = React.memo(({
   onPrevious,
   initialData,
 }) => {
+  const [innaOsobaZawiadamia, setInnaOsobaZawiadamia] = useState(
+    initialData?.innaOsobaZawiadamia || false
+  );
+
   const {
     register,
     handleSubmit,
@@ -59,6 +65,10 @@ export const Krok1DaneOsobowe: React.FC<Krok1DaneOsoboweProps> = React.memo(({
     setValue("miejsceUrodzenia", "Warszawa");
     setValue("telefon", "+48 123 456 789");
     setValue("email", "jan.kowalski@example.com");
+    
+    // Opcjonalnie: dane osoby zawiadamiającej (nie wypełniaj domyślnie)
+    setInnaOsobaZawiadamia(false);
+    setValue("innaOsobaZawiadamia", false);
   };
 
   return (
@@ -180,6 +190,182 @@ export const Krok1DaneOsobowe: React.FC<Krok1DaneOsoboweProps> = React.memo(({
           />
         </div>
       </div>
+
+      {/* Opcjonalne: Dane osoby zawiadamiającej */}
+      <Card>
+        <div className="space-y-4">
+          <Checkbox
+            label="Zawiadomienie składa osoba inna niż poszkodowany"
+            checked={innaOsobaZawiadamia}
+            onCheckedChange={(checked) => {
+              setInnaOsobaZawiadamia(checked || false);
+              setValue("innaOsobaZawiadamia", checked || false);
+              if (!checked) {
+                // Wyczyść dane osoby zawiadamiającej
+                setValue("osobaZawiadamiajaca", undefined);
+              }
+            }}
+          />
+
+          {innaOsobaZawiadamia && (
+            <div className="ml-7 space-y-4 pt-4 border-t border-gray-200">
+              <h4 className="font-medium text-gray-900">Dane osoby zawiadamiającej</h4>
+              
+              {/* PESEL (opcjonalny) */}
+              <Input
+                label="PESEL (opcjonalnie, jeśli posiada)"
+                type="text"
+                maxLength={11}
+                error={errors.osobaZawiadamiajaca?.pesel?.message}
+                helperText="11 cyfr (opcjonalnie)"
+                {...register("osobaZawiadamiajaca.pesel")}
+                onChange={(e) => {
+                  const value = e.target.value.replace(/\D/g, "");
+                  setValue("osobaZawiadamiajaca.pesel", value);
+                }}
+              />
+
+              {/* Dokument tożsamości */}
+              <div className="space-y-4">
+                <Select
+                  label="Rodzaj dokumentu tożsamości"
+                  required={innaOsobaZawiadamia}
+                  error={errors.osobaZawiadamiajaca?.dokumentTozsamosci?.rodzaj?.message}
+                  options={[
+                    { value: "dowód osobisty", label: "Dowód osobisty" },
+                    { value: "paszport", label: "Paszport" },
+                    { value: "inny", label: "Inny dokument" },
+                  ]}
+                  value={watch("osobaZawiadamiajaca.dokumentTozsamosci.rodzaj")}
+                  onValueChange={(value) => {
+                    setValue("osobaZawiadamiajaca.dokumentTozsamosci.rodzaj", value as "dowód osobisty" | "paszport" | "inny");
+                  }}
+                />
+
+                {watch("osobaZawiadamiajaca.dokumentTozsamosci.rodzaj") === "dowód osobisty" && (
+                  <Input
+                    label="Seria dokumentu"
+                    type="text"
+                    maxLength={3}
+                    error={errors.osobaZawiadamiajaca?.dokumentTozsamosci?.seria?.message}
+                    helperText="3 litery (np. ABC)"
+                    {...register("osobaZawiadamiajaca.dokumentTozsamosci.seria")}
+                    onChange={(e) => {
+                      const value = e.target.value.toUpperCase().replace(/[^A-Z]/g, "");
+                      setValue("osobaZawiadamiajaca.dokumentTozsamosci.seria", value);
+                    }}
+                  />
+                )}
+
+                <Input
+                  label="Numer dokumentu"
+                  type="text"
+                  required={innaOsobaZawiadamia}
+                  error={errors.osobaZawiadamiajaca?.dokumentTozsamosci?.numer?.message}
+                  {...register("osobaZawiadamiajaca.dokumentTozsamosci.numer")}
+                />
+              </div>
+
+              {/* Imię i nazwisko */}
+              <div className="grid md:grid-cols-2 gap-4">
+                <Input
+                  label="Imię"
+                  type="text"
+                  required={innaOsobaZawiadamia}
+                  error={errors.osobaZawiadamiajaca?.imie?.message}
+                  {...register("osobaZawiadamiajaca.imie")}
+                />
+                <Input
+                  label="Nazwisko"
+                  type="text"
+                  required={innaOsobaZawiadamia}
+                  error={errors.osobaZawiadamiajaca?.nazwisko?.message}
+                  {...register("osobaZawiadamiajaca.nazwisko")}
+                />
+              </div>
+
+              {/* Data urodzenia i telefon */}
+              <div className="grid md:grid-cols-2 gap-4">
+                <Input
+                  label="Data urodzenia"
+                  type="date"
+                  required={innaOsobaZawiadamia}
+                  error={errors.osobaZawiadamiajaca?.dataUrodzenia?.message}
+                  {...register("osobaZawiadamiajaca.dataUrodzenia")}
+                />
+                <Input
+                  label="Numer telefonu (opcjonalnie)"
+                  type="tel"
+                  error={errors.osobaZawiadamiajaca?.telefon?.message}
+                  helperText="Format: +48 123 456 789"
+                  {...register("osobaZawiadamiajaca.telefon")}
+                />
+              </div>
+
+              {/* Adres zamieszkania osoby zawiadamiającej */}
+              <div className="pt-4 border-t border-gray-200">
+                <h5 className="text-sm font-medium text-gray-900 mb-4">Adres zamieszkania osoby zawiadamiającej</h5>
+                <div className="space-y-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <Input
+                      label="Ulica"
+                      type="text"
+                      required={innaOsobaZawiadamia}
+                      error={errors.osobaZawiadamiajaca?.adresZamieszkania?.ulica?.message}
+                      {...register("osobaZawiadamiajaca.adresZamieszkania.ulica")}
+                    />
+                    <div className="grid grid-cols-2 gap-2">
+                      <Input
+                        label="Numer domu"
+                        type="text"
+                        required={innaOsobaZawiadamia}
+                        error={errors.osobaZawiadamiajaca?.adresZamieszkania?.numerDomu?.message}
+                        {...register("osobaZawiadamiajaca.adresZamieszkania.numerDomu")}
+                      />
+                      <Input
+                        label="Numer lokalu"
+                        type="text"
+                        error={errors.osobaZawiadamiajaca?.adresZamieszkania?.numerLokalu?.message}
+                        {...register("osobaZawiadamiajaca.adresZamieszkania.numerLokalu")}
+                      />
+                    </div>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <Input
+                      label="Kod pocztowy"
+                      type="text"
+                      required={innaOsobaZawiadamia}
+                      error={errors.osobaZawiadamiajaca?.adresZamieszkania?.kodPocztowy?.message}
+                      helperText="Format: XX-XXX"
+                      {...register("osobaZawiadamiajaca.adresZamieszkania.kodPocztowy")}
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, "");
+                        if (value.length <= 5) {
+                          const formatted = value.length > 2 ? `${value.slice(0, 2)}-${value.slice(2)}` : value;
+                          setValue("osobaZawiadamiajaca.adresZamieszkania.kodPocztowy", formatted);
+                        }
+                      }}
+                    />
+                    <Input
+                      label="Miejscowość"
+                      type="text"
+                      required={innaOsobaZawiadamia}
+                      error={errors.osobaZawiadamiajaca?.adresZamieszkania?.miejscowosc?.message}
+                      {...register("osobaZawiadamiajaca.adresZamieszkania.miejscowosc")}
+                    />
+                  </div>
+                  <Input
+                    label="Nazwa państwa (jeśli inna niż Polska)"
+                    type="text"
+                    error={errors.osobaZawiadamiajaca?.adresZamieszkania?.panstwo?.message}
+                    {...register("osobaZawiadamiajaca.adresZamieszkania.panstwo")}
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </Card>
 
       {/* Błędy formularza */}
       {Object.keys(errors).length > 0 && (
