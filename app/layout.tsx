@@ -1,5 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import TopBar from "@/components/TopBar";
+import Footer from "@/components/Footer";
 
 export const metadata: Metadata = {
   title: "ZANT - ZUS Accident Notification Tool",
@@ -13,7 +15,11 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pl">
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        <TopBar />
+        <main id="main-content" className="min-h-screen">{children}</main>
+        <Footer />
+      </body>
     </html>
   );
 }
