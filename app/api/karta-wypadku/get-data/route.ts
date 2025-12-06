@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCaseById } from "@/lib/store/cases";
+import { getCaseById } from "@/lib/db/cases";
 import { mapCaseToKartaWypadku } from "@/lib/karta-wypadku/mapCaseToKartaWypadku";
 
 export async function GET(request: NextRequest) {
@@ -13,7 +13,7 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  const caseData = getCaseById(caseId);
+  const caseData = await getCaseById(caseId);
 
   if (!caseData) {
     return NextResponse.json(

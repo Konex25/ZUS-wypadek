@@ -6,7 +6,7 @@ import {
   updateCase,
   generateCaseId,
   generateDocumentId,
-} from "@/lib/store/cases";
+} from "@/lib/db/cases";
 import {
   Case,
   UploadedDocument,
@@ -500,14 +500,14 @@ export async function GET(request: NextRequest) {
   const caseId = searchParams.get("id");
 
   if (caseId) {
-    const caseData = getCaseById(caseId);
+    const caseData = await getCaseById(caseId);
     if (!caseData) {
       return NextResponse.json({ error: "Case not found" }, { status: 404 });
     }
     return NextResponse.json({ case: caseData });
   }
 
-  const cases = getCases();
+  const cases = await getCases();
   return NextResponse.json({ cases });
 }
 
@@ -561,7 +561,7 @@ export async function POST(request: NextRequest) {
       fileIds: [],
     };
 
-    addCase(newCase);
+    await addCase(newCase);
 
     // Process case with AI in background
     processCaseWithAI(newCase.id, files, nip);
@@ -618,7 +618,7 @@ async function processCaseWithAI(caseId: string, files: File[], nip: string) {
     );
 
     const fileIds = uploadedFiles.map((f) => f.id);
-    updateCase(caseId, { fileIds });
+    await updateCase(caseId, { fileIds });
 
     const extractionData = await openai.responses.create({
       model: "gpt-5.1",
@@ -1066,13 +1066,13 @@ async function processCaseWithAI(caseId: string, files: File[], nip: string) {
     console.log("Final AI Opinion with verifications:", aiOpinion);
 
     // Update case with AI opinion
-    updateCase(caseId, {
+    await updateCase(caseId, {
       status: "completed",
       aiOpinion,
     });
   } catch (error) {
     console.error("Error processing case with AI:", error);
-    updateCase(caseId, {
+    await updateCase(caseId, {
       status: "error",
       error: error instanceof Error ? error.message : "AI processing failed",
     });
