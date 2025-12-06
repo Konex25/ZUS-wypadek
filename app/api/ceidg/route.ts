@@ -1,8 +1,16 @@
+const getCompanyDetailsDetails = async (companyId: string) => {
+  const url = new URL(
+    "https://www.biznes.gov.pl/pl/wyszukiwarka-firm/api/data-warehouse/GetCompanyDetails"
+  );
+  url.searchParams.set("id", companyId);
+  const response = await fetch(url.toString());
+  const parsedResponse = await response.json();
+  console.log(parsedResponse);
+  return parsedResponse;
+};
+
 export const GET = async (request: Request) => {
   const { searchParams } = new URL(request.url);
-  const url = new URL(
-    "https://www.biznes.gov.pl/pl/wyszukiwarka-firm/api/data-warehouse/SearchAdvance"
-  );
 
   const companiesUrl = new URL(
     "https://www.biznes.gov.pl/pl/wyszukiwarka-firm/api/data-warehouse/SearchAdvance"
@@ -26,5 +34,12 @@ export const GET = async (request: Request) => {
     return Response.json({ error: "Company not found" }, { status: 404 });
   }
 
-  return Response.json(company);
+  const companyId = company.id;
+  const companyDetails = await getCompanyDetailsDetails(companyId);
+
+  return Response.json({
+    ...companyDetails.basicData,
+    correspondenceAddress: companyDetails.addressData.correspondenceAddress,
+    pkdCodes: companyDetails.additionalData.otherPkd,
+  });
 };
