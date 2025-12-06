@@ -174,28 +174,11 @@ export default function ZUSPage() {
     setIsDownloadingCard(true);
 
     try {
-      const response = await fetch(
-        `/api/accident-card?caseId=${selectedCase.id}`
-      );
-
-      if (!response.ok) {
-        const error = await response.json();
-        alert(error.error || "Nie udało się wygenerować karty wypadku");
-        return;
-      }
-
-      const blob = await response.blob();
-      const url = window.URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `karta-wypadku-${selectedCase.id}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      window.URL.revokeObjectURL(url);
-      document.body.removeChild(a);
+      // Przekieruj do formularza z danymi z AI
+      window.location.href = `/karta-wypadku?caseId=${selectedCase.id}`;
     } catch (error) {
-      console.error("Error downloading accident card:", error);
-      alert("Wystąpił błąd podczas pobierania karty wypadku");
+      console.error("Error opening accident card form:", error);
+      alert("Wystąpił błąd podczas otwierania formularza karty wypadku");
     } finally {
       setIsDownloadingCard(false);
     }
