@@ -7,6 +7,7 @@ import { daneOsoboweSchema, DaneOsoboweForm } from "@/lib/validation/schemas";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
+import { ExampleDataButton } from "@/components/asystent/ExampleDataButton";
 import { validatePESEL } from "@/lib/utils";
 
 interface Krok1DaneOsoboweProps {
@@ -47,8 +48,22 @@ export const Krok1DaneOsobowe: React.FC<Krok1DaneOsoboweProps> = React.memo(({
     onNext(data);
   };
 
+  const fillExampleData = () => {
+    setValue("pesel", "85010112345");
+    setValue("dokumentTozsamosci.rodzaj", "dowód osobisty");
+    setValue("dokumentTozsamosci.seria", "ABC");
+    setValue("dokumentTozsamosci.numer", "123456");
+    setValue("imie", "Jan");
+    setValue("nazwisko", "Kowalski");
+    setValue("dataUrodzenia", "1985-01-01");
+    setValue("miejsceUrodzenia", "Warszawa");
+    setValue("telefon", "+48 123 456 789");
+    setValue("email", "jan.kowalski@example.com");
+  };
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 relative">
+      <ExampleDataButton onFill={fillExampleData} />
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
           Dane osobowe poszkodowanego
@@ -204,8 +219,12 @@ export const Krok1DaneOsobowe: React.FC<Krok1DaneOsoboweProps> = React.memo(({
     </form>
   );
 }, (prevProps, nextProps) => {
-  // Custom comparison - tylko re-render jeśli initialData się zmieniło
-  return JSON.stringify(prevProps.initialData) === JSON.stringify(nextProps.initialData);
+  // Porównaj wszystkie props, które mogą wpływać na renderowanie
+  return (
+    JSON.stringify(prevProps.initialData) === JSON.stringify(nextProps.initialData) &&
+    prevProps.onNext === nextProps.onNext &&
+    prevProps.onPrevious === nextProps.onPrevious
+  );
 });
 
 Krok1DaneOsobowe.displayName = "Krok1DaneOsobowe";

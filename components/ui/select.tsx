@@ -28,11 +28,11 @@ export const Select = React.forwardRef<
       <SelectPrimitive.Root value={value} onValueChange={onValueChange}>
         <SelectPrimitive.Trigger
           className={cn(
-            "w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent inline-flex items-center justify-between",
+            "w-full px-4 py-2 border rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent inline-flex items-center justify-between",
             error ? "border-red-500 focus:ring-red-500" : "border-gray-300"
           )}
         >
-          <SelectPrimitive.Value placeholder={placeholder || "Wybierz..."} />
+          <SelectPrimitive.Value placeholder={placeholder || "Wybierz..."} className="text-gray-900" />
           <SelectPrimitive.Icon className="text-gray-500">
             <svg width="15" height="15" viewBox="0 0 15 15" fill="none">
               <path
@@ -49,9 +49,9 @@ export const Select = React.forwardRef<
                 <SelectPrimitive.Item
                   key={option.value}
                   value={option.value}
-                  className="px-4 py-2 rounded-md cursor-pointer hover:bg-blue-50 focus:bg-blue-50 focus:outline-none"
+                  className="px-4 py-2 rounded-md cursor-pointer hover:bg-blue-50 focus:bg-blue-50 focus:outline-none text-gray-900"
                 >
-                  <SelectPrimitive.ItemText>{option.label}</SelectPrimitive.ItemText>
+                  <SelectPrimitive.ItemText className="text-gray-900">{option.label}</SelectPrimitive.ItemText>
                 </SelectPrimitive.Item>
               ))}
             </SelectPrimitive.Viewport>

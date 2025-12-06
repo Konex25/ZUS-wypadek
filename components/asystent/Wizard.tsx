@@ -45,11 +45,19 @@ export const Wizard: React.FC<WizardProps> = ({ steps, onComplete, onStepChange,
   };
 
   const goToStep = (stepIndex: number) => {
+    // Nie pozwalaj na przeskakiwanie do przodu bez wypełnienia poprzednich kroków
+    // Można tylko wracać do wcześniejszych kroków
     if (stepIndex >= 0 && stepIndex < steps.length) {
-      if (externalCurrentStep === undefined) {
-        setInternalCurrentStep(stepIndex);
+      if (stepIndex <= currentStep) {
+        // Można wracać do wcześniejszych kroków
+        if (externalCurrentStep === undefined) {
+          setInternalCurrentStep(stepIndex);
+        }
+        onStepChange?.(stepIndex);
+      } else {
+        // Nie można przeskakiwać do przodu - pokaż komunikat
+        alert("Proszę najpierw uzupełnić wszystkie poprzednie kroki");
       }
-      onStepChange?.(stepIndex);
     }
   };
 
@@ -99,7 +107,7 @@ export const Wizard: React.FC<WizardProps> = ({ steps, onComplete, onStepChange,
       </div>
 
       {/* Current Step Content */}
-      <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 min-h-[400px]">
+      <div className="bg-white rounded-lg shadow-md p-6 border border-gray-200 min-h-[400px] relative">
         {steps[currentStep].description && (
           <div className="mb-6">
             <h2 className="text-2xl font-bold text-gray-900 mb-2">

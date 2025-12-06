@@ -9,6 +9,7 @@ import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ExampleDataButton } from "@/components/asystent/ExampleDataButton";
 
 interface Krok4DaneOWypadkuProps {
   onNext: (data: DaneWypadkuForm) => void;
@@ -68,8 +69,68 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
     onNext(data);
   };
 
+  const fillExampleData = () => {
+    const today = new Date();
+    const dateStr = today.toISOString().split('T')[0];
+    const timeStr = "10:30";
+    
+    setValue("dataWypadku", dateStr);
+    setValue("godzinaWypadku", timeStr);
+    setValue("miejsceWypadku", "Warszawa, ul. Przykładowa 10");
+    setValue("miejsceWypadkuSzczegoly", "Pomieszczenie biurowe na pierwszym piętrze, przy stanowisku pracy");
+    setValue("planowanaGodzinaRozpoczecia", "08:00");
+    setValue("planowanaGodzinaZakonczenia", "16:00");
+    setValue("rodzajUrazow", "Skaleczenie lewej dłoni, stłuczenie nadgarstka");
+    
+    setValue("szczegolowyOpisOkolicznosci", 
+      "Podczas wykonywania prac remontowych, przy cięciu materiału za pomocą piły tarczowej, " +
+      "doszło do nagłego kontaktu dłoni z ostrą krawędzią narzędzia. Zdarzenie nastąpiło natychmiastowo, " +
+      "w wyniku poślizgnięcia się materiału podczas cięcia. Konsekwencją było skaleczenie lewej dłoni " +
+      "oraz stłuczenie nadgarstka."
+    );
+    
+    setValue("szczegolowyOpisPrzyczyn", 
+      "Główną przyczyną wypadku było nieprawidłowe zabezpieczenie materiału podczas cięcia. " +
+      "Dodatkowo, narzędzie było używane bez odpowiednich środków ochrony osobistej. " +
+      "Materiał poślizgnął się z powodu braku właściwego zamocowania."
+    );
+    
+    // Nagłość
+    setValue("naglosc.potwierdzona", true);
+    setValue("naglosc.opis", "Zdarzenie nastąpiło natychmiastowo - kontakt z ostrą krawędzią trwał kilka sekund");
+    
+    // Przyczyna zewnętrzna
+    setValue("przyczynaZewnetrzna.potwierdzona", true);
+    setValue("przyczynaZewnetrzna.typ", "maszyny");
+    setValue("przyczynaZewnetrzna.opis", "Ostra krawędź piły tarczowej spowodowała skaleczenie");
+    
+    // Uraz
+    setValue("uraz.potwierdzony", true);
+    setValue("uraz.rodzaj", "Skaleczenie i stłuczenie");
+    setValue("uraz.lokalizacja", "Lewa dłoń i nadgarstek");
+    setValue("uraz.dokumentacjaMedyczna", true);
+    
+    // Związek z pracą
+    setValue("zwiazekZPraca.przyczynowy", true);
+    setValue("zwiazekZPraca.czasowy", true);
+    setValue("zwiazekZPraca.miejscowy", true);
+    setValue("zwiazekZPraca.funkcjonalny", true);
+    setValue("zwiazekZPraca.opis", 
+      "Wypadek nastąpił podczas wykonywania zwykłych czynności związanych z prowadzoną działalnością " +
+      "gospodarczą (prace remontowe). Zdarzenie miało miejsce w miejscu pracy, w czasie pracy, " +
+      "a uraz był bezpośrednim skutkiem wykonywanej czynności."
+    );
+    
+    // Pierwsza pomoc
+    setPierwszaPomoc(true);
+    setValue("pierwszaPomoc.udzielona", true);
+    setValue("pierwszaPomoc.nazwaPlacowki", "Szpital Miejski w Warszawie");
+    setValue("pierwszaPomoc.adresPlacowki", "ul. Szpitalna 1, 00-001 Warszawa");
+  };
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 relative">
+      <ExampleDataButton onFill={fillExampleData} />
       <div className="space-y-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
           Dane o wypadku
@@ -136,7 +197,7 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
                 Rodzaj urazów <span className="text-red-500">*</span>
               </label>
               <textarea
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 rows={3}
                 required
                 {...register("rodzajUrazow")}
@@ -158,7 +219,7 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
                 Szczegółowy opis okoliczności wypadku <span className="text-red-500">*</span>
               </label>
               <textarea
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 rows={5}
                 required
                 placeholder="Opisz dokładnie, co się stało i w jakich okolicznościach doszło do wypadku..."
@@ -177,7 +238,7 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
                 Szczegółowy opis przyczyn wypadku <span className="text-red-500">*</span>
               </label>
               <textarea
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 rows={5}
                 required
                 placeholder="Opisz przyczyny, które doprowadziły do wypadku..."
@@ -222,7 +283,7 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
                   Opis nagłości <span className="text-red-500">*</span>
                 </label>
                 <textarea
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                   rows={3}
                   required
                   placeholder="Opisz, czy zdarzenie było nagłe (np. wybuch, upadek, zderzenie)..."
@@ -281,7 +342,7 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
                     Opis przyczyny zewnętrznej <span className="text-red-500">*</span>
                   </label>
                   <textarea
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     rows={3}
                     required
                     placeholder="Opisz, jaki czynnik zewnętrzny spowodował uraz..."
@@ -379,7 +440,7 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
                     Opis związku z pracą <span className="text-red-500">*</span>
                   </label>
                   <textarea
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     rows={3}
                     required
                     placeholder="Opisz, jak wypadek wiąże się z wykonywaną pracą..."
@@ -507,7 +568,7 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
                       Sposób użycia
                     </label>
                     <textarea
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       rows={2}
                       {...register("maszynyUrzadzenia.sposobUzycia")}
                     />
@@ -545,7 +606,12 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
     </form>
   );
 }, (prevProps, nextProps) => {
-  return JSON.stringify(prevProps.initialData) === JSON.stringify(nextProps.initialData);
+  // Porównaj wszystkie props, które mogą wpływać na renderowanie
+  return (
+    JSON.stringify(prevProps.initialData) === JSON.stringify(nextProps.initialData) &&
+    prevProps.onNext === nextProps.onNext &&
+    prevProps.onPrevious === nextProps.onPrevious
+  );
 });
 
 Krok4DaneOWypadku.displayName = "Krok4DaneOWypadku";

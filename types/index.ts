@@ -1,401 +1,400 @@
-// Typy dla aplikacji ZANT
+// Types for ZANT application
 
-// ========== I ETAP - WIRTUALNY ASYSTENT ==========
+// ========== STAGE I - VIRTUAL ASSISTANT ==========
 
-export type RodzajZgloszenia = "zawiadomienie" | "wyjasnienia" | "oba";
+export type NotificationType = "zawiadomienie" | "wyjasnienia" | "oba";
 
-export interface ZgloszenieWypadku {
-  rodzajZgloszenia: RodzajZgloszenia;
-  daneOsobowe: DaneOsobowePoszkodowanego;
-  danePelnomocnika?: DanePelnomocnika;
-  adresy: Adresy;
-  daneDzialalnosci: DaneDzialalnosci;
-  daneWypadku: DaneWypadku;
-  wyjasnienia?: WyjasnieniaPoszkodowanego;
-  swiadkowie?: Swiadek[];
-  dokumenty?: File[];
+export interface AccidentReport {
+  notificationType: NotificationType;
+  personalData: VictimPersonalData;
+  representativeData?: RepresentativeData;
+  addresses: Addresses;
+  businessData: BusinessData;
+  accidentData: AccidentData;
+  victimStatement?: VictimStatement;
+  witnesses?: Witness[];
+  documents?: File[];
 }
 
-export interface DaneOsobowePoszkodowanego {
+export interface VictimPersonalData {
   pesel: string;
-  dokumentTozsamosci: {
-    rodzaj: string; // "dowód osobisty" | "paszport" | "inny"
-    seria?: string;
-    numer: string;
+  idDocument: {
+    type: string; // "dowód osobisty" | "paszport" | "inny"
+    series?: string;
+    number: string;
   };
-  imie: string;
-  nazwisko: string;
-  dataUrodzenia: string;
-  miejsceUrodzenia: string;
-  telefon: string;
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string;
+  placeOfBirth: string;
+  phone: string;
   email?: string;
 }
 
-export interface DanePelnomocnika {
+export interface RepresentativeData {
   pesel?: string;
-  dokumentTozsamosci?: {
-    rodzaj: string;
-    seria?: string;
-    numer: string;
+  idDocument?: {
+    type: string;
+    series?: string;
+    number: string;
   };
-  imie: string;
-  nazwisko: string;
-  dataUrodzenia: string;
-  telefon?: string;
-  adresy: Adresy;
-  pelnomocnictwoDostarczone: boolean;
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string;
+  phone?: string;
+  addresses: Addresses;
+  powerOfAttorneyProvided: boolean;
 }
 
-export interface Adresy {
-  adresZamieszkania: Adres;
-  adresOstatniegoZamieszkaniaWPolsce?: Adres; // jeśli za granicą
-  adresDoKorespondencji?: AdresDoKorespondencji;
-  adresDzialalnosci: Adres;
+export interface Addresses {
+  residentialAddress: Address;
+  lastResidentialAddressInPoland?: Address; // jeśli za granicą
+  correspondenceAddress?: CorrespondenceAddress;
+  businessAddress: Address;
 }
 
-export interface Adres {
-  ulica: string;
-  numerDomu: string;
-  numerLokalu?: string;
-  kodPocztowy: string;
-  miejscowosc: string;
-  panstwo?: string; // jeśli za granicą
-  telefon?: string; // dla adresu działalności
+export interface Address {
+  street: string;
+  houseNumber: string;
+  apartmentNumber?: string;
+  postalCode: string;
+  city: string;
+  country?: string; // jeśli za granicą
+  phone?: string; // dla adresu działalności
 }
 
-export type TypAdresuKorespondencji = "adres" | "poste_restante" | "skrytka";
+export type CorrespondenceAddressType = "adres" | "poste_restante" | "skrytka";
 
-export interface AdresDoKorespondencji {
-  typ: TypAdresuKorespondencji;
-  adres?: Adres;
+export interface CorrespondenceAddress {
+  type: CorrespondenceAddressType;
+  address?: Address;
   posteRestante?: {
-    kodPocztowy: string;
-    nazwaPlacowki: string;
+    postalCode: string;
+    postOfficeName: string;
   };
-  skrytka?: {
-    numer: string;
-    kodPocztowy: string;
-    nazwaPlacowki: string;
+  postOfficeBox?: {
+    number: string;
+    postalCode: string;
+    postOfficeName: string;
   };
 }
 
-export interface DaneDzialalnosci {
+export interface BusinessData {
   nip?: string;
   regon?: string;
-  kodPKD?: string; // automatycznie z CEIDG
-  zakresDzialalnosci?: string; // automatycznie z CEIDG
-  adres?: Adres; // automatycznie z CEIDG
+  pkdCode?: string; // automatycznie z CEIDG
+  businessScope?: string; // automatycznie z CEIDG
+  address?: Address; // automatycznie z CEIDG
 }
 
-export interface DaneWypadku {
-  dataWypadku: string;
-  godzinaWypadku: string;
-  miejsceWypadku: string;
-  planowanaGodzinaRozpoczecia: string;
-  planowanaGodzinaZakonczenia: string;
-  rodzajUrazow: string;
-  szczegolowyOpisOkolicznosci: string;
-  szczegolowyOpisPrzyczyn: string;
-  miejsceWypadkuSzczegoly: string;
+export interface AccidentData {
+  accidentDate: string;
+  accidentTime: string;
+  accidentPlace: string;
+  plannedStartTime: string;
+  plannedEndTime: string;
+  injuryType: string;
+  detailedCircumstancesDescription: string;
+  detailedCausesDescription: string;
+  accidentPlaceDetails: string;
   
   // Elementy definicji wypadku przy pracy
-  naglosc: {
-    potwierdzona: boolean;
-    opis: string;
-    czasTrwania?: string; // jeśli nie natychmiastowe
+  suddenness: {
+    confirmed: boolean;
+    description: string;
+    duration?: string; // jeśli nie natychmiastowe
   };
-  przyczynaZewnetrzna: {
-    potwierdzona: boolean;
-    typ: string; // "maszyny" | "energia" | "temperatura" | "chemikalia" | "sily_natury" | "warunki_pracy" | "inne"
-    opis: string;
+  externalCause: {
+    confirmed: boolean;
+    type: string; // "maszyny" | "energia" | "temperatura" | "chemikalia" | "sily_natury" | "warunki_pracy" | "inne"
+    description: string;
   };
-  uraz: {
-    potwierdzony: boolean;
-    rodzaj: string;
-    lokalizacja: string;
-    dokumentacjaMedyczna?: boolean;
+  injury: {
+    confirmed: boolean;
+    type: string;
+    location: string;
+    medicalDocumentation?: boolean;
   };
-  zwiazekZPraca: {
-    przyczynowy: boolean;
-    czasowy: boolean; // w okresie ubezpieczenia
-    miejscowy: boolean;
-    funkcjonalny: boolean; // zwykłe czynności związane z działalnością
-    opis: string;
+  workRelation: {
+    causal: boolean;
+    temporal: boolean; // w okresie ubezpieczenia
+    spatial: boolean;
+    functional: boolean; // zwykłe czynności związane z działalnością
+    description: string;
   };
   
   // Dodatkowe informacje
-  pierwszaPomoc?: {
-    udzielona: boolean;
-    nazwaPlacowki?: string;
-    adresPlacowki?: string;
+  firstAid?: {
+    provided: boolean;
+    facilityName?: string;
+    facilityAddress?: string;
   };
-  postepowanieOrganow?: {
-    prowadzone: boolean;
-    nazwaOrganu?: string;
-    adres?: string;
-    numerSprawy?: string;
+  authorityProceedings?: {
+    conducted: boolean;
+    authorityName?: string;
+    address?: string;
+    caseNumber?: string;
     status?: "zakonczona" | "w_trakcie" | "umorzona";
   };
-  maszynyUrzadzenia?: {
-    dotyczy: boolean;
-    nazwa?: string;
-    typ?: string;
-    dataProdukcji?: string;
-    sprawne?: boolean;
-    zgodneZProducentem?: boolean;
-    sposobUzycia?: string;
-    atest?: boolean;
-    deklaracjaZgodnosci?: boolean;
-    wEwidencjiSrodkowTrwalych?: boolean;
+  machineryEquipment?: {
+    applicable: boolean;
+    name?: string;
+    type?: string;
+    productionDate?: string;
+    operational?: boolean;
+    compliantWithManufacturer?: boolean;
+    usageMethod?: string;
+    certified?: boolean;
+    conformityDeclaration?: boolean;
+    inFixedAssetsRegister?: boolean;
   };
 }
 
-export interface WyjasnieniaPoszkodowanego {
-  rodzajCzynnosciPrzedWypadkiem: string;
-  okolicznosciWypadku: string;
-  przyczynyWypadku: string;
+export interface VictimStatement {
+  activityTypeBeforeAccident: string;
+  accidentCircumstances: string;
+  accidentCauses: string;
   
-  maszynyNarzedzia?: {
-    dotyczy: boolean;
-    nazwa?: string;
-    typ?: string;
-    dataProdukcji?: string;
-    sprawne?: boolean;
-    zgodneZProducentem?: boolean;
-    sposobUzycia?: string;
+  machineryTools?: {
+    applicable: boolean;
+    name?: string;
+    type?: string;
+    productionDate?: string;
+    operational?: boolean;
+    compliantWithManufacturer?: boolean;
+    usageMethod?: string;
   };
   
-  srodkiOchrony?: {
-    stosowane: boolean;
-    rodzaj?: string[];
-    wlasciwe?: boolean;
-    sprawne?: boolean;
+  protectiveMeasures?: {
+    used: boolean;
+    type?: string[];
+    appropriate?: boolean;
+    operational?: boolean;
   };
   
-  asekuracja?: {
-    stosowana: boolean;
-    opis?: string;
+  safetyMeasures?: {
+    used: boolean;
+    description?: string;
   };
   
-  wymaganaLiczbaOsob?: {
-    samodzielnie: boolean;
-    wymaganeDwieOsoby?: boolean;
+  requiredNumberOfPeople?: {
+    independently: boolean;
+    twoPeopleRequired?: boolean;
   };
   
-  bhp?: {
-    przestrzegane: boolean;
-    przygotowanie?: boolean;
-    szkoleniaBHP?: boolean;
-    ocenaRyzykaZawodowego?: boolean;
-    srodkiZmniejszajaceRyzyko?: string;
+  healthAndSafety?: {
+    complied: boolean;
+    preparation?: boolean;
+    healthAndSafetyTraining?: boolean;
+    occupationalRiskAssessment?: boolean;
+    riskReductionMeasures?: string;
   };
   
-  stanTrzezwosci?: {
-    nietrzezwosc: boolean;
-    srodkiOdurzajace: boolean;
-    badanieWymienDnia?: {
-      przeprowadzone: boolean;
-      przezKogo?: string;
+  sobrietyState?: {
+    intoxication: boolean;
+    drugs: boolean;
+    examinationOnAccidentDay?: {
+      conducted: boolean;
+      byWhom?: string;
     };
   };
   
-  organyKontroli?: {
-    podjeteCzynnosci: boolean;
-    nazwaOrganu?: string;
-    adres?: string;
-    numerSprawy?: string;
+  controlAuthorities?: {
+    actionsTaken: boolean;
+    authorityName?: string;
+    address?: string;
+    caseNumber?: string;
     status?: string;
   };
   
-  pierwszaPomoc?: {
-    udzielona: boolean;
-    kiedy?: string;
-    gdzie?: string;
-    nazwaPlacowki?: string;
-    okresHospitalizacji?: string;
-    miejsceHospitalizacji?: string;
-    urazRozpoznany?: string;
-    okresNiezdolnosci?: string;
+  firstAid?: {
+    provided: boolean;
+    when?: string;
+    where?: string;
+    facilityName?: string;
+    hospitalizationPeriod?: string;
+    hospitalizationPlace?: string;
+    recognizedInjury?: string;
+    incapacityPeriod?: string;
   };
   
-  zwolnienieLekarskie?: {
-    wDniuWypadku: boolean;
-    opis?: string;
+  sickLeave?: {
+    onAccidentDay: boolean;
+    description?: string;
   };
 }
 
-export interface Swiadek {
-  imie: string;
-  nazwisko: string;
-  ulica?: string;
-  numerDomu?: string;
-  numerLokalu?: string;
-  kodPocztowy?: string;
-  miejscowosc?: string;
-  panstwo?: string; // jeśli za granicą
-  telefon?: string;
+export interface Witness {
+  firstName: string;
+  lastName: string;
+  street?: string;
+  houseNumber?: string;
+  apartmentNumber?: string;
+  postalCode?: string;
+  city?: string;
+  country?: string; // jeśli za granicą
+  phone?: string;
 }
 
-// Drzewo przyczyn
-export interface WezelDrzewaPrzyczyn {
+// Cause tree
+export interface CauseTreeNode {
   id: string;
-  typ: "zdarzenie" | "przyczyna" | "skutek";
-  opis: string;
-  dzieci?: WezelDrzewaPrzyczyn[];
-  kolejnosc?: number;
+  type: "zdarzenie" | "przyczyna" | "skutek";
+  description: string;
+  children?: CauseTreeNode[];
+  order?: number;
 }
 
-export interface DrzewoPrzyczyn {
-  korzen: WezelDrzewaPrzyczyn;
-  sekwencjaZdarzen: string[];
+export interface CauseTree {
+  root: CauseTreeNode;
+  eventSequence: string[];
 }
 
-// Analiza i sugestie
-export interface AnalizaZgloszenia {
-  kompletnosc: number; // 0-100
-  brakujaceElementy: string[];
-  brakujaceDokumenty: string[];
-  niejasnosci: string[];
-  sugestie: string[];
-  spersonalizowanaListaCzynnosci: string[];
-  prawdopodobienstwoUznania?: number; // 0-100
+// Analysis and suggestions
+export interface ReportAnalysis {
+  completeness: number; // 0-100
+  missingElements: string[];
+  missingDocuments: string[];
+  ambiguities: string[];
+  suggestions: string[];
+  personalizedActionList: string[];
+  recognitionProbability?: number; // 0-100
 }
 
-// ========== II ETAP - MODEL WSPIERAJĄCY DECYZJĘ ==========
+// ========== STAGE II - DECISION SUPPORT MODEL ==========
 
-export interface AnalizaDokumentu {
-  typDokumentu: "zawiadomienie" | "wyjasnienia" | "opinia" | "karta_wypadku" | "medyczny" | "organ_kontroli" | "inny";
-  daneOsobowe?: DaneOsobowePoszkodowanego;
-  daneWypadku?: DaneWypadku;
-  wyjasnienia?: WyjasnieniaPoszkodowanego;
-  daneMedyczne?: DaneMedyczne;
-  swiadkowie?: Swiadek[];
-  wyekstrahowaneDane: Record<string, any>;
-  pewnoscEkstrakcji: number; // 0-100
+export interface DocumentAnalysis {
+  documentType: "zawiadomienie" | "wyjasnienia" | "opinia" | "karta_wypadku" | "medyczny" | "organ_kontroli" | "inny";
+  personalData?: VictimPersonalData;
+  accidentData?: AccidentData;
+  victimStatement?: VictimStatement;
+  medicalData?: MedicalData;
+  witnesses?: Witness[];
+  extractedData: Record<string, any>;
+  extractionConfidence: number; // 0-100
 }
 
-export interface DaneMedyczne {
-  uraz: string;
-  rozpoznanie: string;
-  okresNiezdolnosci?: string;
-  hospitalizacja?: {
-    okres: string;
-    miejsce: string;
+export interface MedicalData {
+  injury: string;
+  diagnosis: string;
+  incapacityPeriod?: string;
+  hospitalization?: {
+    period: string;
+    place: string;
   };
-  pierwszaPomoc?: {
-    data: string;
-    miejsce: string;
-    opis: string;
-  };
-}
-
-export interface Rozbieznosci {
-  dataWypadku?: {
-    rozbiezne: boolean;
-    wartosci: string[];
-    dokumenty: string[];
-  };
-  miejsceWypadku?: {
-    rozbiezne: boolean;
-    wartosci: string[];
-    dokumenty: string[];
-  };
-  danePoszkodowanego?: {
-    rozbiezne: boolean;
-    pola: string[];
-    dokumenty: string[];
-  };
-  daneSwiadkow?: {
-    rozbiezne: boolean;
-    szczegoly: string[];
-    dokumenty: string[];
-  };
-  opisOkolicznosci?: {
-    rozbiezne: boolean;
-    rozbieznosci: string[];
-    dokumenty: string[];
-  };
-  opisPrzyczyn?: {
-    rozbiezne: boolean;
-    rozbieznosci: string[];
-    dokumenty: string[];
+  firstAid?: {
+    date: string;
+    place: string;
+    description: string;
   };
 }
 
-export interface WeryfikacjaElementowDefinicji {
-  naglosc: {
-    spełniony: boolean;
-    pewnosc: number; // 0-100
-    uzasadnienie: string;
-    watpliwosci?: string[];
-    wymaganeDokumenty?: string[];
+export interface Discrepancies {
+  accidentDate?: {
+    inconsistent: boolean;
+    values: string[];
+    documents: string[];
   };
-  przyczynaZewnetrzna: {
-    spełniony: boolean;
-    pewnosc: number;
-    uzasadnienie: string;
-    watpliwosci?: string[];
-    wymaganeDokumenty?: string[];
+  accidentPlace?: {
+    inconsistent: boolean;
+    values: string[];
+    documents: string[];
   };
-  uraz: {
-    spełniony: boolean;
-    pewnosc: number;
-    uzasadnienie: string;
-    watpliwosci?: string[];
-    wymaganaOpiniaLekarza?: boolean;
-    wymaganeDokumenty?: string[];
+  victimData?: {
+    inconsistent: boolean;
+    fields: string[];
+    documents: string[];
   };
-  zwiazekZPraca: {
-    spełniony: boolean;
-    pewnosc: number;
-    uzasadnienie: string;
-    przyczynowy: boolean;
-    czasowy: boolean;
-    miejscowy: boolean;
-    funkcjonalny: boolean;
-    watpliwosci?: string[];
-    wymaganeDokumenty?: string[];
+  witnessData?: {
+    inconsistent: boolean;
+    details: string[];
+    documents: string[];
+  };
+  circumstancesDescription?: {
+    inconsistent: boolean;
+    discrepancies: string[];
+    documents: string[];
+  };
+  causesDescription?: {
+    inconsistent: boolean;
+    discrepancies: string[];
+    documents: string[];
   };
 }
 
-export interface ProjektOpinii {
-  stanowisko: "UZNAĆ" | "NIE UZNAĆ" | "WYMAGA_DODATKOWEJ_ANALIZY";
-  uzasadnienie: string;
-  analizaElementow: WeryfikacjaElementowDefinicji;
-  kwestieDoRozstrzygniecia?: string[];
-  wniosek: string;
-  uzasadnienieWniosku: string;
-  pewnosc: number; // 0-100
-  brakujaceInformacje?: string[];
-  wymaganeDokumenty?: string[];
-  wymaganaOpiniaLekarza?: boolean;
-}
-
-export interface KartaWypadku {
-  numerKarty: string;
-  dataUtworzenia: string;
-  dataWplywuZawiadomienia: string;
-  danePoszkodowanego: DaneOsobowePoszkodowanego;
-  daneDzialalnosci: DaneDzialalnosci;
-  daneWypadku: DaneWypadku;
-  wyjasnienia?: WyjasnieniaPoszkodowanego;
-  swiadkowie?: Swiadek[];
-  decyzja: "UZNANO" | "NIE_UZNANO";
-  uzasadnienie: string;
-  przeszkodyTrudnosci?: string; // jeśli opóźnienie
-  odstapienie?: {
-    powod: string;
-    uzasadnienie: string;
+export interface DefinitionElementsVerification {
+  suddenness: {
+    fulfilled: boolean;
+    confidence: number; // 0-100
+    justification: string;
+    doubts?: string[];
+    requiredDocuments?: string[];
   };
-  uwagiZastrzezenia?: string;
+  externalCause: {
+    fulfilled: boolean;
+    confidence: number;
+    justification: string;
+    doubts?: string[];
+    requiredDocuments?: string[];
+  };
+  injury: {
+    fulfilled: boolean;
+    confidence: number;
+    justification: string;
+    doubts?: string[];
+    doctorOpinionRequired?: boolean;
+    requiredDocuments?: string[];
+  };
+  workRelation: {
+    fulfilled: boolean;
+    confidence: number;
+    justification: string;
+    causal: boolean;
+    temporal: boolean;
+    spatial: boolean;
+    functional: boolean;
+    doubts?: string[];
+    requiredDocuments?: string[];
+  };
 }
 
-// Typy pomocnicze
-export interface Rekomendacja {
-  decyzja: "UZNAĆ" | "NIE UZNAĆ" | "WYMAGA_DODATKOWEJ_ANALIZY";
-  uzasadnienie: string;
-  pewnosc: number; // 0-100
-  brakujaceElementy?: string[];
-  sugestie?: string[];
+export interface OpinionDraft {
+  position: "UZNAĆ" | "NIE UZNAĆ" | "WYMAGA_DODATKOWEJ_ANALIZY";
+  justification: string;
+  elementsAnalysis: DefinitionElementsVerification;
+  issuesToResolve?: string[];
+  conclusion: string;
+  conclusionJustification: string;
+  confidence: number; // 0-100
+  missingInformation?: string[];
+  requiredDocuments?: string[];
+  doctorOpinionRequired?: boolean;
 }
 
+export interface AccidentCard {
+  cardNumber: string;
+  creationDate: string;
+  notificationReceivedDate: string;
+  victimData: VictimPersonalData;
+  businessData: BusinessData;
+  accidentData: AccidentData;
+  victimStatement?: VictimStatement;
+  witnesses?: Witness[];
+  decision: "UZNANO" | "NIE_UZNANO";
+  justification: string;
+  obstaclesDifficulties?: string; // jeśli opóźnienie
+  withdrawal?: {
+    reason: string;
+    justification: string;
+  };
+  remarksReservations?: string;
+}
+
+// Helper types
+export interface Recommendation {
+  decision: "UZNAĆ" | "NIE UZNAĆ" | "WYMAGA_DODATKOWEJ_ANALIZY";
+  justification: string;
+  confidence: number; // 0-100
+  missingElements?: string[];
+  suggestions?: string[];
+}

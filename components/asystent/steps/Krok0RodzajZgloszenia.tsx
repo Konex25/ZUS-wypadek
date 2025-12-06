@@ -7,6 +7,7 @@ import { rodzajZgloszeniaSchema, RodzajZgloszeniaForm } from "@/lib/validation/s
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ExampleDataButton } from "@/components/asystent/ExampleDataButton";
 
 interface Krok0RodzajZgloszeniaProps {
   onNext: (data: RodzajZgloszeniaForm) => void;
@@ -52,8 +53,13 @@ export const Krok0RodzajZgloszenia: React.FC<Krok0RodzajZgloszeniaProps> = React
     }
   };
 
+  const fillExampleData = useCallback(() => {
+    updateSelection("oba");
+  }, [updateSelection]);
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 relative">
+      <ExampleDataButton onFill={fillExampleData} />
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-gray-900 mb-2">
           Wybór rodzaju zgłoszenia
@@ -186,15 +192,22 @@ export const Krok0RodzajZgloszenia: React.FC<Krok0RodzajZgloszeniaProps> = React
       )}
 
       <div className="flex justify-end pt-6">
-        <Button type="submit" variant="primary" size="lg" disabled={!selectedType}>
+        <Button 
+          type="submit" 
+          variant="primary" 
+          size="lg"
+        >
           Dalej →
         </Button>
       </div>
     </form>
   );
 }, (prevProps, nextProps) => {
-  // Custom comparison - tylko re-render jeśli initialData się zmieniło
-  return prevProps.initialData?.rodzajZgloszenia === nextProps.initialData?.rodzajZgloszenia;
+  // Porównaj wszystkie props, które mogą wpływać na renderowanie
+  return (
+    prevProps.initialData?.rodzajZgloszenia === nextProps.initialData?.rodzajZgloszenia &&
+    prevProps.onNext === nextProps.onNext
+  );
 });
 
 Krok0RodzajZgloszenia.displayName = "Krok0RodzajZgloszenia";

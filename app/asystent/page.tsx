@@ -7,21 +7,21 @@ import { Krok1DaneOsobowe } from "@/components/asystent/steps/Krok1DaneOsobowe";
 import { Krok2Adresy } from "@/components/asystent/steps/Krok2Adresy";
 import { Krok4DaneOWypadku } from "@/components/asystent/steps/Krok4DaneOWypadku";
 import { RodzajZgloszeniaForm, DaneOsoboweForm, DaneWypadkuForm } from "@/lib/validation/schemas";
-import { ZgloszenieWypadku } from "@/types";
+import { AccidentReport } from "@/types";
 
 export default function AsystentPage() {
-  const [formData, setFormData] = useState<Partial<ZgloszenieWypadku>>({});
+  const [formData, setFormData] = useState<Partial<AccidentReport>>({});
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
 
   const handleKrok0Complete = useCallback((data: RodzajZgloszeniaForm) => {
     setFormData((prev) => {
       // Sprawdź czy wartość się faktycznie zmieniła
-      if (prev.rodzajZgloszenia === data.rodzajZgloszenia) {
+      if (prev.notificationType === data.rodzajZgloszenia) {
         return prev; // Zwróć ten sam obiekt jeśli nic się nie zmieniło
       }
       return {
         ...prev,
-        rodzajZgloszenia: data.rodzajZgloszenia,
+        notificationType: data.rodzajZgloszenia,
       };
     });
   }, []);
@@ -29,50 +29,136 @@ export default function AsystentPage() {
   const handleKrok1Complete = useCallback((data: DaneOsoboweForm) => {
     setFormData((prev) => ({
       ...prev,
-      daneOsobowe: {
+      personalData: {
         pesel: data.pesel,
-        dokumentTozsamosci: {
-          rodzaj: data.dokumentTozsamosci.rodzaj,
-          seria: data.dokumentTozsamosci.seria,
-          numer: data.dokumentTozsamosci.numer,
+        idDocument: {
+          type: data.dokumentTozsamosci.rodzaj,
+          series: data.dokumentTozsamosci.seria,
+          number: data.dokumentTozsamosci.numer,
         },
-        imie: data.imie,
-        nazwisko: data.nazwisko,
-        dataUrodzenia: data.dataUrodzenia,
-        miejsceUrodzenia: data.miejsceUrodzenia,
-        telefon: data.telefon,
+        firstName: data.imie,
+        lastName: data.nazwisko,
+        dateOfBirth: data.dataUrodzenia,
+        placeOfBirth: data.miejsceUrodzenia,
+        phone: data.telefon,
         email: data.email,
       },
     }));
   }, []);
 
   const handleKrok2Complete = useCallback((data: any) => {
+    // Konwersja z formatu formularza (polskie nazwy) do formatu interfejsu (angielskie nazwy)
     setFormData((prev) => ({
       ...prev,
-      adresy: data,
+      addresses: {
+        residentialAddress: {
+          street: data.adresZamieszkania.ulica,
+          houseNumber: data.adresZamieszkania.numerDomu,
+          apartmentNumber: data.adresZamieszkania.numerLokalu,
+          postalCode: data.adresZamieszkania.kodPocztowy,
+          city: data.adresZamieszkania.miejscowosc,
+          country: data.adresZamieszkania.panstwo,
+        },
+        lastResidentialAddressInPoland: data.adresOstatniegoZamieszkaniaWPolsce ? {
+          street: data.adresOstatniegoZamieszkaniaWPolsce.ulica,
+          houseNumber: data.adresOstatniegoZamieszkaniaWPolsce.numerDomu,
+          apartmentNumber: data.adresOstatniegoZamieszkaniaWPolsce.numerLokalu,
+          postalCode: data.adresOstatniegoZamieszkaniaWPolsce.kodPocztowy,
+          city: data.adresOstatniegoZamieszkaniaWPolsce.miejscowosc,
+          country: data.adresOstatniegoZamieszkaniaWPolsce.panstwo,
+        } : undefined,
+        correspondenceAddress: data.adresDoKorespondencji ? {
+          type: data.adresDoKorespondencji.typ,
+          address: data.adresDoKorespondencji.adres ? {
+            street: data.adresDoKorespondencji.adres.ulica,
+            houseNumber: data.adresDoKorespondencji.adres.numerDomu,
+            apartmentNumber: data.adresDoKorespondencji.adres.numerLokalu,
+            postalCode: data.adresDoKorespondencji.adres.kodPocztowy,
+            city: data.adresDoKorespondencji.adres.miejscowosc,
+            country: data.adresDoKorespondencji.adres.panstwo,
+          } : undefined,
+          posteRestante: data.adresDoKorespondencji.posteRestante ? {
+            postalCode: data.adresDoKorespondencji.posteRestante.kodPocztowy,
+            postOfficeName: data.adresDoKorespondencji.posteRestante.nazwaPlacowki,
+          } : undefined,
+          postOfficeBox: data.adresDoKorespondencji.skrytka ? {
+            number: data.adresDoKorespondencji.skrytka.numer,
+            postalCode: data.adresDoKorespondencji.skrytka.kodPocztowy,
+            postOfficeName: data.adresDoKorespondencji.skrytka.nazwaPlacowki,
+          } : undefined,
+        } : undefined,
+        businessAddress: {
+          street: data.adresDzialalnosci.ulica,
+          houseNumber: data.adresDzialalnosci.numerDomu,
+          apartmentNumber: data.adresDzialalnosci.numerLokalu,
+          postalCode: data.adresDzialalnosci.kodPocztowy,
+          city: data.adresDzialalnosci.miejscowosc,
+          phone: data.adresDzialalnosci.telefon,
+        },
+      },
     }));
   }, []);
 
   const handleKrok4Complete = useCallback((data: DaneWypadkuForm) => {
     setFormData((prev) => ({
       ...prev,
-      daneWypadku: {
-        dataWypadku: data.dataWypadku,
-        godzinaWypadku: data.godzinaWypadku,
-        miejsceWypadku: data.miejsceWypadku,
-        planowanaGodzinaRozpoczecia: data.planowanaGodzinaRozpoczecia,
-        planowanaGodzinaZakonczenia: data.planowanaGodzinaZakonczenia,
-        rodzajUrazow: data.rodzajUrazow,
-        szczegolowyOpisOkolicznosci: data.szczegolowyOpisOkolicznosci,
-        szczegolowyOpisPrzyczyn: data.szczegolowyOpisPrzyczyn,
-        miejsceWypadkuSzczegoly: data.miejsceWypadkuSzczegoly,
-        naglosc: data.naglosc,
-        przyczynaZewnetrzna: data.przyczynaZewnetrzna,
-        uraz: data.uraz,
-        zwiazekZPraca: data.zwiazekZPraca,
-        pierwszaPomoc: data.pierwszaPomoc,
-        postepowanieOrganow: data.postepowanieOrganow,
-        maszynyUrzadzenia: data.maszynyUrzadzenia,
+      accidentData: {
+        accidentDate: data.dataWypadku,
+        accidentTime: data.godzinaWypadku,
+        accidentPlace: data.miejsceWypadku,
+        plannedStartTime: data.planowanaGodzinaRozpoczecia,
+        plannedEndTime: data.planowanaGodzinaZakonczenia,
+        injuryType: data.rodzajUrazow,
+        detailedCircumstancesDescription: data.szczegolowyOpisOkolicznosci,
+        detailedCausesDescription: data.szczegolowyOpisPrzyczyn,
+        accidentPlaceDetails: data.miejsceWypadkuSzczegoly,
+        suddenness: {
+          confirmed: data.naglosc.potwierdzona,
+          description: data.naglosc.opis,
+          duration: data.naglosc.czasTrwania,
+        },
+        externalCause: {
+          confirmed: data.przyczynaZewnetrzna.potwierdzona,
+          type: data.przyczynaZewnetrzna.typ,
+          description: data.przyczynaZewnetrzna.opis,
+        },
+        injury: {
+          confirmed: data.uraz.potwierdzony,
+          type: data.uraz.rodzaj,
+          location: data.uraz.lokalizacja,
+          medicalDocumentation: data.uraz.dokumentacjaMedyczna,
+        },
+        workRelation: {
+          causal: data.zwiazekZPraca.przyczynowy,
+          temporal: data.zwiazekZPraca.czasowy,
+          spatial: data.zwiazekZPraca.miejscowy,
+          functional: data.zwiazekZPraca.funkcjonalny,
+          description: data.zwiazekZPraca.opis,
+        },
+        firstAid: data.pierwszaPomoc ? {
+          provided: data.pierwszaPomoc.udzielona,
+          facilityName: data.pierwszaPomoc.nazwaPlacowki,
+          facilityAddress: data.pierwszaPomoc.adresPlacowki,
+        } : undefined,
+        authorityProceedings: data.postepowanieOrganow ? {
+          conducted: data.postepowanieOrganow.prowadzone,
+          authorityName: data.postepowanieOrganow.nazwaOrganu,
+          address: data.postepowanieOrganow.adres,
+          caseNumber: data.postepowanieOrganow.numerSprawy,
+          status: data.postepowanieOrganow.status,
+        } : undefined,
+        machineryEquipment: data.maszynyUrzadzenia ? {
+          applicable: data.maszynyUrzadzenia.dotyczy,
+          name: data.maszynyUrzadzenia.nazwa,
+          type: data.maszynyUrzadzenia.typ,
+          productionDate: data.maszynyUrzadzenia.dataProdukcji,
+          operational: data.maszynyUrzadzenia.sprawne,
+          compliantWithManufacturer: data.maszynyUrzadzenia.zgodneZProducentem,
+          usageMethod: data.maszynyUrzadzenia.sposobUzycia,
+          certified: data.maszynyUrzadzenia.atest,
+          conformityDeclaration: data.maszynyUrzadzenia.deklaracjaZgodnosci,
+          inFixedAssetsRegister: data.maszynyUrzadzenia.wEwidencjiSrodkowTrwalych,
+        } : undefined,
       },
     }));
   }, []);
@@ -89,72 +175,176 @@ export default function AsystentPage() {
   }, []);
 
   const goToPreviousStep = useCallback(() => {
-    if (currentStepIndex > 0) {
-      setCurrentStepIndex(currentStepIndex - 1);
-    }
-  }, [currentStepIndex]);
+    setCurrentStepIndex((prev) => {
+      if (prev > 0) {
+        return prev - 1;
+      }
+      return prev;
+    });
+  }, []);
 
   const goToNextStep = useCallback(() => {
-    if (currentStepIndex < steps.length - 1) {
-      setCurrentStepIndex(currentStepIndex + 1);
-    }
-  }, [currentStepIndex]);
+    setCurrentStepIndex((prev) => {
+      // Używamy funkcjonalnej aktualizacji, aby uniknąć zależności od steps
+      // Faktyczna liczba kroków to 4 (indeksy 0-3), więc maksymalny indeks to 3
+      const MAX_STEP_INDEX = 3;
+      if (prev < MAX_STEP_INDEX) {
+        return prev + 1;
+      }
+      return prev;
+    });
+  }, []);
 
   // Memoize initialData żeby nie tworzyć nowego obiektu za każdym razem
   const krok0InitialData = useMemo(() => {
-    return formData.rodzajZgloszenia ? { rodzajZgloszenia: formData.rodzajZgloszenia } : undefined;
-  }, [formData.rodzajZgloszenia]);
+    return formData.notificationType ? { rodzajZgloszenia: formData.notificationType } : undefined;
+  }, [formData.notificationType]);
 
   // Memoize initialData dla kroku 1
   const krok1InitialData = useMemo(() => {
-    if (!formData.daneOsobowe) return undefined;
-    // Konwersja z typu ZgloszenieWypadku do typu formularza
+    if (!formData.personalData) return undefined;
+    // Konwersja z typu AccidentReport do typu formularza
     return {
-      pesel: formData.daneOsobowe.pesel,
+      pesel: formData.personalData.pesel,
       dokumentTozsamosci: {
-        rodzaj: formData.daneOsobowe.dokumentTozsamosci.rodzaj as "dowód osobisty" | "paszport" | "inny",
-        seria: formData.daneOsobowe.dokumentTozsamosci.seria,
-        numer: formData.daneOsobowe.dokumentTozsamosci.numer,
+        rodzaj: formData.personalData.idDocument.type as "dowód osobisty" | "paszport" | "inny",
+        seria: formData.personalData.idDocument.series,
+        numer: formData.personalData.idDocument.number,
       },
-      imie: formData.daneOsobowe.imie,
-      nazwisko: formData.daneOsobowe.nazwisko,
-      dataUrodzenia: formData.daneOsobowe.dataUrodzenia,
-      miejsceUrodzenia: formData.daneOsobowe.miejsceUrodzenia,
-      telefon: formData.daneOsobowe.telefon,
-      email: formData.daneOsobowe.email,
+      imie: formData.personalData.firstName,
+      nazwisko: formData.personalData.lastName,
+      dataUrodzenia: formData.personalData.dateOfBirth,
+      miejsceUrodzenia: formData.personalData.placeOfBirth,
+      telefon: formData.personalData.phone,
+      email: formData.personalData.email,
     };
-  }, [formData.daneOsobowe]);
+  }, [formData.personalData]);
 
-  // Memoize initialData dla kroku 2
+  // Memoize initialData dla kroku 2 - konwersja z formatu interfejsu do formatu formularza
   const krok2InitialData = useMemo(() => {
-    return formData.adresy;
-  }, [formData.adresy]);
-
-  // Memoize initialData dla kroku 4
-  const krok4InitialData = useMemo(() => {
-    if (!formData.daneWypadku) return undefined;
+    if (!formData.addresses) return undefined;
+    if (!formData.addresses.residentialAddress || !formData.addresses.businessAddress) return undefined;
+    
     return {
-      dataWypadku: formData.daneWypadku.dataWypadku,
-      godzinaWypadku: formData.daneWypadku.godzinaWypadku,
-      miejsceWypadku: formData.daneWypadku.miejsceWypadku,
-      planowanaGodzinaRozpoczecia: formData.daneWypadku.planowanaGodzinaRozpoczecia,
-      planowanaGodzinaZakonczenia: formData.daneWypadku.planowanaGodzinaZakonczenia,
-      rodzajUrazow: formData.daneWypadku.rodzajUrazow,
-      szczegolowyOpisOkolicznosci: formData.daneWypadku.szczegolowyOpisOkolicznosci,
-      szczegolowyOpisPrzyczyn: formData.daneWypadku.szczegolowyOpisPrzyczyn,
-      miejsceWypadkuSzczegoly: formData.daneWypadku.miejsceWypadkuSzczegoly,
-      naglosc: formData.daneWypadku.naglosc,
-      przyczynaZewnetrzna: {
-        ...formData.daneWypadku.przyczynaZewnetrzna,
-        typ: formData.daneWypadku.przyczynaZewnetrzna.typ as "maszyny" | "energia" | "temperatura" | "chemikalia" | "sily_natury" | "warunki_pracy" | "inne",
+      adresZamieszkania: {
+        ulica: formData.addresses.residentialAddress.street || "",
+        numerDomu: formData.addresses.residentialAddress.houseNumber || "",
+        numerLokalu: formData.addresses.residentialAddress.apartmentNumber,
+        kodPocztowy: formData.addresses.residentialAddress.postalCode || "",
+        miejscowosc: formData.addresses.residentialAddress.city || "",
+        panstwo: formData.addresses.residentialAddress.country,
       },
-      uraz: formData.daneWypadku.uraz,
-      zwiazekZPraca: formData.daneWypadku.zwiazekZPraca,
-      pierwszaPomoc: formData.daneWypadku.pierwszaPomoc,
-      postepowanieOrganow: formData.daneWypadku.postepowanieOrganow,
-      maszynyUrzadzenia: formData.daneWypadku.maszynyUrzadzenia,
+      adresOstatniegoZamieszkaniaWPolsce: formData.addresses.lastResidentialAddressInPoland ? {
+        ulica: formData.addresses.lastResidentialAddressInPoland.street || "",
+        numerDomu: formData.addresses.lastResidentialAddressInPoland.houseNumber || "",
+        numerLokalu: formData.addresses.lastResidentialAddressInPoland.apartmentNumber,
+        kodPocztowy: formData.addresses.lastResidentialAddressInPoland.postalCode || "",
+        miejscowosc: formData.addresses.lastResidentialAddressInPoland.city || "",
+        panstwo: formData.addresses.lastResidentialAddressInPoland.country,
+      } : undefined,
+      adresDoKorespondencji: formData.addresses.correspondenceAddress ? {
+        typ: formData.addresses.correspondenceAddress.type,
+        adres: formData.addresses.correspondenceAddress.address ? {
+          ulica: formData.addresses.correspondenceAddress.address.street || "",
+          numerDomu: formData.addresses.correspondenceAddress.address.houseNumber || "",
+          numerLokalu: formData.addresses.correspondenceAddress.address.apartmentNumber,
+          kodPocztowy: formData.addresses.correspondenceAddress.address.postalCode || "",
+          miejscowosc: formData.addresses.correspondenceAddress.address.city || "",
+          panstwo: formData.addresses.correspondenceAddress.address.country,
+        } : undefined,
+        posteRestante: formData.addresses.correspondenceAddress.posteRestante ? {
+          kodPocztowy: formData.addresses.correspondenceAddress.posteRestante.postalCode || "",
+          nazwaPlacowki: formData.addresses.correspondenceAddress.posteRestante.postOfficeName || "",
+        } : undefined,
+        skrytka: formData.addresses.correspondenceAddress.postOfficeBox ? {
+          numer: formData.addresses.correspondenceAddress.postOfficeBox.number || "",
+          kodPocztowy: formData.addresses.correspondenceAddress.postOfficeBox.postalCode || "",
+          nazwaPlacowki: formData.addresses.correspondenceAddress.postOfficeBox.postOfficeName || "",
+        } : undefined,
+      } : undefined,
+      adresDzialalnosci: {
+        ulica: formData.addresses.businessAddress.street || "",
+        numerDomu: formData.addresses.businessAddress.houseNumber || "",
+        numerLokalu: formData.addresses.businessAddress.apartmentNumber,
+        kodPocztowy: formData.addresses.businessAddress.postalCode || "",
+        miejscowosc: formData.addresses.businessAddress.city || "",
+        telefon: formData.addresses.businessAddress.phone,
+      },
     };
-  }, [formData.daneWypadku]);
+  }, [formData.addresses]);
+
+  // Memoize initialData dla kroku 4 - konwersja z formatu interfejsu do formatu formularza
+  const krok4InitialData = useMemo(() => {
+    if (!formData.accidentData) return undefined;
+    // Sprawdź czy wszystkie wymagane zagnieżdżone obiekty istnieją
+    if (
+      !formData.accidentData.suddenness ||
+      !formData.accidentData.externalCause ||
+      !formData.accidentData.injury ||
+      !formData.accidentData.workRelation
+    ) {
+      return undefined;
+    }
+    
+    return {
+      dataWypadku: formData.accidentData.accidentDate || "",
+      godzinaWypadku: formData.accidentData.accidentTime || "",
+      miejsceWypadku: formData.accidentData.accidentPlace || "",
+      planowanaGodzinaRozpoczecia: formData.accidentData.plannedStartTime || "",
+      planowanaGodzinaZakonczenia: formData.accidentData.plannedEndTime || "",
+      rodzajUrazow: formData.accidentData.injuryType || "",
+      szczegolowyOpisOkolicznosci: formData.accidentData.detailedCircumstancesDescription || "",
+      szczegolowyOpisPrzyczyn: formData.accidentData.detailedCausesDescription || "",
+      miejsceWypadkuSzczegoly: formData.accidentData.accidentPlaceDetails || "",
+      naglosc: {
+        potwierdzona: formData.accidentData.suddenness.confirmed || false,
+        opis: formData.accidentData.suddenness.description || "",
+        czasTrwania: formData.accidentData.suddenness.duration,
+      },
+      przyczynaZewnetrzna: {
+        potwierdzona: formData.accidentData.externalCause.confirmed || false,
+        typ: (formData.accidentData.externalCause.type || "inne") as "maszyny" | "energia" | "temperatura" | "chemikalia" | "sily_natury" | "warunki_pracy" | "inne",
+        opis: formData.accidentData.externalCause.description || "",
+      },
+      uraz: {
+        potwierdzony: formData.accidentData.injury.confirmed || false,
+        rodzaj: formData.accidentData.injury.type || "",
+        lokalizacja: formData.accidentData.injury.location || "",
+        dokumentacjaMedyczna: formData.accidentData.injury.medicalDocumentation,
+      },
+      zwiazekZPraca: {
+        przyczynowy: formData.accidentData.workRelation.causal || false,
+        czasowy: formData.accidentData.workRelation.temporal || false,
+        miejscowy: formData.accidentData.workRelation.spatial || false,
+        funkcjonalny: formData.accidentData.workRelation.functional || false,
+        opis: formData.accidentData.workRelation.description || "",
+      },
+      pierwszaPomoc: formData.accidentData.firstAid ? {
+        udzielona: formData.accidentData.firstAid.provided || false,
+        nazwaPlacowki: formData.accidentData.firstAid.facilityName,
+        adresPlacowki: formData.accidentData.firstAid.facilityAddress,
+      } : undefined,
+      postepowanieOrganow: formData.accidentData.authorityProceedings ? {
+        prowadzone: formData.accidentData.authorityProceedings.conducted || false,
+        nazwaOrganu: formData.accidentData.authorityProceedings.authorityName,
+        adres: formData.accidentData.authorityProceedings.address,
+        numerSprawy: formData.accidentData.authorityProceedings.caseNumber,
+        status: formData.accidentData.authorityProceedings.status,
+      } : undefined,
+      maszynyUrzadzenia: formData.accidentData.machineryEquipment ? {
+        dotyczy: formData.accidentData.machineryEquipment.applicable || false,
+        nazwa: formData.accidentData.machineryEquipment.name,
+        typ: formData.accidentData.machineryEquipment.type,
+        dataProdukcji: formData.accidentData.machineryEquipment.productionDate,
+        sprawne: formData.accidentData.machineryEquipment.operational,
+        zgodneZProducentem: formData.accidentData.machineryEquipment.compliantWithManufacturer,
+        sposobUzycia: formData.accidentData.machineryEquipment.usageMethod,
+        atest: formData.accidentData.machineryEquipment.certified,
+        deklaracjaZgodnosci: formData.accidentData.machineryEquipment.conformityDeclaration,
+        wEwidencjiSrodkowTrwalych: formData.accidentData.machineryEquipment.inFixedAssetsRegister,
+      } : undefined,
+    };
+  }, [formData.accidentData]);
 
   const steps: WizardStep[] = useMemo(() => [
     {
@@ -164,7 +354,10 @@ export default function AsystentPage() {
       component: () => (
         <Krok0RodzajZgloszenia
           key="krok0"
-          onNext={handleKrok0Complete}
+          onNext={(data) => {
+            handleKrok0Complete(data);
+            goToNextStep();
+          }}
           initialData={krok0InitialData}
         />
       ),

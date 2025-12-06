@@ -9,6 +9,7 @@ import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ExampleDataButton } from "@/components/asystent/ExampleDataButton";
 import { z } from "zod";
 
 // Schemat dla wszystkich adresów
@@ -72,6 +73,22 @@ export const Krok2Adresy: React.FC<Krok2AdresyProps> = React.memo(({
 
   const onSubmit = (data: AdresyForm) => {
     onNext(data);
+  };
+
+  const fillExampleData = () => {
+    // Adres zamieszkania
+    setValue("adresZamieszkania.ulica", "ul. Przykładowa");
+    setValue("adresZamieszkania.numerDomu", "10");
+    setValue("adresZamieszkania.numerLokalu", "5");
+    setValue("adresZamieszkania.kodPocztowy", "00-001");
+    setValue("adresZamieszkania.miejscowosc", "Warszawa");
+    
+    // Adres działalności
+    setValue("adresDzialalnosci.ulica", "ul. Biznesowa");
+    setValue("adresDzialalnosci.numerDomu", "20");
+    setValue("adresDzialalnosci.kodPocztowy", "00-002");
+    setValue("adresDzialalnosci.miejscowosc", "Warszawa");
+    setValue("adresDzialalnosci.telefon", "+48 987 654 321");
   };
 
   const getError = (path: string): string | undefined => {
@@ -156,7 +173,8 @@ export const Krok2Adresy: React.FC<Krok2AdresyProps> = React.memo(({
   );
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 relative">
+      <ExampleDataButton onFill={fillExampleData} />
       <div className="space-y-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">
           Adresy
@@ -302,7 +320,12 @@ export const Krok2Adresy: React.FC<Krok2AdresyProps> = React.memo(({
     </form>
   );
 }, (prevProps, nextProps) => {
-  return JSON.stringify(prevProps.initialData) === JSON.stringify(nextProps.initialData);
+  // Porównaj wszystkie props, które mogą wpływać na renderowanie
+  return (
+    JSON.stringify(prevProps.initialData) === JSON.stringify(nextProps.initialData) &&
+    prevProps.onNext === nextProps.onNext &&
+    prevProps.onPrevious === nextProps.onPrevious
+  );
 });
 
 Krok2Adresy.displayName = "Krok2Adresy";
