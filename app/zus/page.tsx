@@ -62,14 +62,18 @@ export default function ZUSPage() {
   const handleFilesUpload = async (files: File[]) => {
     if (files.length === 0) return;
 
+    // Validate NIP - must be exactly 10 digits
+    if (!nip || nip.length !== 10) {
+      setUploadError("NIP jest wymagany i musi zawierać dokładnie 10 cyfr");
+      return;
+    }
+
     setIsUploading(true);
     setUploadError(null);
 
     const formData = new FormData();
     files.forEach((file) => formData.append("files", file));
-    if (nip.trim()) {
-      formData.append("nip", nip.trim());
-    }
+    formData.append("nip", nip.trim());
 
     try {
       const response = await fetch("/api/documents", {
@@ -204,9 +208,9 @@ export default function ZUSPage() {
               <div className="p-8">
                 <div className="mb-6">
                   <Input
-                    label="NIP (opcjonalnie)"
+                    label="NIP *"
                     type="text"
-                    placeholder="Wprowadź NIP"
+                    placeholder="Wprowadź NIP (10 cyfr)"
                     value={nip}
                     onChange={(e) => {
                       const value = e.target.value.replace(/\D/g, ""); // Tylko cyfry
@@ -214,8 +218,19 @@ export default function ZUSPage() {
                         setNip(value);
                       }
                     }}
-                    helperText="10 cyfr"
+                    helperText={
+                      nip.length > 0 && nip.length !== 10
+                        ? `${nip.length}/10 cyfr`
+                        : "Wymagane - 10 cyfr"
+                    }
                     disabled={isUploading}
+                    className={
+                      nip.length > 0 && nip.length !== 10
+                        ? "border-amber-400"
+                        : nip.length === 10
+                        ? "border-emerald-400"
+                        : ""
+                    }
                   />
                 </div>
                 <div
@@ -547,6 +562,194 @@ export default function ZUSPage() {
                         </div>
                       </div>
 
+                      {/* Verification Results Section */}
+                      {selectedCase.aiOpinion.verificationResults && (
+                        <div className="space-y-3">
+                          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                            Weryfikacje systemowe
+                          </p>
+
+                          {/* Insurance Verification */}
+                          <div className="p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+                            <div className="flex items-start gap-3">
+                              <span className="text-xl">✅</span>
+                              <div>
+                                <p className="font-semibold text-emerald-900">
+                                  Weryfikacja ubezpieczenia wypadkowego
+                                </p>
+                                <p className="text-sm text-emerald-700 mt-1">
+                                  {
+                                    selectedCase.aiOpinion.verificationResults
+                                      .insuranceVerification.message
+                                  }
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Company Verification */}
+                          {selectedCase.aiOpinion.verificationResults
+                            .companyVerification && (
+                            <div
+                              className={`p-4 rounded-lg border ${
+                                selectedCase.aiOpinion.verificationResults
+                                  .companyVerification.verified
+                                  ? "bg-emerald-50 border-emerald-200"
+                                  : "bg-amber-50 border-amber-200"
+                              }`}
+                            >
+                              <div className="flex items-start gap-3">
+                                <span className="text-xl">
+                                  {selectedCase.aiOpinion.verificationResults
+                                    .companyVerification.verified
+                                    ? "✅"
+                                    : "⚠️"}
+                                </span>
+                                <div>
+                                  <p
+                                    className={`font-semibold ${
+                                      selectedCase.aiOpinion.verificationResults
+                                        .companyVerification.verified
+                                        ? "text-emerald-900"
+                                        : "text-amber-900"
+                                    }`}
+                                  >
+                                    Weryfikacja danych działalności gospodarczej
+                                  </p>
+                                  <p
+                                    className={`text-sm mt-1 ${
+                                      selectedCase.aiOpinion.verificationResults
+                                        .companyVerification.verified
+                                        ? "text-emerald-700"
+                                        : "text-amber-700"
+                                    }`}
+                                  >
+                                    {
+                                      selectedCase.aiOpinion.verificationResults
+                                        .companyVerification.message
+                                    }
+                                  </p>
+                                  {selectedCase.aiOpinion.verificationResults
+                                    .companyVerification.companyName && (
+                                    <p className="text-sm text-emerald-600 mt-1">
+                                      <strong>Firma:</strong>{" "}
+                                      {
+                                        selectedCase.aiOpinion
+                                          .verificationResults
+                                          .companyVerification.companyName
+                                      }
+                                    </p>
+                                  )}
+                                  {selectedCase.aiOpinion.verificationResults
+                                    .companyVerification.pkd && (
+                                    <p className="text-sm text-emerald-600 mt-1">
+                                      <strong>PKD:</strong>{" "}
+                                      {
+                                        selectedCase.aiOpinion
+                                          .verificationResults
+                                          .companyVerification.pkd
+                                      }
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* A1 Form Verification (if applicable) */}
+                          {selectedCase.aiOpinion.verificationResults
+                            .a1FormVerification && (
+                            <div
+                              className={`p-4 rounded-lg border ${
+                                selectedCase.aiOpinion.verificationResults
+                                  .a1FormVerification.hasA1Form
+                                  ? "bg-emerald-50 border-emerald-200"
+                                  : "bg-amber-50 border-amber-200"
+                              }`}
+                            >
+                              <div className="flex items-start gap-3">
+                                <span className="text-xl">
+                                  {selectedCase.aiOpinion.verificationResults
+                                    .a1FormVerification.hasA1Form
+                                    ? "✅"
+                                    : "⚠️"}
+                                </span>
+                                <div>
+                                  <p
+                                    className={`font-semibold ${
+                                      selectedCase.aiOpinion.verificationResults
+                                        .a1FormVerification.hasA1Form
+                                        ? "text-emerald-900"
+                                        : "text-amber-900"
+                                    }`}
+                                  >
+                                    Weryfikacja formularza A1 (wypadek w UE)
+                                  </p>
+                                  <p
+                                    className={`text-sm mt-1 ${
+                                      selectedCase.aiOpinion.verificationResults
+                                        .a1FormVerification.hasA1Form
+                                        ? "text-emerald-700"
+                                        : "text-amber-700"
+                                    }`}
+                                  >
+                                    {
+                                      selectedCase.aiOpinion.verificationResults
+                                        .a1FormVerification.message
+                                    }
+                                  </p>
+                                  {selectedCase.aiOpinion.verificationResults
+                                    .a1FormVerification
+                                    .applicableLegislation && (
+                                    <p className="text-sm text-emerald-600 mt-1">
+                                      <strong>Właściwe ustawodawstwo:</strong>{" "}
+                                      {
+                                        selectedCase.aiOpinion
+                                          .verificationResults
+                                          .a1FormVerification
+                                          .applicableLegislation
+                                      }
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Injury Verification - Medical Documentation Notice */}
+                          {selectedCase.aiOpinion.verificationResults
+                            .injuryVerification.hasInjury && (
+                            <div className="p-4 bg-amber-50 rounded-lg border-2 border-amber-300">
+                              <div className="flex items-start gap-3">
+                                <span className="text-xl">📋</span>
+                                <div>
+                                  <p className="font-semibold text-amber-900">
+                                    Wymagana dokumentacja medyczna
+                                  </p>
+                                  <p className="text-sm text-amber-700 mt-1">
+                                    {
+                                      selectedCase.aiOpinion.verificationResults
+                                        .injuryVerification.message
+                                    }
+                                  </p>
+                                  {selectedCase.aiOpinion.verificationResults
+                                    .injuryVerification.injuryDescription && (
+                                    <p className="text-sm text-amber-800 mt-2">
+                                      <strong>Stwierdzony uraz:</strong>{" "}
+                                      {
+                                        selectedCase.aiOpinion
+                                          .verificationResults
+                                          .injuryVerification.injuryDescription
+                                      }
+                                    </p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
                       {/* Details Grid */}
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="p-4 bg-slate-50 rounded-lg">
@@ -563,6 +766,13 @@ export default function ZUSPage() {
                           </p>
                           <p className="text-slate-900 font-medium">
                             {selectedCase.aiOpinion.place || "—"}
+                            {selectedCase.aiOpinion.country &&
+                              selectedCase.aiOpinion.country.toLowerCase() !==
+                                "polska" && (
+                                <span className="ml-2 text-blue-600">
+                                  ({selectedCase.aiOpinion.country})
+                                </span>
+                              )}
                           </p>
                         </div>
                       </div>

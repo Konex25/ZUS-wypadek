@@ -430,13 +430,51 @@ export interface Justification {
   justification: string;
 }
 
+export interface InsuranceVerification {
+  hasAccidentInsurance: boolean;
+  verificationDate: string;
+  message: string;
+}
+
+export interface A1FormVerification {
+  isRequired: boolean; // true if accident happened outside Poland in EU
+  hasA1Form: boolean;
+  applicableLegislation?: string; // Which country's legislation applies
+  message: string;
+}
+
+export interface InjuryVerification {
+  hasInjury: boolean;
+  injuryDescription?: string;
+  requiresMedicalDocumentation: boolean;
+  message: string;
+}
+
+export interface CompanyVerification {
+  verified: boolean;
+  companyName?: string;
+  pkd?: string;
+  message: string;
+}
+
+export interface VerificationResults {
+  insuranceVerification: InsuranceVerification;
+  a1FormVerification?: A1FormVerification;
+  injuryVerification: InjuryVerification;
+  companyVerification?: CompanyVerification;
+}
+
 export interface AIOpinion {
   date: string; // YYYY-MM-DD
   place: string;
+  country?: string; // Country where accident happened
   description: string;
   causes: string;
   decision: Decision;
   justifications: Justification[];
+  hasInjury: boolean;
+  injuryDescription?: string;
+  verificationResults?: VerificationResults;
 }
 
 export interface Case {
