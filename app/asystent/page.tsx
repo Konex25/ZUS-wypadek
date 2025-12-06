@@ -125,6 +125,14 @@ export default function AsystentPage() {
             postalCode: "",
             city: "",
           },
+          lastResidentialAddressInPoland: data.osobaZawiadamiajaca.adresOstatniegoZamieszkaniaWPolsce ? {
+            street: data.osobaZawiadamiajaca.adresOstatniegoZamieszkaniaWPolsce.ulica,
+            houseNumber: data.osobaZawiadamiajaca.adresOstatniegoZamieszkaniaWPolsce.numerDomu,
+            apartmentNumber: data.osobaZawiadamiajaca.adresOstatniegoZamieszkaniaWPolsce.numerLokalu,
+            postalCode: data.osobaZawiadamiajaca.adresOstatniegoZamieszkaniaWPolsce.kodPocztowy,
+            city: data.osobaZawiadamiajaca.adresOstatniegoZamieszkaniaWPolsce.miejscowosc,
+            country: "Polska",
+          } : undefined,
           businessAddress: {
             street: "",
             houseNumber: "",
@@ -176,6 +184,11 @@ export default function AsystentPage() {
             number: data.adresDoKorespondencji.skrytka.numer,
             postalCode: data.adresDoKorespondencji.skrytka.kodPocztowy,
             postOfficeName: data.adresDoKorespondencji.skrytka.nazwaPlacowki,
+          } : undefined,
+          postOfficeBoxP: data.adresDoKorespondencji.przegrodka ? {
+            number: data.adresDoKorespondencji.przegrodka.numer,
+            postalCode: data.adresDoKorespondencji.przegrodka.kodPocztowy,
+            postOfficeName: data.adresDoKorespondencji.przegrodka.nazwaPlacowki,
           } : undefined,
         } : undefined,
         businessAddress: {
@@ -443,6 +456,14 @@ export default function AsystentPage() {
           miejscowosc: formData.representativeData.addresses.residentialAddress.city || "",
           panstwo: formData.representativeData.addresses.residentialAddress.country,
         } : undefined,
+        mieszkaZaGranica: !!formData.representativeData.addresses?.lastResidentialAddressInPoland,
+        adresOstatniegoZamieszkaniaWPolsce: formData.representativeData.addresses?.lastResidentialAddressInPoland ? {
+          ulica: formData.representativeData.addresses.lastResidentialAddressInPoland.street || "",
+          numerDomu: formData.representativeData.addresses.lastResidentialAddressInPoland.houseNumber || "",
+          numerLokalu: formData.representativeData.addresses.lastResidentialAddressInPoland.apartmentNumber,
+          kodPocztowy: formData.representativeData.addresses.lastResidentialAddressInPoland.postalCode || "",
+          miejscowosc: formData.representativeData.addresses.lastResidentialAddressInPoland.city || "",
+        } : undefined,
       } : undefined,
     };
   }, [formData.personalData, formData.representativeData]);
@@ -487,6 +508,11 @@ export default function AsystentPage() {
           numer: formData.addresses.correspondenceAddress.postOfficeBox.number || "",
           kodPocztowy: formData.addresses.correspondenceAddress.postOfficeBox.postalCode || "",
           nazwaPlacowki: formData.addresses.correspondenceAddress.postOfficeBox.postOfficeName || "",
+        } : undefined,
+        przegrodka: formData.addresses.correspondenceAddress.postOfficeBoxP ? {
+          numer: formData.addresses.correspondenceAddress.postOfficeBoxP.number || "",
+          kodPocztowy: formData.addresses.correspondenceAddress.postOfficeBoxP.postalCode || "",
+          nazwaPlacowki: formData.addresses.correspondenceAddress.postOfficeBoxP.postOfficeName || "",
         } : undefined,
       } : undefined,
       adresDzialalnosci: {
