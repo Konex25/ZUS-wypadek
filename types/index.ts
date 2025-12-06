@@ -418,13 +418,22 @@ export interface UploadedDocument {
   fileSize: number;
   mimeType: string;
   uploadedAt: string;
-  status: DocumentStatus;
-  aiResult?: Record<string, unknown>;
+}
+
+// Case types
+export type CaseStatus = "pending" | "processing" | "completed" | "error";
+
+export interface Case {
+  id: string;
+  createdAt: string;
+  status: CaseStatus;
+  documents: UploadedDocument[];
+  aiOpinion?: string; // Markdown opinion from AI
   error?: string;
 }
 
-export interface DocumentUploadResponse {
+export interface CaseUploadResponse {
   success: boolean;
-  document?: UploadedDocument;
+  case?: Case;
   error?: string;
 }

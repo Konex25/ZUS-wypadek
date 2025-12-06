@@ -1,11 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-  getDocuments,
-  addDocument,
-  updateDocument,
+  getCases,
+  getCaseById,
+  addCase,
+  updateCase,
+  generateCaseId,
   generateDocumentId,
-} from "@/lib/store/documents";
-import { UploadedDocument } from "@/types";
+} from "@/lib/store/cases";
+import { Case, UploadedDocument, CaseUploadResponse } from "@/types";
 import openai from "@/lib/openai/openai";
 import { PROMPT } from "./prompt";
 
@@ -17,21 +19,25 @@ const ALLOWED_TYPES = [
   "application/pdf",
 ];
 
-interface MultiUploadResponse {
-  success: boolean;
-  documents?: UploadedDocument[];
-  error?: string;
-}
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const caseId = searchParams.get("id");
 
-export async function GET() {
-  const documents = getDocuments();
-  return NextResponse.json({ documents });
+  if (caseId) {
+    const caseData = getCaseById(caseId);
+    if (!caseData) {
+      return NextResponse.json({ error: "Case not found" }, { status: 404 });
+    }
+    return NextResponse.json({ case: caseData });
+  }
+
+  const cases = getCases();
+  return NextResponse.json({ cases });
 }
 
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
-    console.log(formData);
     const files = formData.getAll("files") as File[];
 
     // Fallback for single file upload (backwards compatibility)
@@ -41,7 +47,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (files.length === 0) {
-      return NextResponse.json<MultiUploadResponse>(
+      return NextResponse.json<CaseUploadResponse>(
         { success: false, error: "No files provided" },
         { status: 400 }
       );
@@ -50,7 +56,7 @@ export async function POST(request: NextRequest) {
     // Validate all file types
     for (const file of files) {
       if (!ALLOWED_TYPES.includes(file.type)) {
-        return NextResponse.json<MultiUploadResponse>(
+        return NextResponse.json<CaseUploadResponse>(
           {
             success: false,
             error: `Invalid file type: ${file.type} (${file.name}). Allowed: JPEG, PNG, WEBP, GIF, PDF`,
@@ -67,33 +73,36 @@ export async function POST(request: NextRequest) {
       fileSize: file.size,
       mimeType: file.type,
       uploadedAt: new Date().toISOString(),
-      status: "processing" as const,
     }));
 
-    // Add all documents to store
-    documents.forEach((doc) => addDocument(doc));
-
-    // Process all files together with AI
-    processDocumentsWithAI(documents, files);
-
-    return NextResponse.json<MultiUploadResponse>({
-      success: true,
+    // Create case with documents
+    const newCase: Case = {
+      id: generateCaseId(),
+      createdAt: new Date().toISOString(),
+      status: "processing",
       documents,
+    };
+
+    addCase(newCase);
+
+    // Process case with AI in background
+    processCaseWithAI(newCase.id, files);
+
+    return NextResponse.json<CaseUploadResponse>({
+      success: true,
+      case: newCase,
     });
   } catch (error) {
-    console.error("Error uploading documents:", error);
-    return NextResponse.json<MultiUploadResponse>(
-      { success: false, error: "Failed to upload documents" },
+    console.error("Error creating case:", error);
+    return NextResponse.json<CaseUploadResponse>(
+      { success: false, error: "Failed to create case" },
       { status: 500 }
     );
   }
 }
 
-// Process multiple documents with OpenAI
-async function processDocumentsWithAI(
-  documents: UploadedDocument[],
-  files: File[]
-) {
+// Process case documents with OpenAI
+async function processCaseWithAI(caseId: string, files: File[]) {
   try {
     if (!openai) {
       throw new Error("OpenAI client not initialized");
@@ -128,7 +137,7 @@ async function processDocumentsWithAI(
     ];
 
     const response = await openai.responses.create({
-      model: "gpt-5.1",
+      model: "gpt-4o-mini",
       input: [
         {
           role: "user",
@@ -137,30 +146,19 @@ async function processDocumentsWithAI(
       ],
     });
 
-    const responseText = response.output_text || "";
-    console.log("AI Response:", responseText);
+    const opinionText = response.output_text || "";
+    console.log("AI Opinion:", opinionText);
 
-    // Store the response as markdown
-    const aiResult: Record<string, unknown> = {
-      markdown: responseText,
-      model: "gpt-4o",
-      processedAt: new Date().toISOString(),
-    };
-
-    // Update all documents with the result
-    documents.forEach((doc) => {
-      updateDocument(doc.id, {
-        status: "completed",
-        aiResult,
-      });
+    // Update case with AI opinion
+    updateCase(caseId, {
+      status: "completed",
+      aiOpinion: opinionText,
     });
   } catch (error) {
-    console.error("Error processing documents with AI:", error);
-    documents.forEach((doc) => {
-      updateDocument(doc.id, {
-        status: "error",
-        error: error instanceof Error ? error.message : "AI processing failed",
-      });
+    console.error("Error processing case with AI:", error);
+    updateCase(caseId, {
+      status: "error",
+      error: error instanceof Error ? error.message : "AI processing failed",
     });
   }
 }
