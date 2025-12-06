@@ -556,7 +556,8 @@ export default function ZUSPage() {
                       {selectedCase.differences.differences.length > 0 && (
                         <div className="space-y-3">
                           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
-                            Szczegóły różnic ({selectedCase.differences.differences.length})
+                            Szczegóły różnic (
+                            {selectedCase.differences.differences.length})
                           </p>
                           {selectedCase.differences.differences.map(
                             (diff, index) => (
@@ -565,7 +566,8 @@ export default function ZUSPage() {
                                 className="p-4 bg-amber-50 rounded-lg border border-amber-200"
                               >
                                 <p className="font-semibold text-amber-900 capitalize">
-                                  {diff.field.charAt(0).toUpperCase() + diff.field.slice(1)}
+                                  {diff.field.charAt(0).toUpperCase() +
+                                    diff.field.slice(1)}
                                 </p>
                                 <p className="text-sm text-amber-700 mt-1">
                                   {diff.details}
@@ -815,7 +817,7 @@ export default function ZUSPage() {
                                     ? "✅"
                                     : "⚠️"}
                                 </span>
-                                <div>
+                                <div className="flex-1">
                                   <p
                                     className={`font-semibold ${
                                       selectedCase.aiOpinion.verificationResults
@@ -859,8 +861,146 @@ export default function ZUSPage() {
                                           .verificationResults
                                           .companyVerification.pkd
                                       }
+                                      {selectedCase.aiOpinion
+                                        .verificationResults.companyVerification
+                                        .pkdDescription && (
+                                        <span className="text-slate-500">
+                                          {" - "}
+                                          {
+                                            selectedCase.aiOpinion
+                                              .verificationResults
+                                              .companyVerification
+                                              .pkdDescription
+                                          }
+                                        </span>
+                                      )}
                                     </p>
                                   )}
+                                </div>
+                              </div>
+                            </div>
+                          )}
+
+                          {/* PKD Compatibility Verification */}
+                          {selectedCase.aiOpinion.verificationResults
+                            .companyVerification?.pkdCompatibility && (
+                            <div
+                              className={`p-4 rounded-lg border-2 ${
+                                selectedCase.aiOpinion.verificationResults
+                                  .companyVerification.pkdCompatibility
+                                  .isCompatible
+                                  ? selectedCase.aiOpinion.verificationResults
+                                      .companyVerification.pkdCompatibility
+                                      .confidence >= 70
+                                    ? "bg-emerald-50 border-emerald-300"
+                                    : "bg-amber-50 border-amber-300"
+                                  : "bg-red-50 border-red-300"
+                              }`}
+                            >
+                              <div className="flex items-start gap-3">
+                                <span className="text-xl">
+                                  {selectedCase.aiOpinion.verificationResults
+                                    .companyVerification.pkdCompatibility
+                                    .isCompatible
+                                    ? selectedCase.aiOpinion.verificationResults
+                                        .companyVerification.pkdCompatibility
+                                        .confidence >= 70
+                                      ? "✅"
+                                      : "⚠️"
+                                    : "❌"}
+                                </span>
+                                <div className="flex-1">
+                                  <div className="flex items-center justify-between">
+                                    <p
+                                      className={`font-semibold ${
+                                        selectedCase.aiOpinion
+                                          .verificationResults
+                                          .companyVerification.pkdCompatibility
+                                          .isCompatible
+                                          ? selectedCase.aiOpinion
+                                              .verificationResults
+                                              .companyVerification
+                                              .pkdCompatibility.confidence >= 70
+                                            ? "text-emerald-900"
+                                            : "text-amber-900"
+                                          : "text-red-900"
+                                      }`}
+                                    >
+                                      Zgodność PKD z okolicznościami wypadku
+                                    </p>
+                                    <span
+                                      className={`text-sm font-bold px-2 py-1 rounded ${
+                                        selectedCase.aiOpinion
+                                          .verificationResults
+                                          .companyVerification.pkdCompatibility
+                                          .isCompatible
+                                          ? selectedCase.aiOpinion
+                                              .verificationResults
+                                              .companyVerification
+                                              .pkdCompatibility.confidence >= 70
+                                            ? "bg-emerald-200 text-emerald-800"
+                                            : "bg-amber-200 text-amber-800"
+                                          : "bg-red-200 text-red-800"
+                                      }`}
+                                    >
+                                      {
+                                        selectedCase.aiOpinion
+                                          .verificationResults
+                                          .companyVerification.pkdCompatibility
+                                          .confidence
+                                      }
+                                      %
+                                    </span>
+                                  </div>
+                                  <p
+                                    className={`text-sm mt-2 ${
+                                      selectedCase.aiOpinion.verificationResults
+                                        .companyVerification.pkdCompatibility
+                                        .isCompatible
+                                        ? "text-emerald-700"
+                                        : "text-red-700"
+                                    }`}
+                                  >
+                                    {
+                                      selectedCase.aiOpinion.verificationResults
+                                        .companyVerification.pkdCompatibility
+                                        .compatibilityReasoning
+                                    }
+                                  </p>
+                                  {selectedCase.aiOpinion.verificationResults
+                                    .companyVerification.pkdCompatibility
+                                    .accidentActivities && (
+                                    <p className="text-sm text-slate-600 mt-2">
+                                      <strong>
+                                        Czynności podczas wypadku:
+                                      </strong>{" "}
+                                      {
+                                        selectedCase.aiOpinion
+                                          .verificationResults
+                                          .companyVerification.pkdCompatibility
+                                          .accidentActivities
+                                      }
+                                    </p>
+                                  )}
+                                  {selectedCase.aiOpinion.verificationResults
+                                    .companyVerification.pkdCompatibility
+                                    .doubts &&
+                                    selectedCase.aiOpinion.verificationResults
+                                      .companyVerification.pkdCompatibility
+                                      .doubts.length > 0 && (
+                                      <div className="mt-2 p-2 bg-white/50 rounded">
+                                        <p className="text-xs font-semibold text-slate-500 uppercase">
+                                          Wątpliwości:
+                                        </p>
+                                        <ul className="text-sm text-slate-600 list-disc list-inside mt-1">
+                                          {selectedCase.aiOpinion.verificationResults.companyVerification.pkdCompatibility.doubts.map(
+                                            (doubt, i) => (
+                                              <li key={i}>{doubt}</li>
+                                            )
+                                          )}
+                                        </ul>
+                                      </div>
+                                    )}
                                 </div>
                               </div>
                             </div>
@@ -929,14 +1069,48 @@ export default function ZUSPage() {
                           {/* Injury Verification - Medical Documentation Notice */}
                           {selectedCase.aiOpinion.verificationResults
                             .injuryVerification.hasInjury && (
-                            <div className="p-4 bg-amber-50 rounded-lg border-2 border-amber-300">
+                            <div
+                              className={`p-4 rounded-lg border-2 ${
+                                selectedCase.aiOpinion.verificationResults
+                                  .injuryVerification
+                                  .requiresChiefMedicalExaminerOpinion
+                                  ? "bg-red-50 border-red-300"
+                                  : "bg-amber-50 border-amber-300"
+                              }`}
+                            >
                               <div className="flex items-start gap-3">
-                                <span className="text-xl">📋</span>
-                                <div>
-                                  <p className="font-semibold text-amber-900">
-                                    Wymagana dokumentacja medyczna
+                                <span className="text-xl">
+                                  {selectedCase.aiOpinion.verificationResults
+                                    .injuryVerification
+                                    .requiresChiefMedicalExaminerOpinion
+                                    ? "🏥"
+                                    : "📋"}
+                                </span>
+                                <div className="flex-1">
+                                  <p
+                                    className={`font-semibold ${
+                                      selectedCase.aiOpinion.verificationResults
+                                        .injuryVerification
+                                        .requiresChiefMedicalExaminerOpinion
+                                        ? "text-red-900"
+                                        : "text-amber-900"
+                                    }`}
+                                  >
+                                    {selectedCase.aiOpinion.verificationResults
+                                      .injuryVerification
+                                      .requiresChiefMedicalExaminerOpinion
+                                      ? "⚠️ Wymagana opinia Głównego Lekarza Orzecznika ZUS"
+                                      : "Wymagana dokumentacja medyczna"}
                                   </p>
-                                  <p className="text-sm text-amber-700 mt-1">
+                                  <p
+                                    className={`text-sm mt-1 ${
+                                      selectedCase.aiOpinion.verificationResults
+                                        .injuryVerification
+                                        .requiresChiefMedicalExaminerOpinion
+                                        ? "text-red-700"
+                                        : "text-amber-700"
+                                    }`}
+                                  >
                                     {
                                       selectedCase.aiOpinion.verificationResults
                                         .injuryVerification.message
@@ -944,7 +1118,7 @@ export default function ZUSPage() {
                                   </p>
                                   {selectedCase.aiOpinion.verificationResults
                                     .injuryVerification.injuryDescription && (
-                                    <p className="text-sm text-amber-800 mt-2">
+                                    <p className="text-sm text-slate-700 mt-2">
                                       <strong>Stwierdzony uraz:</strong>{" "}
                                       {
                                         selectedCase.aiOpinion
@@ -953,6 +1127,75 @@ export default function ZUSPage() {
                                       }
                                     </p>
                                   )}
+                                  {selectedCase.aiOpinion.verificationResults
+                                    .injuryVerification.injuryType && (
+                                    <p className="text-sm text-slate-600 mt-1">
+                                      <strong>Typ urazu:</strong>{" "}
+                                      {(() => {
+                                        const typeLabels: Record<
+                                          string,
+                                          string
+                                        > = {
+                                          physical_visible:
+                                            "Uraz fizyczny widoczny",
+                                          physical_internal: "Uraz wewnętrzny",
+                                          psychological: "Uraz psychiczny",
+                                          disease_aggravation:
+                                            "Zaostrzenie choroby",
+                                          pain_only: "Dolegliwości bólowe",
+                                          mixed: "Uraz mieszany",
+                                          unknown: "Typ nieokreślony",
+                                        };
+                                        return (
+                                          typeLabels[
+                                            selectedCase.aiOpinion
+                                              .verificationResults
+                                              .injuryVerification.injuryType ||
+                                              "unknown"
+                                          ] || "Nieznany"
+                                        );
+                                      })()}
+                                    </p>
+                                  )}
+                                  {/* GLO ZUS Opinion Reason */}
+                                  {selectedCase.aiOpinion.verificationResults
+                                    .injuryVerification
+                                    .chiefMedicalExaminerOpinionReason && (
+                                    <div className="mt-3 p-3 bg-red-100 rounded-lg">
+                                      <p className="text-xs font-semibold text-red-800 uppercase mb-1">
+                                        Uzasadnienie konieczności opinii GLO
+                                        ZUS:
+                                      </p>
+                                      <p className="text-sm text-red-700">
+                                        {
+                                          selectedCase.aiOpinion
+                                            .verificationResults
+                                            .injuryVerification
+                                            .chiefMedicalExaminerOpinionReason
+                                        }
+                                      </p>
+                                    </div>
+                                  )}
+                                  {/* Injury Definition Doubts */}
+                                  {selectedCase.aiOpinion.verificationResults
+                                    .injuryVerification
+                                    .injuryDefinitionDoubts &&
+                                    selectedCase.aiOpinion.verificationResults
+                                      .injuryVerification.injuryDefinitionDoubts
+                                      .length > 0 && (
+                                      <div className="mt-2 p-2 bg-white/50 rounded">
+                                        <p className="text-xs font-semibold text-slate-500 uppercase">
+                                          Wątpliwości definicyjne:
+                                        </p>
+                                        <ul className="text-sm text-slate-600 list-disc list-inside mt-1">
+                                          {selectedCase.aiOpinion.verificationResults.injuryVerification.injuryDefinitionDoubts.map(
+                                            (doubt, i) => (
+                                              <li key={i}>{doubt}</li>
+                                            )
+                                          )}
+                                        </ul>
+                                      </div>
+                                    )}
                                 </div>
                               </div>
                             </div>

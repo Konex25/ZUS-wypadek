@@ -44,7 +44,12 @@ export const getCompanyDetailsDetails = async (
   }
 
   const parsedResponse = await response.json();
-  console.log("Company details:", parsedResponse);
+  console.log("=== CEIDG Company Details Response ===");
+  console.log("Keys:", Object.keys(parsedResponse));
+  console.log(
+    "Full response (first 3000 chars):",
+    JSON.stringify(parsedResponse, null, 2).substring(0, 3000)
+  );
   return parsedResponse;
 };
 
@@ -73,6 +78,15 @@ export const getCompanyDetailsByNip = async (nip: string) => {
   const parsedResponse = await response.json();
   const companies = parsedResponse.companyList;
 
+  console.log("=== CEIDG Search Response ===");
+  console.log("Company list count:", companies?.length || 0);
+  if (companies && companies.length > 0) {
+    console.log(
+      "First company from search:",
+      JSON.stringify(companies[0], null, 2).substring(0, 1500)
+    );
+  }
+
   if (!companies || companies.length === 0) {
     return null;
   }
@@ -80,5 +94,29 @@ export const getCompanyDetailsByNip = async (nip: string) => {
   const company = companies[0];
   const companyDetails = await getCompanyDetailsDetails(company.id, true);
 
-  return companyDetails;
+  // Merge search data with details data (search might have PKD that details doesn't)
+  const mergedData = {
+    ...company,
+    ...companyDetails,
+    // Ensure we keep search data if details doesn't have it
+    pkd: companyDetails?.pkd || company?.pkd,
+    pkdCode: companyDetails?.pkdCode || company?.pkdCode,
+    pkdList:
+      companyDetails?.pkdList ||
+      company?.pkdList ||
+      companyDetails?.PKDList ||
+      company?.PKDList,
+    przewazajacePKD:
+      companyDetails?.przewazajacePKD || company?.przewazajacePKD,
+  };
+
+  console.log("=== Merged Company Data ===");
+  console.log("PKD fields:", {
+    pkd: mergedData.pkd,
+    pkdCode: mergedData.pkdCode,
+    pkdList: mergedData.pkdList?.slice(0, 3),
+    przewazajacePKD: mergedData.przewazajacePKD,
+  });
+
+  return mergedData;
 };
