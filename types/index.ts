@@ -461,18 +461,45 @@ export interface A1FormVerification {
   message: string;
 }
 
+export type InjuryType =
+  | "physical_visible" // Uraz fizyczny widoczny (złamanie, rana, stłuczenie)
+  | "physical_internal" // Uraz fizyczny wewnętrzny (uszkodzenie narządów)
+  | "psychological" // Uraz psychiczny (szok, trauma)
+  | "disease_aggravation" // Zaostrzenie choroby (np. atak serca)
+  | "pain_only" // Tylko ból bez widocznego uszkodzenia
+  | "mixed" // Uraz mieszany
+  | "unknown"; // Nieznany/nieokreślony
+
 export interface InjuryVerification {
   hasInjury: boolean;
   injuryDescription?: string;
+  injuryType?: InjuryType;
   requiresMedicalDocumentation: boolean;
+  // Nowe pola dla opinii GLO ZUS
+  requiresChiefMedicalExaminerOpinion: boolean;
+  chiefMedicalExaminerOpinionReason?: string;
+  injuryDefinitionDoubts?: string[];
   message: string;
+}
+
+export interface PKDCompatibility {
+  isCompatible: boolean;
+  confidence: number; // 0-100
+  pkdCode: string;
+  pkdDescription?: string;
+  accidentActivities: string; // Czynności wykonywane podczas wypadku
+  compatibilityReasoning: string;
+  doubts?: string[];
 }
 
 export interface CompanyVerification {
   verified: boolean;
   companyName?: string;
   pkd?: string;
+  pkdDescription?: string;
   message: string;
+  // Nowe pole dla weryfikacji zgodności PKD z wypadkiem
+  pkdCompatibility?: PKDCompatibility;
 }
 
 export interface VerificationResults {
