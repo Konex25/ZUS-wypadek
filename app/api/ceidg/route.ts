@@ -1,30 +1,20 @@
-import { getCompanyDetailsDetails } from "@/backend";
+import { getCompanyDetailsByNip } from "@/backend";
 
 export const GET = async (request: Request) => {
   const { searchParams } = new URL(request.url);
+  const nip = searchParams.get("nip");
+  const regon = searchParams.get("regon");
 
-  const companiesUrl = new URL(
-    "https://www.biznes.gov.pl/pl/wyszukiwarka-firm/api/data-warehouse/SearchAdvance"
-  );
-  if (searchParams.get("nip")) {
-    companiesUrl.searchParams.set("nip", searchParams.get("nip")!);
-  }
-  if (searchParams.get("regon")) {
-    companiesUrl.searchParams.set("regon", searchParams.get("regon")!);
+  if (!nip && !regon) {
+    return Response.json({ error: "NIP or REGON required" }, { status: 400 });
   }
 
-  const companiesResponse = await fetch(companiesUrl.toString());
+  // Use the backend function which has proper headers
+  const companyDetails = nip ? await getCompanyDetailsByNip(nip) : null; // TODO: add getCompanyDetailsByRegon if needed
 
-  const parsedResponse = await companiesResponse.json();
-  const companies = parsedResponse.companyList;
-  const company = companies[0];
-
-  if (!company) {
+  if (!companyDetails) {
     return Response.json({ error: "Company not found" }, { status: 404 });
   }
-
-  const companyId = company.id;
-  const companyDetails = await getCompanyDetailsDetails(companyId);
 
   // Zwróć pełną strukturę danych dla debugowania
   const response = {

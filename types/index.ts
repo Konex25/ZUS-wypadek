@@ -107,7 +107,7 @@ export interface AccidentData {
   detailedCircumstancesDescription: string;
   detailedCausesDescription: string;
   accidentPlaceDetails: string;
-  
+
   // Elementy definicji wypadku przy pracy
   suddenness: {
     confirmed: boolean;
@@ -132,7 +132,7 @@ export interface AccidentData {
     functional: boolean; // zwykłe czynności związane z działalnością
     description: string;
   };
-  
+
   // Dodatkowe informacje
   firstAid?: {
     provided: boolean;
@@ -161,7 +161,12 @@ export interface AccidentData {
 }
 
 export interface AttachmentInfo {
-  type: "hospital_card" | "prosecutor_decision" | "death_certificate" | "power_of_attorney" | "other";
+  type:
+    | "hospital_card"
+    | "prosecutor_decision"
+    | "death_certificate"
+    | "power_of_attorney"
+    | "other";
   description?: string; // Dla typu "other"
   file?: File; // Opcjonalny plik
 }
@@ -170,7 +175,7 @@ export interface VictimStatement {
   activityTypeBeforeAccident: string;
   accidentCircumstances: string;
   accidentCauses: string;
-  
+
   machineryTools?: {
     applicable: boolean;
     name?: string;
@@ -180,24 +185,24 @@ export interface VictimStatement {
     compliantWithManufacturer?: boolean;
     usageMethod?: string;
   };
-  
+
   protectiveMeasures?: {
     used: boolean;
     type?: string[];
     appropriate?: boolean;
     operational?: boolean;
   };
-  
+
   safetyMeasures?: {
     used: boolean;
     description?: string;
   };
-  
+
   requiredNumberOfPeople?: {
     independently: boolean;
     twoPeopleRequired?: boolean;
   };
-  
+
   healthAndSafety?: {
     complied: boolean;
     preparation?: boolean;
@@ -205,7 +210,7 @@ export interface VictimStatement {
     occupationalRiskAssessment?: boolean;
     riskReductionMeasures?: string;
   };
-  
+
   sobrietyState?: {
     intoxication: boolean;
     drugs: boolean;
@@ -214,7 +219,7 @@ export interface VictimStatement {
       byWhom?: string;
     };
   };
-  
+
   controlAuthorities?: {
     actionsTaken: boolean;
     authorityName?: string;
@@ -222,7 +227,7 @@ export interface VictimStatement {
     caseNumber?: string;
     status?: string;
   };
-  
+
   firstAid?: {
     provided: boolean;
     when?: string;
@@ -233,7 +238,7 @@ export interface VictimStatement {
     recognizedInjury?: string;
     incapacityPeriod?: string;
   };
-  
+
   sickLeave?: {
     onAccidentDay: boolean;
     description?: string;
@@ -280,7 +285,14 @@ export interface ReportAnalysis {
 // ========== STAGE II - DECISION SUPPORT MODEL ==========
 
 export interface DocumentAnalysis {
-  documentType: "zawiadomienie" | "wyjasnienia" | "opinia" | "karta_wypadku" | "medyczny" | "organ_kontroli" | "inny";
+  documentType:
+    | "zawiadomienie"
+    | "wyjasnienia"
+    | "opinia"
+    | "karta_wypadku"
+    | "medyczny"
+    | "organ_kontroli"
+    | "inny";
   personalData?: VictimPersonalData;
   accidentData?: AccidentData;
   victimStatement?: VictimStatement;
@@ -483,13 +495,29 @@ export interface AIOpinion {
   verificationResults?: VerificationResults;
 }
 
+export interface Difference {
+  field: string;
+  details: string;
+  documents: string[];
+}
+
+export interface Differences {
+  differences: Difference[];
+  allDatesConsistent: boolean;
+  allStatementsConsistent: boolean;
+  summary: string;
+  isInGeneralConsistent: boolean;
+}
+
 export interface Case {
   id: string;
   createdAt: string;
   status: CaseStatus;
+  fileIds: string[];
   documents: UploadedDocument[];
   aiOpinion?: AIOpinion;
   error?: string;
+  differences?: Differences;
 }
 
 export interface CaseUploadResponse {
