@@ -17,6 +17,9 @@ export default function ZUSPage() {
   const [nip, setNip] = useState("");
   const [isCheckingDifferences, setIsCheckingDifferences] = useState(false);
   const [differencesError, setDifferencesError] = useState<string | null>(null);
+  const [expandedVerifications, setExpandedVerifications] = useState<
+    Set<string>
+  >(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
   const casesRef = useRef<Case[]>([]);
 
@@ -782,19 +785,64 @@ export default function ZUSPage() {
                           </p>
 
                           {/* Insurance Verification */}
-                          <div className="p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+                          <div
+                            className="p-4 bg-emerald-50 rounded-lg border border-emerald-200 cursor-pointer hover:bg-emerald-100 transition-colors"
+                            onClick={() => {
+                              const key = "insurance";
+                              setExpandedVerifications((prev) => {
+                                const next = new Set(prev);
+                                if (next.has(key)) {
+                                  next.delete(key);
+                                } else {
+                                  next.add(key);
+                                }
+                                return next;
+                              });
+                            }}
+                          >
                             <div className="flex items-start gap-3">
                               <span className="text-xl">✅</span>
-                              <div>
-                                <p className="font-semibold text-emerald-900">
-                                  Weryfikacja ubezpieczenia wypadkowego
-                                </p>
-                                <p className="text-sm text-emerald-700 mt-1">
-                                  {
-                                    selectedCase.aiOpinion.verificationResults
-                                      .insuranceVerification.message
-                                  }
-                                </p>
+                              <div className="flex-1">
+                                <div className="flex items-center justify-between">
+                                  <p className="font-semibold text-emerald-900">
+                                    Weryfikacja ubezpieczenia wypadkowego
+                                  </p>
+                                  <svg
+                                    className={`w-5 h-5 text-emerald-700 transition-transform ${
+                                      expandedVerifications.has("insurance")
+                                        ? "rotate-180"
+                                        : ""
+                                    }`}
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M19 9l-7 7-7-7"
+                                    />
+                                  </svg>
+                                </div>
+                                {selectedCase.aiOpinion.verificationResults
+                                  .insuranceVerification.shortJustification && (
+                                  <p className="text-sm text-emerald-700 mt-1">
+                                    {
+                                      selectedCase.aiOpinion.verificationResults
+                                        .insuranceVerification
+                                        .shortJustification
+                                    }
+                                  </p>
+                                )}
+                                {expandedVerifications.has("insurance") && (
+                                  <p className="text-sm text-emerald-600 mt-2">
+                                    {
+                                      selectedCase.aiOpinion.verificationResults
+                                        .insuranceVerification.message
+                                    }
+                                  </p>
+                                )}
                               </div>
                             </div>
                           </div>
@@ -803,12 +851,24 @@ export default function ZUSPage() {
                           {selectedCase.aiOpinion.verificationResults
                             .companyVerification && (
                             <div
-                              className={`p-4 rounded-lg border ${
+                              className={`p-4 rounded-lg border cursor-pointer hover:opacity-90 transition-opacity ${
                                 selectedCase.aiOpinion.verificationResults
                                   .companyVerification.verified
                                   ? "bg-emerald-50 border-emerald-200"
                                   : "bg-amber-50 border-amber-200"
                               }`}
+                              onClick={() => {
+                                const key = "company";
+                                setExpandedVerifications((prev) => {
+                                  const next = new Set(prev);
+                                  if (next.has(key)) {
+                                    next.delete(key);
+                                  } else {
+                                    next.add(key);
+                                  }
+                                  return next;
+                                });
+                              }}
                             >
                               <div className="flex items-start gap-3">
                                 <span className="text-xl">
@@ -818,63 +878,120 @@ export default function ZUSPage() {
                                     : "⚠️"}
                                 </span>
                                 <div className="flex-1">
-                                  <p
-                                    className={`font-semibold ${
-                                      selectedCase.aiOpinion.verificationResults
-                                        .companyVerification.verified
-                                        ? "text-emerald-900"
-                                        : "text-amber-900"
-                                    }`}
-                                  >
-                                    Weryfikacja danych działalności gospodarczej
-                                  </p>
-                                  <p
-                                    className={`text-sm mt-1 ${
-                                      selectedCase.aiOpinion.verificationResults
-                                        .companyVerification.verified
-                                        ? "text-emerald-700"
-                                        : "text-amber-700"
-                                    }`}
-                                  >
-                                    {
-                                      selectedCase.aiOpinion.verificationResults
-                                        .companyVerification.message
-                                    }
-                                  </p>
+                                  <div className="flex items-center justify-between">
+                                    <p
+                                      className={`font-semibold ${
+                                        selectedCase.aiOpinion
+                                          .verificationResults
+                                          .companyVerification.verified
+                                          ? "text-emerald-900"
+                                          : "text-amber-900"
+                                      }`}
+                                    >
+                                      Weryfikacja danych działalności
+                                      gospodarczej
+                                    </p>
+                                    <svg
+                                      className={`w-5 h-5 transition-transform ${
+                                        expandedVerifications.has("company")
+                                          ? "rotate-180"
+                                          : ""
+                                      } ${
+                                        selectedCase.aiOpinion
+                                          .verificationResults
+                                          .companyVerification.verified
+                                          ? "text-emerald-700"
+                                          : "text-amber-700"
+                                      }`}
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M19 9l-7 7-7-7"
+                                      />
+                                    </svg>
+                                  </div>
                                   {selectedCase.aiOpinion.verificationResults
-                                    .companyVerification.companyName && (
-                                    <p className="text-sm text-emerald-600 mt-1">
-                                      <strong>Firma:</strong>{" "}
+                                    .companyVerification.shortJustification && (
+                                    <p
+                                      className={`text-sm mt-1 ${
+                                        selectedCase.aiOpinion
+                                          .verificationResults
+                                          .companyVerification.verified
+                                          ? "text-emerald-700"
+                                          : "text-amber-700"
+                                      }`}
+                                    >
                                       {
                                         selectedCase.aiOpinion
                                           .verificationResults
-                                          .companyVerification.companyName
+                                          .companyVerification
+                                          .shortJustification
                                       }
                                     </p>
                                   )}
-                                  {selectedCase.aiOpinion.verificationResults
-                                    .companyVerification.pkd && (
-                                    <p className="text-sm text-emerald-600 mt-1">
-                                      <strong>PKD:</strong>{" "}
+                                  {expandedVerifications.has("company") && (
+                                    <p
+                                      className={`text-sm mt-2 ${
+                                        selectedCase.aiOpinion
+                                          .verificationResults
+                                          .companyVerification.verified
+                                          ? "text-emerald-600"
+                                          : "text-amber-600"
+                                      }`}
+                                    >
                                       {
                                         selectedCase.aiOpinion
                                           .verificationResults
-                                          .companyVerification.pkd
+                                          .companyVerification.message
                                       }
+                                    </p>
+                                  )}
+                                  {expandedVerifications.has("company") && (
+                                    <>
                                       {selectedCase.aiOpinion
                                         .verificationResults.companyVerification
-                                        .pkdDescription && (
-                                        <span className="text-slate-500">
-                                          {" - "}
+                                        .companyName && (
+                                        <p className="text-sm text-emerald-600 mt-1">
+                                          <strong>Firma:</strong>{" "}
                                           {
                                             selectedCase.aiOpinion
                                               .verificationResults
-                                              .companyVerification
-                                              .pkdDescription
+                                              .companyVerification.companyName
                                           }
-                                        </span>
+                                        </p>
                                       )}
-                                    </p>
+                                      {selectedCase.aiOpinion
+                                        .verificationResults.companyVerification
+                                        .pkd && (
+                                        <p className="text-sm text-emerald-600 mt-1">
+                                          <strong>PKD:</strong>{" "}
+                                          {
+                                            selectedCase.aiOpinion
+                                              .verificationResults
+                                              .companyVerification.pkd
+                                          }
+                                          {selectedCase.aiOpinion
+                                            .verificationResults
+                                            .companyVerification
+                                            .pkdDescription && (
+                                            <span className="text-slate-500">
+                                              {" - "}
+                                              {
+                                                selectedCase.aiOpinion
+                                                  .verificationResults
+                                                  .companyVerification
+                                                  .pkdDescription
+                                              }
+                                            </span>
+                                          )}
+                                        </p>
+                                      )}
+                                    </>
                                   )}
                                 </div>
                               </div>
@@ -885,7 +1002,7 @@ export default function ZUSPage() {
                           {selectedCase.aiOpinion.verificationResults
                             .companyVerification?.pkdCompatibility && (
                             <div
-                              className={`p-4 rounded-lg border-2 ${
+                              className={`p-4 rounded-lg border-2 cursor-pointer hover:opacity-90 transition-opacity ${
                                 selectedCase.aiOpinion.verificationResults
                                   .companyVerification.pkdCompatibility
                                   .isCompatible
@@ -896,6 +1013,18 @@ export default function ZUSPage() {
                                     : "bg-amber-50 border-amber-300"
                                   : "bg-red-50 border-red-300"
                               }`}
+                              onClick={() => {
+                                const key = "pkdCompatibility";
+                                setExpandedVerifications((prev) => {
+                                  const next = new Set(prev);
+                                  if (next.has(key)) {
+                                    next.delete(key);
+                                  } else {
+                                    next.add(key);
+                                  }
+                                  return next;
+                                });
+                              }}
                             >
                               <div className="flex items-start gap-3">
                                 <span className="text-xl">
@@ -928,79 +1057,150 @@ export default function ZUSPage() {
                                     >
                                       Zgodność PKD z okolicznościami wypadku
                                     </p>
-                                    <span
-                                      className={`text-sm font-bold px-2 py-1 rounded ${
+                                    <div className="flex items-center gap-2">
+                                      <span
+                                        className={`text-sm font-bold px-2 py-1 rounded ${
+                                          selectedCase.aiOpinion
+                                            .verificationResults
+                                            .companyVerification
+                                            .pkdCompatibility.isCompatible
+                                            ? selectedCase.aiOpinion
+                                                .verificationResults
+                                                .companyVerification
+                                                .pkdCompatibility.confidence >=
+                                              70
+                                              ? "bg-emerald-200 text-emerald-800"
+                                              : "bg-amber-200 text-amber-800"
+                                            : "bg-red-200 text-red-800"
+                                        }`}
+                                      >
+                                        {
+                                          selectedCase.aiOpinion
+                                            .verificationResults
+                                            .companyVerification
+                                            .pkdCompatibility.confidence
+                                        }
+                                        %
+                                      </span>
+                                      <svg
+                                        className={`w-5 h-5 transition-transform ${
+                                          expandedVerifications.has(
+                                            "pkdCompatibility"
+                                          )
+                                            ? "rotate-180"
+                                            : ""
+                                        } ${
+                                          selectedCase.aiOpinion
+                                            .verificationResults
+                                            .companyVerification
+                                            .pkdCompatibility.isCompatible
+                                            ? selectedCase.aiOpinion
+                                                .verificationResults
+                                                .companyVerification
+                                                .pkdCompatibility.confidence >=
+                                              70
+                                              ? "text-emerald-700"
+                                              : "text-amber-700"
+                                            : "text-red-700"
+                                        }`}
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth={2}
+                                          d="M19 9l-7 7-7-7"
+                                        />
+                                      </svg>
+                                    </div>
+                                  </div>
+                                  {selectedCase.aiOpinion.verificationResults
+                                    .companyVerification.pkdCompatibility
+                                    .shortJustification && (
+                                    <p
+                                      className={`text-sm mt-2 ${
                                         selectedCase.aiOpinion
                                           .verificationResults
                                           .companyVerification.pkdCompatibility
                                           .isCompatible
-                                          ? selectedCase.aiOpinion
-                                              .verificationResults
-                                              .companyVerification
-                                              .pkdCompatibility.confidence >= 70
-                                            ? "bg-emerald-200 text-emerald-800"
-                                            : "bg-amber-200 text-amber-800"
-                                          : "bg-red-200 text-red-800"
+                                          ? "text-emerald-700"
+                                          : "text-red-700"
                                       }`}
                                     >
                                       {
                                         selectedCase.aiOpinion
                                           .verificationResults
                                           .companyVerification.pkdCompatibility
-                                          .confidence
+                                          .shortJustification
                                       }
-                                      %
-                                    </span>
-                                  </div>
-                                  <p
-                                    className={`text-sm mt-2 ${
-                                      selectedCase.aiOpinion.verificationResults
-                                        .companyVerification.pkdCompatibility
-                                        .isCompatible
-                                        ? "text-emerald-700"
-                                        : "text-red-700"
-                                    }`}
-                                  >
-                                    {
-                                      selectedCase.aiOpinion.verificationResults
-                                        .companyVerification.pkdCompatibility
-                                        .compatibilityReasoning
-                                    }
-                                  </p>
-                                  {selectedCase.aiOpinion.verificationResults
-                                    .companyVerification.pkdCompatibility
-                                    .accidentActivities && (
-                                    <p className="text-sm text-slate-600 mt-2">
-                                      <strong>
-                                        Czynności podczas wypadku:
-                                      </strong>{" "}
+                                    </p>
+                                  )}
+                                  {expandedVerifications.has(
+                                    "pkdCompatibility"
+                                  ) && (
+                                    <p
+                                      className={`text-sm mt-2 ${
+                                        selectedCase.aiOpinion
+                                          .verificationResults
+                                          .companyVerification.pkdCompatibility
+                                          .isCompatible
+                                          ? "text-emerald-600"
+                                          : "text-red-600"
+                                      }`}
+                                    >
                                       {
                                         selectedCase.aiOpinion
                                           .verificationResults
                                           .companyVerification.pkdCompatibility
-                                          .accidentActivities
+                                          .compatibilityReasoning
                                       }
                                     </p>
                                   )}
-                                  {selectedCase.aiOpinion.verificationResults
-                                    .companyVerification.pkdCompatibility
-                                    .doubts &&
-                                    selectedCase.aiOpinion.verificationResults
-                                      .companyVerification.pkdCompatibility
-                                      .doubts.length > 0 && (
-                                      <div className="mt-2 p-2 bg-white/50 rounded">
-                                        <p className="text-xs font-semibold text-slate-500 uppercase">
-                                          Wątpliwości:
+                                  {expandedVerifications.has(
+                                    "pkdCompatibility"
+                                  ) && (
+                                    <>
+                                      {selectedCase.aiOpinion
+                                        .verificationResults.companyVerification
+                                        .pkdCompatibility
+                                        .accidentActivities && (
+                                        <p className="text-sm text-slate-600 mt-2">
+                                          <strong>
+                                            Czynności podczas wypadku:
+                                          </strong>{" "}
+                                          {
+                                            selectedCase.aiOpinion
+                                              .verificationResults
+                                              .companyVerification
+                                              .pkdCompatibility
+                                              .accidentActivities
+                                          }
                                         </p>
-                                        <ul className="text-sm text-slate-600 list-disc list-inside mt-1">
-                                          {selectedCase.aiOpinion.verificationResults.companyVerification.pkdCompatibility.doubts.map(
-                                            (doubt, i) => (
-                                              <li key={i}>{doubt}</li>
-                                            )
-                                          )}
-                                        </ul>
-                                      </div>
-                                    )}
+                                      )}
+                                      {selectedCase.aiOpinion
+                                        .verificationResults.companyVerification
+                                        .pkdCompatibility.doubts &&
+                                        selectedCase.aiOpinion
+                                          .verificationResults
+                                          .companyVerification.pkdCompatibility
+                                          .doubts.length > 0 && (
+                                          <div className="mt-2 p-2 bg-white/50 rounded">
+                                            <p className="text-xs font-semibold text-slate-500 uppercase">
+                                              Wątpliwości:
+                                            </p>
+                                            <ul className="text-sm text-slate-600 list-disc list-inside mt-1">
+                                              {selectedCase.aiOpinion.verificationResults.companyVerification.pkdCompatibility.doubts.map(
+                                                (doubt, i) => (
+                                                  <li key={i}>{doubt}</li>
+                                                )
+                                              )}
+                                            </ul>
+                                          </div>
+                                        )}
+                                    </>
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -1010,12 +1210,24 @@ export default function ZUSPage() {
                           {selectedCase.aiOpinion.verificationResults
                             .a1FormVerification && (
                             <div
-                              className={`p-4 rounded-lg border ${
+                              className={`p-4 rounded-lg border cursor-pointer hover:opacity-90 transition-opacity ${
                                 selectedCase.aiOpinion.verificationResults
                                   .a1FormVerification.hasA1Form
                                   ? "bg-emerald-50 border-emerald-200"
                                   : "bg-amber-50 border-amber-200"
                               }`}
+                              onClick={() => {
+                                const key = "a1Form";
+                                setExpandedVerifications((prev) => {
+                                  const next = new Set(prev);
+                                  if (next.has(key)) {
+                                    next.delete(key);
+                                  } else {
+                                    next.add(key);
+                                  }
+                                  return next;
+                                });
+                              }}
                             >
                               <div className="flex items-start gap-3">
                                 <span className="text-xl">
@@ -1024,43 +1236,92 @@ export default function ZUSPage() {
                                     ? "✅"
                                     : "⚠️"}
                                 </span>
-                                <div>
-                                  <p
-                                    className={`font-semibold ${
-                                      selectedCase.aiOpinion.verificationResults
-                                        .a1FormVerification.hasA1Form
-                                        ? "text-emerald-900"
-                                        : "text-amber-900"
-                                    }`}
-                                  >
-                                    Weryfikacja formularza A1 (wypadek w UE)
-                                  </p>
-                                  <p
-                                    className={`text-sm mt-1 ${
-                                      selectedCase.aiOpinion.verificationResults
-                                        .a1FormVerification.hasA1Form
-                                        ? "text-emerald-700"
-                                        : "text-amber-700"
-                                    }`}
-                                  >
-                                    {
-                                      selectedCase.aiOpinion.verificationResults
-                                        .a1FormVerification.message
-                                    }
-                                  </p>
+                                <div className="flex-1">
+                                  <div className="flex items-center justify-between">
+                                    <p
+                                      className={`font-semibold ${
+                                        selectedCase.aiOpinion
+                                          .verificationResults
+                                          .a1FormVerification.hasA1Form
+                                          ? "text-emerald-900"
+                                          : "text-amber-900"
+                                      }`}
+                                    >
+                                      Weryfikacja formularza A1 (wypadek w UE)
+                                    </p>
+                                    <svg
+                                      className={`w-5 h-5 transition-transform ${
+                                        expandedVerifications.has("a1Form")
+                                          ? "rotate-180"
+                                          : ""
+                                      } ${
+                                        selectedCase.aiOpinion
+                                          .verificationResults
+                                          .a1FormVerification.hasA1Form
+                                          ? "text-emerald-700"
+                                          : "text-amber-700"
+                                      }`}
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M19 9l-7 7-7-7"
+                                      />
+                                    </svg>
+                                  </div>
                                   {selectedCase.aiOpinion.verificationResults
-                                    .a1FormVerification
-                                    .applicableLegislation && (
-                                    <p className="text-sm text-emerald-600 mt-1">
-                                      <strong>Właściwe ustawodawstwo:</strong>{" "}
+                                    .a1FormVerification.shortJustification && (
+                                    <p
+                                      className={`text-sm mt-1 ${
+                                        selectedCase.aiOpinion
+                                          .verificationResults
+                                          .a1FormVerification.hasA1Form
+                                          ? "text-emerald-700"
+                                          : "text-amber-700"
+                                      }`}
+                                    >
                                       {
                                         selectedCase.aiOpinion
                                           .verificationResults
-                                          .a1FormVerification
-                                          .applicableLegislation
+                                          .a1FormVerification.shortJustification
                                       }
                                     </p>
                                   )}
+                                  {expandedVerifications.has("a1Form") && (
+                                    <p
+                                      className={`text-sm mt-2 ${
+                                        selectedCase.aiOpinion
+                                          .verificationResults
+                                          .a1FormVerification.hasA1Form
+                                          ? "text-emerald-600"
+                                          : "text-amber-600"
+                                      }`}
+                                    >
+                                      {
+                                        selectedCase.aiOpinion
+                                          .verificationResults
+                                          .a1FormVerification.message
+                                      }
+                                    </p>
+                                  )}
+                                  {expandedVerifications.has("a1Form") &&
+                                    selectedCase.aiOpinion.verificationResults
+                                      .a1FormVerification
+                                      .applicableLegislation && (
+                                      <p className="text-sm text-emerald-600 mt-1">
+                                        <strong>Właściwe ustawodawstwo:</strong>{" "}
+                                        {
+                                          selectedCase.aiOpinion
+                                            .verificationResults
+                                            .a1FormVerification
+                                            .applicableLegislation
+                                        }
+                                      </p>
+                                    )}
                                 </div>
                               </div>
                             </div>
@@ -1070,13 +1331,25 @@ export default function ZUSPage() {
                           {selectedCase.aiOpinion.verificationResults
                             .injuryVerification.hasInjury && (
                             <div
-                              className={`p-4 rounded-lg border-2 ${
+                              className={`p-4 rounded-lg border-2 cursor-pointer hover:opacity-90 transition-opacity ${
                                 selectedCase.aiOpinion.verificationResults
                                   .injuryVerification
                                   .requiresChiefMedicalExaminerOpinion
                                   ? "bg-red-50 border-red-300"
                                   : "bg-amber-50 border-amber-300"
                               }`}
+                              onClick={() => {
+                                const key = "injury";
+                                setExpandedVerifications((prev) => {
+                                  const next = new Set(prev);
+                                  if (next.has(key)) {
+                                    next.delete(key);
+                                  } else {
+                                    next.add(key);
+                                  }
+                                  return next;
+                                });
+                              }}
                             >
                               <div className="flex items-start gap-3">
                                 <span className="text-xl">
@@ -1087,115 +1360,175 @@ export default function ZUSPage() {
                                     : "📋"}
                                 </span>
                                 <div className="flex-1">
-                                  <p
-                                    className={`font-semibold ${
-                                      selectedCase.aiOpinion.verificationResults
-                                        .injuryVerification
+                                  <div className="flex items-center justify-between">
+                                    <p
+                                      className={`font-semibold ${
+                                        selectedCase.aiOpinion
+                                          .verificationResults
+                                          .injuryVerification
+                                          .requiresChiefMedicalExaminerOpinion
+                                          ? "text-red-900"
+                                          : "text-amber-900"
+                                      }`}
+                                    >
+                                      {selectedCase.aiOpinion
+                                        .verificationResults.injuryVerification
                                         .requiresChiefMedicalExaminerOpinion
-                                        ? "text-red-900"
-                                        : "text-amber-900"
-                                    }`}
-                                  >
-                                    {selectedCase.aiOpinion.verificationResults
-                                      .injuryVerification
-                                      .requiresChiefMedicalExaminerOpinion
-                                      ? "⚠️ Wymagana opinia Głównego Lekarza Orzecznika ZUS"
-                                      : "Wymagana dokumentacja medyczna"}
-                                  </p>
-                                  <p
-                                    className={`text-sm mt-1 ${
-                                      selectedCase.aiOpinion.verificationResults
-                                        .injuryVerification
-                                        .requiresChiefMedicalExaminerOpinion
-                                        ? "text-red-700"
-                                        : "text-amber-700"
-                                    }`}
-                                  >
-                                    {
-                                      selectedCase.aiOpinion.verificationResults
-                                        .injuryVerification.message
-                                    }
-                                  </p>
+                                        ? "⚠️ Wymagana opinia Głównego Lekarza Orzecznika ZUS"
+                                        : "Wymagana dokumentacja medyczna"}
+                                    </p>
+                                    <svg
+                                      className={`w-5 h-5 transition-transform ${
+                                        expandedVerifications.has("injury")
+                                          ? "rotate-180"
+                                          : ""
+                                      } ${
+                                        selectedCase.aiOpinion
+                                          .verificationResults
+                                          .injuryVerification
+                                          .requiresChiefMedicalExaminerOpinion
+                                          ? "text-red-700"
+                                          : "text-amber-700"
+                                      }`}
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M19 9l-7 7-7-7"
+                                      />
+                                    </svg>
+                                  </div>
                                   {selectedCase.aiOpinion.verificationResults
-                                    .injuryVerification.injuryDescription && (
-                                    <p className="text-sm text-slate-700 mt-2">
-                                      <strong>Stwierdzony uraz:</strong>{" "}
+                                    .injuryVerification.shortJustification && (
+                                    <p
+                                      className={`text-sm mt-1 ${
+                                        selectedCase.aiOpinion
+                                          .verificationResults
+                                          .injuryVerification
+                                          .requiresChiefMedicalExaminerOpinion
+                                          ? "text-red-700"
+                                          : "text-amber-700"
+                                      }`}
+                                    >
                                       {
                                         selectedCase.aiOpinion
                                           .verificationResults
-                                          .injuryVerification.injuryDescription
+                                          .injuryVerification.shortJustification
                                       }
                                     </p>
                                   )}
-                                  {selectedCase.aiOpinion.verificationResults
-                                    .injuryVerification.injuryType && (
-                                    <p className="text-sm text-slate-600 mt-1">
-                                      <strong>Typ urazu:</strong>{" "}
-                                      {(() => {
-                                        const typeLabels: Record<
-                                          string,
-                                          string
-                                        > = {
-                                          physical_visible:
-                                            "Uraz fizyczny widoczny",
-                                          physical_internal: "Uraz wewnętrzny",
-                                          psychological: "Uraz psychiczny",
-                                          disease_aggravation:
-                                            "Zaostrzenie choroby",
-                                          pain_only: "Dolegliwości bólowe",
-                                          mixed: "Uraz mieszany",
-                                          unknown: "Typ nieokreślony",
-                                        };
-                                        return (
-                                          typeLabels[
-                                            selectedCase.aiOpinion
-                                              .verificationResults
-                                              .injuryVerification.injuryType ||
-                                              "unknown"
-                                          ] || "Nieznany"
-                                        );
-                                      })()}
+                                  {expandedVerifications.has("injury") && (
+                                    <p
+                                      className={`text-sm mt-2 ${
+                                        selectedCase.aiOpinion
+                                          .verificationResults
+                                          .injuryVerification
+                                          .requiresChiefMedicalExaminerOpinion
+                                          ? "text-red-600"
+                                          : "text-amber-600"
+                                      }`}
+                                    >
+                                      {
+                                        selectedCase.aiOpinion
+                                          .verificationResults
+                                          .injuryVerification.message
+                                      }
                                     </p>
                                   )}
-                                  {/* GLO ZUS Opinion Reason */}
-                                  {selectedCase.aiOpinion.verificationResults
-                                    .injuryVerification
-                                    .chiefMedicalExaminerOpinionReason && (
-                                    <div className="mt-3 p-3 bg-red-100 rounded-lg">
-                                      <p className="text-xs font-semibold text-red-800 uppercase mb-1">
-                                        Uzasadnienie konieczności opinii GLO
-                                        ZUS:
-                                      </p>
-                                      <p className="text-sm text-red-700">
-                                        {
-                                          selectedCase.aiOpinion
-                                            .verificationResults
-                                            .injuryVerification
-                                            .chiefMedicalExaminerOpinionReason
-                                        }
-                                      </p>
-                                    </div>
-                                  )}
-                                  {/* Injury Definition Doubts */}
-                                  {selectedCase.aiOpinion.verificationResults
-                                    .injuryVerification
-                                    .injuryDefinitionDoubts &&
-                                    selectedCase.aiOpinion.verificationResults
-                                      .injuryVerification.injuryDefinitionDoubts
-                                      .length > 0 && (
-                                      <div className="mt-2 p-2 bg-white/50 rounded">
-                                        <p className="text-xs font-semibold text-slate-500 uppercase">
-                                          Wątpliwości definicyjne:
+                                  {expandedVerifications.has("injury") && (
+                                    <>
+                                      {selectedCase.aiOpinion
+                                        .verificationResults.injuryVerification
+                                        .injuryDescription && (
+                                        <p className="text-sm text-slate-700 mt-2">
+                                          <strong>Stwierdzony uraz:</strong>{" "}
+                                          {
+                                            selectedCase.aiOpinion
+                                              .verificationResults
+                                              .injuryVerification
+                                              .injuryDescription
+                                          }
                                         </p>
-                                        <ul className="text-sm text-slate-600 list-disc list-inside mt-1">
-                                          {selectedCase.aiOpinion.verificationResults.injuryVerification.injuryDefinitionDoubts.map(
-                                            (doubt, i) => (
-                                              <li key={i}>{doubt}</li>
-                                            )
-                                          )}
-                                        </ul>
-                                      </div>
-                                    )}
+                                      )}
+                                      {selectedCase.aiOpinion
+                                        .verificationResults.injuryVerification
+                                        .injuryType && (
+                                        <p className="text-sm text-slate-600 mt-1">
+                                          <strong>Typ urazu:</strong>{" "}
+                                          {(() => {
+                                            const typeLabels: Record<
+                                              string,
+                                              string
+                                            > = {
+                                              physical_visible:
+                                                "Uraz fizyczny widoczny",
+                                              physical_internal:
+                                                "Uraz wewnętrzny",
+                                              psychological: "Uraz psychiczny",
+                                              disease_aggravation:
+                                                "Zaostrzenie choroby",
+                                              pain_only: "Dolegliwości bólowe",
+                                              mixed: "Uraz mieszany",
+                                              unknown: "Typ nieokreślony",
+                                            };
+                                            return (
+                                              typeLabels[
+                                                selectedCase.aiOpinion
+                                                  .verificationResults
+                                                  .injuryVerification
+                                                  .injuryType || "unknown"
+                                              ] || "Nieznany"
+                                            );
+                                          })()}
+                                        </p>
+                                      )}
+                                      {/* GLO ZUS Opinion Reason */}
+                                      {selectedCase.aiOpinion
+                                        .verificationResults.injuryVerification
+                                        .chiefMedicalExaminerOpinionReason && (
+                                        <div className="mt-3 p-3 bg-red-100 rounded-lg">
+                                          <p className="text-xs font-semibold text-red-800 uppercase mb-1">
+                                            Uzasadnienie konieczności opinii GLO
+                                            ZUS:
+                                          </p>
+                                          <p className="text-sm text-red-700">
+                                            {
+                                              selectedCase.aiOpinion
+                                                .verificationResults
+                                                .injuryVerification
+                                                .chiefMedicalExaminerOpinionReason
+                                            }
+                                          </p>
+                                        </div>
+                                      )}
+                                      {/* Injury Definition Doubts */}
+                                      {selectedCase.aiOpinion
+                                        .verificationResults.injuryVerification
+                                        .injuryDefinitionDoubts &&
+                                        selectedCase.aiOpinion
+                                          .verificationResults
+                                          .injuryVerification
+                                          .injuryDefinitionDoubts.length >
+                                          0 && (
+                                          <div className="mt-2 p-2 bg-white/50 rounded">
+                                            <p className="text-xs font-semibold text-slate-500 uppercase">
+                                              Wątpliwości definicyjne:
+                                            </p>
+                                            <ul className="text-sm text-slate-600 list-disc list-inside mt-1">
+                                              {selectedCase.aiOpinion.verificationResults.injuryVerification.injuryDefinitionDoubts.map(
+                                                (doubt, i) => (
+                                                  <li key={i}>{doubt}</li>
+                                                )
+                                              )}
+                                            </ul>
+                                          </div>
+                                        )}
+                                    </>
+                                  )}
                                 </div>
                               </div>
                             </div>
@@ -1257,19 +1590,63 @@ export default function ZUSPage() {
                             Uzasadnienie prawne
                           </p>
                           {selectedCase.aiOpinion.justifications.map(
-                            (item, index) => (
-                              <div
-                                key={index}
-                                className="p-4 bg-blue-50 rounded-lg border border-blue-200"
-                              >
-                                <p className="font-semibold text-blue-900 mb-2">
-                                  {item.title}
-                                </p>
-                                <p className="text-slate-700 leading-relaxed">
-                                  {item.justification}
-                                </p>
-                              </div>
-                            )
+                            (item, index) => {
+                              const justificationKey = `justification-${index}`;
+                              return (
+                                <div
+                                  key={index}
+                                  className="p-4 bg-blue-50 rounded-lg border border-blue-200 cursor-pointer hover:bg-blue-100 transition-colors"
+                                  onClick={() => {
+                                    setExpandedVerifications((prev) => {
+                                      const next = new Set(prev);
+                                      if (next.has(justificationKey)) {
+                                        next.delete(justificationKey);
+                                      } else {
+                                        next.add(justificationKey);
+                                      }
+                                      return next;
+                                    });
+                                  }}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <p className="font-semibold text-blue-900 mb-2">
+                                      {item.title}
+                                    </p>
+                                    <svg
+                                      className={`w-5 h-5 text-blue-700 transition-transform ${
+                                        expandedVerifications.has(
+                                          justificationKey
+                                        )
+                                          ? "rotate-180"
+                                          : ""
+                                      }`}
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M19 9l-7 7-7-7"
+                                      />
+                                    </svg>
+                                  </div>
+                                  {item.shortJustification && (
+                                    <p className="text-sm text-blue-700 leading-relaxed">
+                                      {item.shortJustification}
+                                    </p>
+                                  )}
+                                  {expandedVerifications.has(
+                                    justificationKey
+                                  ) && (
+                                    <p className="text-slate-700 leading-relaxed mt-2">
+                                      {item.justification}
+                                    </p>
+                                  )}
+                                </div>
+                              );
+                            }
                           )}
                         </div>
                       )}

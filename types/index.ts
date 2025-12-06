@@ -15,7 +15,11 @@ export interface AccidentReport {
   witnesses?: Witness[];
   documents?: File[];
   attachments?: AttachmentInfo[]; // Informacje o załącznikach
-  responseDeliveryMethod?: "zus_office" | "pue_zus" | "poczta" | "osoba_upowazniona"; // Sposób odbioru odpowiedzi
+  responseDeliveryMethod?:
+    | "zus_office"
+    | "pue_zus"
+    | "poczta"
+    | "osoba_upowazniona"; // Sposób odbioru odpowiedzi
   signatureDate?: string; // Data podpisu
   documentCommitments?: boolean[]; // Zobowiązanie do dostarczenia dokumentów (8 pozycji)
 }
@@ -68,7 +72,11 @@ export interface Address {
   phone?: string; // dla adresu działalności
 }
 
-export type CorrespondenceAddressType = "adres" | "poste_restante" | "skrytka" | "przegrodka";
+export type CorrespondenceAddressType =
+  | "adres"
+  | "poste_restante"
+  | "skrytka"
+  | "przegrodka";
 
 export interface CorrespondenceAddress {
   type: CorrespondenceAddressType;
@@ -446,12 +454,14 @@ export type Decision = "ACCEPTED" | "REJECTED" | "NEED_MORE_INFORMATION";
 export interface Justification {
   title: string;
   justification: string;
+  shortJustification?: string;
 }
 
 export interface InsuranceVerification {
   hasAccidentInsurance: boolean;
   verificationDate: string;
   message: string;
+  shortJustification?: string;
 }
 
 export interface A1FormVerification {
@@ -459,6 +469,7 @@ export interface A1FormVerification {
   hasA1Form: boolean;
   applicableLegislation?: string; // Which country's legislation applies
   message: string;
+  shortJustification?: string;
 }
 
 export type InjuryType =
@@ -480,6 +491,7 @@ export interface InjuryVerification {
   chiefMedicalExaminerOpinionReason?: string;
   injuryDefinitionDoubts?: string[];
   message: string;
+  shortJustification?: string;
 }
 
 export interface PKDCompatibility {
@@ -489,6 +501,7 @@ export interface PKDCompatibility {
   pkdDescription?: string;
   accidentActivities: string; // Czynności wykonywane podczas wypadku
   compatibilityReasoning: string;
+  shortJustification?: string;
   doubts?: string[];
 }
 
@@ -498,6 +511,7 @@ export interface CompanyVerification {
   pkd?: string;
   pkdDescription?: string;
   message: string;
+  shortJustification?: string;
   // Nowe pole dla weryfikacji zgodności PKD z wypadkiem
   pkdCompatibility?: PKDCompatibility;
 }

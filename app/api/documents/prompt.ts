@@ -22,7 +22,7 @@ ${JSON.stringify(data)}
    "description": string, // Opis okoliczności wypadku na podstawie dokumentów
    "causes": string, // Opis przyczyn wypadku na podstawie dokumentów
    "decision": "ACCEPTED" | "REJECTED" | "NEED_MORE_INFORMATION",
-   "justifications": [] // Lista tytułów oraz uzasadnień do każdego tytułu w formacie: { "title": "Tytuł", "justification": "Uzasadnienie" }, szczegółowe uzasadnienie prawne z odwołaniem do faktów i przepisów
+   "justifications": [] // Lista tytułów oraz uzasadnień do każdego tytułu w formacie: { "title": "Tytuł", "justification": "Uzasadnienie", "shortJustification": "Krótkie uzasadnienie" }, szczegółowe uzasadnienie prawne z odwołaniem do faktów i przepisów oraz krótkie uzasadnienie do każdego tytułu
 }
 
 **WAŻNE:**

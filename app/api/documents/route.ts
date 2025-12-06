@@ -92,6 +92,8 @@ function verifyAccidentInsurance(accidentDate: string): InsuranceVerification {
     verificationDate: accidentDate,
     message:
       "Weryfikacja ZUS: Ubezpieczony podlegał ubezpieczeniu wypadkowemu w dniu wypadku.",
+    shortJustification:
+      "Ubezpieczony podlegał ubezpieczeniu wypadkowemu w dniu wypadku.",
   };
 }
 
@@ -110,6 +112,7 @@ function verifyA1Form(country: string): A1FormVerification {
       hasA1Form: false,
       message:
         "Weryfikacja formularza A1 nie jest wymagana - wypadek nie wydarzył się w państwie członkowskim UE.",
+      shortJustification: "Weryfikacja A1 nie jest wymagana - wypadek poza UE.",
     };
   }
 
@@ -118,6 +121,7 @@ function verifyA1Form(country: string): A1FormVerification {
     hasA1Form: true,
     applicableLegislation: "Polska",
     message: `Weryfikacja formularza A1: Ubezpieczony posiada formularz A1 potwierdzający podleganie polskiemu ustawodawstwu w zakresie zabezpieczenia społecznego. Wypadek w ${country} podlega polskim przepisom.`,
+    shortJustification: `Formularz A1 potwierdzony - wypadek w ${country} podlega polskim przepisom.`,
   };
 }
 
@@ -148,6 +152,7 @@ function createInjuryVerification(
       requiresMedicalDocumentation: false,
       requiresChiefMedicalExaminerOpinion: false,
       message: "Nie stwierdzono urazu na podstawie dostarczonych dokumentów.",
+      shortJustification: "Nie stwierdzono urazu.",
     };
   }
 
@@ -203,11 +208,14 @@ function createInjuryVerification(
 
   // Determine the message based on whether GLO opinion is required
   let message: string;
+  let shortJustification: string;
   if (requiresGLOOpinion) {
     message = `⚠️ WYMAGA OPINII GŁÓWNEGO LEKARZA ORZECZNIKA ZUS: ${chiefMedicalExaminerOpinionReason}`;
+    shortJustification = "⚠️ Wymagana opinia Głównego Lekarza Orzecznika ZUS";
   } else {
     message =
       "⚠️ UWAGA: Z analizy dokumentów wynika, że ubezpieczony doznał urazu. Wymagane jest dołączenie dokumentacji medycznej potwierdzającej rodzaj i zakres obrażeń.";
+    shortJustification = "⚠️ Wymagana dokumentacja medyczna";
   }
 
   return {
@@ -221,6 +229,7 @@ function createInjuryVerification(
     injuryDefinitionDoubts:
       injuryDefinitionDoubts.length > 0 ? injuryDefinitionDoubts : undefined,
     message,
+    shortJustification,
   };
 }
 
@@ -440,6 +449,12 @@ async function verifyPKDCompatibility(
       );
     }
 
+    const shortJustification = finalIsCompatible
+      ? finalConfidence >= 70
+        ? `✅ Zgodność PKD (${finalConfidence}%)`
+        : `⚠️ Umiarkowana zgodność PKD (${finalConfidence}%)`
+      : `❌ Niezgodność PKD (${finalConfidence}%)`;
+
     const result: PKDCompatibility = {
       isCompatible: finalIsCompatible,
       confidence: finalConfidence,
@@ -447,6 +462,7 @@ async function verifyPKDCompatibility(
       pkdDescription: effectivePkdDescription,
       accidentActivities: activitiesPerformed,
       compatibilityReasoning: finalReasoning,
+      shortJustification,
       doubts: finalDoubts,
     };
 
@@ -465,6 +481,7 @@ async function verifyPKDCompatibility(
       pkdDescription: effectivePkdDescription,
       accidentActivities: activitiesPerformed,
       compatibilityReasoning: "Błąd podczas weryfikacji zgodności PKD",
+      shortJustification: "❌ Błąd weryfikacji PKD",
       doubts: ["Wystąpił błąd podczas automatycznej weryfikacji"],
     };
   }
@@ -769,11 +786,15 @@ async function processCaseWithAI(caseId: string, files: File[], nip: string) {
             message: pkd
               ? `Dane działalności zweryfikowane pomyślnie dla NIP: ${nip}`
               : `⚠️ Dane firmy pobrane dla NIP: ${nip}, ale nie znaleziono kodu PKD w odpowiedzi CEIDG`,
+            shortJustification: pkd
+              ? `Dane działalności zweryfikowane (PKD: ${pkd})`
+              : `⚠️ Brak kodu PKD w danych CEIDG`,
           };
         } else {
           companyVerification = {
             verified: false,
             message: `⚠️ Nie znaleziono danych działalności dla NIP: ${nip}. Nie można zweryfikować zgodności PKD z okolicznościami wypadku.`,
+            shortJustification: "⚠️ Nie znaleziono danych działalności",
           };
         }
       } catch (error) {
@@ -781,6 +802,7 @@ async function processCaseWithAI(caseId: string, files: File[], nip: string) {
         companyVerification = {
           verified: false,
           message: `⚠️ Nie udało się pobrać danych o działalności dla NIP: ${nip}. Weryfikacja PKD niemożliwa.`,
+          shortJustification: "⚠️ Błąd pobierania danych CEIDG",
         };
       }
     } else {
@@ -788,6 +810,7 @@ async function processCaseWithAI(caseId: string, files: File[], nip: string) {
         verified: false,
         message:
           "⚠️ Nie podano NIP. Nie można zweryfikować danych o działalności gospodarczej.",
+        shortJustification: "⚠️ Brak NIP",
       };
     }
 
@@ -836,14 +859,17 @@ async function processCaseWithAI(caseId: string, files: File[], nip: string) {
         companyVerification.message =
           `⚠️ UWAGA: Czynności wykonywane podczas wypadku mogą nie być zgodne z zarejestrowaną działalnością (PKD: ${pkd}). ` +
           `Pewność: ${pkdCompatibility.confidence}%. ${pkdCompatibility.compatibilityReasoning}`;
+        companyVerification.shortJustification = `⚠️ Niezgodność PKD (${pkdCompatibility.confidence}%)`;
       } else if (pkdCompatibility.confidence < 70) {
         companyVerification.message =
           `⚠️ Weryfikacja PKD: Umiarkowana zgodność (${pkdCompatibility.confidence}%). ` +
           `PKD: ${pkd}. ${pkdCompatibility.compatibilityReasoning}`;
+        companyVerification.shortJustification = `⚠️ Umiarkowana zgodność PKD (${pkdCompatibility.confidence}%)`;
       } else {
         companyVerification.message =
           `✅ Weryfikacja PKD: Czynności zgodne z działalnością (${pkdCompatibility.confidence}%). ` +
           `PKD: ${pkd}${pkdDescription ? ` - ${pkdDescription}` : ""}`;
+        companyVerification.shortJustification = `✅ Zgodność PKD (${pkdCompatibility.confidence}%)`;
       }
     }
 
@@ -1035,6 +1061,7 @@ async function processCaseWithAI(caseId: string, files: File[], nip: string) {
       injuryDescription: injuryDescription ?? undefined,
       verificationResults,
     };
+    console.log("Final Justifications:", finalJustifications);
 
     console.log("Final AI Opinion with verifications:", aiOpinion);
 
