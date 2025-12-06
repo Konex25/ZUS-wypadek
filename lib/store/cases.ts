@@ -1,19 +1,30 @@
-import { Case, UploadedDocument } from "@/types";
+import { Case } from "@/types";
+
+// Use globalThis to persist data across hot reloads in development
+const globalForCases = globalThis as unknown as {
+  cases: Case[] | undefined;
+};
 
 // In-memory store for cases
 // Will be replaced with proper database later
-let cases: Case[] = [];
+const cases: Case[] = globalForCases.cases ?? [];
+
+if (process.env.NODE_ENV !== "production") {
+  globalForCases.cases = cases;
+}
 
 export function getCases(): Case[] {
   return [...cases];
 }
 
 export function getCaseById(id: string): Case | undefined {
+  console.log(`[cases store] getCaseById(${id}), total cases: ${cases.length}, ids: ${cases.map(c => c.id).join(', ')}`);
   return cases.find((c) => c.id === id);
 }
 
 export function addCase(newCase: Case): void {
   cases.push(newCase);
+  console.log(`[cases store] addCase(${newCase.id}), total cases now: ${cases.length}`);
 }
 
 export function updateCase(
