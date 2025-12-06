@@ -82,7 +82,7 @@ export default function TopBar() {
                   </svg>
                 </button>
                 {languageMenuOpen && (
-                  <div className="language-menu absolute left-0 mt-1 w-52 bg-white border border-gray-200 rounded shadow-lg z-50">
+                  <div className="language-menu absolute right-0 mt-1 w-52 bg-white border border-gray-200 rounded shadow-lg z-50">
                     <Link
                       href="/?lang=pl"
                       className="block px-4 py-2 text-gray-700 hover:bg-gray-50 no-underline"
@@ -260,8 +260,8 @@ export default function TopBar() {
                   <circle cx="9.5" cy="12.9" r="0.4" fill="#FFCC00"/>
                   <circle cx="12.1" cy="13.7" r="0.4" fill="#FFCC00"/>
                   <circle cx="13.64" cy="10.64" r="0.4" fill="#FFCC00"/>
-                  <circle cx="14.2" cy="7" r="0.4" fill="#FFCC00"/>
                   <circle cx="10" cy="2.8" r="0.4" fill="#FFCC00"/>
+                  <circle cx="10" cy="11.2" r="0.4" fill="#FFCC00"/>
                 </svg>
                 <span>Fundusze Europejskie Projekty ZUS</span>
               </Link>

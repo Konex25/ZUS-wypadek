@@ -111,6 +111,7 @@ export default function AsystentPage() {
         lastName: data.osobaZawiadamiajaca.nazwisko,
         dateOfBirth: data.osobaZawiadamiajaca.dataUrodzenia,
         phone: data.osobaZawiadamiajaca.telefon,
+        mieszkaZaGranica: data.osobaZawiadamiajaca.mieszkaZaGranica || false,
         addresses: {
           residentialAddress: data.osobaZawiadamiajaca.adresZamieszkania ? {
             street: data.osobaZawiadamiajaca.adresZamieszkania.ulica,
@@ -456,7 +457,7 @@ export default function AsystentPage() {
           miejscowosc: formData.representativeData.addresses.residentialAddress.city || "",
           panstwo: formData.representativeData.addresses.residentialAddress.country,
         } : undefined,
-        mieszkaZaGranica: !!formData.representativeData.addresses?.lastResidentialAddressInPoland,
+        mieszkaZaGranica: formData.representativeData.mieszkaZaGranica || false,
         adresOstatniegoZamieszkaniaWPolsce: formData.representativeData.addresses?.lastResidentialAddressInPoland ? {
           ulica: formData.representativeData.addresses.lastResidentialAddressInPoland.street || "",
           numerDomu: formData.representativeData.addresses.lastResidentialAddressInPoland.houseNumber || "",
