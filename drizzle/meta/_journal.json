@@ -15,6 +15,13 @@
       "when": 1765063225049,
       "tag": "0001_secret_xavin",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1765063665996,
+      "tag": "0002_misty_landau",
+      "breakpoints": true
     }
   ]
 }

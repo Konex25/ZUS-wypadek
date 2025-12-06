@@ -36,6 +36,9 @@ export const subjectsTable = pgTable("subjects", {
   ),
 });
 
+export type Subject = typeof subjectsTable.$inferSelect;
+export type NewSubject = typeof subjectsTable.$inferInsert;
+
 export const bytea = customType<{ data: Buffer }>({
   dataType() {
     return "bytea";
@@ -57,12 +60,16 @@ export const fileTable = pgTable("files", {
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),
 });
 
+export type File = typeof fileTable.$inferSelect;
+export type NewFile = typeof fileTable.$inferInsert;
+
 export const casesTable = pgTable("cases", {
   id: uuid("id").primaryKey(),
   subjectId: uuid("subjectId").references(() => subjectsTable.id),
   status: caseStatuses("status").notNull().default("PENDING"),
   createdAt: timestamp("createdAt").notNull().defaultNow(),
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+  resolvedAt: timestamp("resolvedAt"),
   fileIds: text("fileIds").array(),
 
   aiResponse: jsonb("aiResponse"),
@@ -73,3 +80,6 @@ export const casesTable = pgTable("cases", {
 
   finalDecision: jsonb("finalDecision"),
 });
+
+export type Case = typeof casesTable.$inferSelect;
+export type NewCase = typeof casesTable.$inferInsert;

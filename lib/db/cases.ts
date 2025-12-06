@@ -1,17 +1,14 @@
-import { prisma } from './prisma'
-import { Case, UploadedDocument } from '@/types'
-
 export async function getCases(): Promise<Case[]> {
   const cases = await prisma.case.findMany({
     include: {
       documents: true,
     },
     orderBy: {
-      createdAt: 'desc',
+      createdAt: "desc",
     },
-  })
+  });
 
-  return cases.map(caseToCaseType)
+  return cases.map(caseToCaseType);
 }
 
 export async function getCaseById(id: string): Promise<Case | undefined> {
@@ -20,14 +17,14 @@ export async function getCaseById(id: string): Promise<Case | undefined> {
     include: {
       documents: true,
     },
-  })
+  });
 
-  if (!caseData) return undefined
-  return caseToCaseType(caseData)
+  if (!caseData) return undefined;
+  return caseToCaseType(caseData);
 }
 
 export async function addCase(newCase: Case): Promise<Case> {
-  const { documents, ...caseData } = newCase
+  const { documents, ...caseData } = newCase;
 
   const created = await prisma.case.create({
     data: {
@@ -35,11 +32,15 @@ export async function addCase(newCase: Case): Promise<Case> {
       status: caseData.status,
       nip: caseData.nip || null,
       error: caseData.error || null,
-      aiOpinion: caseData.aiOpinion ? JSON.parse(JSON.stringify(caseData.aiOpinion)) : null,
-      differences: caseData.differences ? JSON.parse(JSON.stringify(caseData.differences)) : null,
+      aiOpinion: caseData.aiOpinion
+        ? JSON.parse(JSON.stringify(caseData.aiOpinion))
+        : null,
+      differences: caseData.differences
+        ? JSON.parse(JSON.stringify(caseData.differences))
+        : null,
       createdAt: new Date(caseData.createdAt),
       documents: {
-        create: documents.map(doc => ({
+        create: documents.map((doc) => ({
           id: doc.id,
           fileName: doc.fileName,
           fileSize: doc.fileSize,
@@ -51,16 +52,16 @@ export async function addCase(newCase: Case): Promise<Case> {
     include: {
       documents: true,
     },
-  })
+  });
 
-  return caseToCaseType(created)
+  return caseToCaseType(created);
 }
 
 export async function updateCase(
   id: string,
   updates: Partial<Case>
 ): Promise<Case | undefined> {
-  const { documents, ...caseUpdates } = updates
+  const { documents, ...caseUpdates } = updates;
 
   try {
     const updated = await prisma.case.update({
@@ -68,17 +69,19 @@ export async function updateCase(
       data: {
         ...(caseUpdates.status && { status: caseUpdates.status }),
         ...(caseUpdates.nip !== undefined && { nip: caseUpdates.nip || null }),
-        ...(caseUpdates.error !== undefined && { error: caseUpdates.error || null }),
-        ...(caseUpdates.aiOpinion && { 
-          aiOpinion: JSON.parse(JSON.stringify(caseUpdates.aiOpinion)) 
+        ...(caseUpdates.error !== undefined && {
+          error: caseUpdates.error || null,
         }),
-        ...(caseUpdates.differences && { 
-          differences: JSON.parse(JSON.stringify(caseUpdates.differences)) 
+        ...(caseUpdates.aiOpinion && {
+          aiOpinion: JSON.parse(JSON.stringify(caseUpdates.aiOpinion)),
+        }),
+        ...(caseUpdates.differences && {
+          differences: JSON.parse(JSON.stringify(caseUpdates.differences)),
         }),
         ...(documents && {
           documents: {
             deleteMany: {},
-            create: documents.map(doc => ({
+            create: documents.map((doc) => ({
               id: doc.id,
               fileName: doc.fileName,
               fileSize: doc.fileSize,
@@ -91,12 +94,12 @@ export async function updateCase(
       include: {
         documents: true,
       },
-    })
+    });
 
-    return caseToCaseType(updated)
+    return caseToCaseType(updated);
   } catch (error) {
-    console.error('Error updating case:', error)
-    return undefined
+    console.error("Error updating case:", error);
+    return undefined;
   }
 }
 
@@ -104,11 +107,11 @@ export async function deleteCase(id: string): Promise<boolean> {
   try {
     await prisma.case.delete({
       where: { id },
-    })
-    return true
+    });
+    return true;
   } catch (error) {
-    console.error('Error deleting case:', error)
-    return false
+    console.error("Error deleting case:", error);
+    return false;
   }
 }
 
@@ -117,7 +120,7 @@ function caseToCaseType(dbCase: any): Case {
   return {
     id: dbCase.id,
     createdAt: dbCase.createdAt.toISOString(),
-    status: dbCase.status as Case['status'],
+    status: dbCase.status as Case["status"],
     nip: dbCase.nip || undefined,
     fileIds: [], // Deprecated, ale zachowane dla kompatybilności
     documents: dbCase.documents.map((doc: any) => ({
@@ -127,22 +130,21 @@ function caseToCaseType(dbCase: any): Case {
       mimeType: doc.mimeType,
       uploadedAt: doc.uploadedAt.toISOString(),
     })),
-    aiOpinion: dbCase.aiOpinion as Case['aiOpinion'],
-    differences: dbCase.differences as Case['differences'],
+    aiOpinion: dbCase.aiOpinion as Case["aiOpinion"],
+    differences: dbCase.differences as Case["differences"],
     error: dbCase.error || undefined,
-  }
+  };
 }
 
 // Helper functions (zachowane dla kompatybilności)
 export function generateCaseId(): string {
-  const now = new Date()
-  const year = now.getFullYear()
-  const month = String(now.getMonth() + 1).padStart(2, '0')
-  const random = Math.random().toString(36).substring(2, 6).toUpperCase()
-  return `ZUS-${year}${month}-${random}`
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+  return `ZUS-${year}${month}-${random}`;
 }
 
 export function generateDocumentId(): string {
-  return `doc_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`
+  return `doc_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
 }
-
