@@ -1,4 +1,4 @@
-import { getCaseById, updateCase } from "@/lib/store/cases";
+import { getCaseById, updateCase } from "@/lib/db/cases";
 import { NextResponse } from "next/server";
 import { DIFFERENCES_PROMPT, SYSTEM_JSON_PROMPT } from "./prompt";
 import openai from "@/lib/openai/openai";
@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const caseData = getCaseById(caseId);
+  const caseData = await getCaseById(caseId);
 
   if (!caseData) {
     return NextResponse.json({ error: "Case not found" }, { status: 404 });
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
 
   const differences = differencesResponse.output_text || "";
   const parsedDifferences = JSON.parse(differences);
-  updateCase(caseId, { differences: parsedDifferences });
+  await updateCase(caseId, { differences: parsedDifferences });
 
   return NextResponse.json({ differences: parsedDifferences });
 }

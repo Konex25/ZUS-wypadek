@@ -557,6 +557,7 @@ export interface Case {
   status: CaseStatus;
   fileIds: string[];
   documents: UploadedDocument[];
+  nip?: string;
   aiOpinion?: AIOpinion;
   error?: string;
   differences?: Differences;
