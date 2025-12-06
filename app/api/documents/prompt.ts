@@ -1,4 +1,4 @@
-Jesteś ekspertem ds. prawa pracy i ubezpieczeń społecznych specjalizującym się w wypadkach przy pracy osób prowadzących działalność gospodarczą.
+export const PROMPT = `Jesteś ekspertem ds. prawa pracy i ubezpieczeń społecznych specjalizującym się w wypadkach przy pracy osób prowadzących działalność gospodarczą.
 
 Przeanalizuj dostarczone dokumenty dotyczące zgłoszenia wypadku przy pracy i przygotuj OPINIĘ w formacie Markdown.
 
@@ -372,3 +372,4 @@ Dokument tożsamości (dowód osobisty lub paszport):
 
 5. **Załączniki**:  
    ..............................................................................................................................
+`

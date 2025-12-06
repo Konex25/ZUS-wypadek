@@ -5,8 +5,23 @@ import {
   updateDocument,
   generateDocumentId,
 } from "@/lib/store/documents";
-import { UploadedDocument, DocumentUploadResponse } from "@/types";
+import { UploadedDocument } from "@/types";
 import openai from "@/lib/openai/openai";
+import { PROMPT } from "./prompt";
+
+const ALLOWED_TYPES = [
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+  "image/gif",
+  "application/pdf",
+];
+
+interface MultiUploadResponse {
+  success: boolean;
+  documents?: UploadedDocument[];
+  error?: string;
+}
 
 export async function GET() {
   const documents = getDocuments();
@@ -16,122 +31,136 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
-    const file = formData.get("file") as File | null;
+    console.log(formData);
+    const files = formData.getAll("files") as File[];
 
-    if (!file) {
-      return NextResponse.json<DocumentUploadResponse>(
-        { success: false, error: "No file provided" },
-        { status: 400 }
-      );
-    } // Validate file type (allow common document types)
-    const allowedTypes = [
-      "application/pdf",
-      "image/jpeg",
-      "image/png",
-      "image/webp",
-      "application/msword",
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-    ];
+    // Fallback for single file upload (backwards compatibility)
+    const singleFile = formData.get("file") as File | null;
+    if (singleFile && files.length === 0) {
+      files.push(singleFile);
+    }
 
-    if (!allowedTypes.includes(file.type)) {
-      return NextResponse.json<DocumentUploadResponse>(
-        {
-          success: false,
-          error: `Invalid file type: ${file.type}. Allowed: PDF, JPEG, PNG, WEBP, DOC, DOCX`,
-        },
+    if (files.length === 0) {
+      return NextResponse.json<MultiUploadResponse>(
+        { success: false, error: "No files provided" },
         { status: 400 }
       );
     }
 
-    // Create document entry with pending status
-    const document: UploadedDocument = {
+    // Validate all file types
+    for (const file of files) {
+      if (!ALLOWED_TYPES.includes(file.type)) {
+        return NextResponse.json<MultiUploadResponse>(
+          {
+            success: false,
+            error: `Invalid file type: ${file.type} (${file.name}). Allowed: JPEG, PNG, WEBP, GIF, PDF`,
+          },
+          { status: 400 }
+        );
+      }
+    }
+
+    // Create document entries for all files
+    const documents: UploadedDocument[] = files.map((file) => ({
       id: generateDocumentId(),
       fileName: file.name,
       fileSize: file.size,
       mimeType: file.type,
       uploadedAt: new Date().toISOString(),
-      status: "processing",
-    };
+      status: "processing" as const,
+    }));
 
-    addDocument(document); // Simulate AI processing (will be replaced with actual AI endpoint call)
-    // For now, just mark as completed after a short delay
-    console.log(file);
-    await processDocumentWithAI(document.id, file);
+    // Add all documents to store
+    documents.forEach((doc) => addDocument(doc));
 
-    return NextResponse.json<DocumentUploadResponse>({
+    // Process all files together with AI
+    processDocumentsWithAI(documents, files);
+
+    return NextResponse.json<MultiUploadResponse>({
       success: true,
-      document,
+      documents,
     });
   } catch (error) {
-    console.error("Error uploading document:", error);
-    return NextResponse.json<DocumentUploadResponse>(
-      { success: false, error: "Failed to upload document" },
+    console.error("Error uploading documents:", error);
+    return NextResponse.json<MultiUploadResponse>(
+      { success: false, error: "Failed to upload documents" },
       { status: 500 }
     );
   }
 }
 
-// Placeholder for AI processing - will call actual AI endpoint later
-async function processDocumentWithAI(documentId: string, file: File) {
+// Process multiple documents with OpenAI
+async function processDocumentsWithAI(
+  documents: UploadedDocument[],
+  files: File[]
+) {
   try {
-    // TODO: Send file to AI processing endpoint
-    // const aiResponse = await fetch('/api/ai/process', { ... });
-    // const aiResult = await aiResponse.json();
+    if (!openai) {
+      throw new Error("OpenAI client not initialized");
+    }
 
-    // Convert file to base64
-    const arrayBuffer = await file.arrayBuffer();
-    const buffer = Buffer.from(arrayBuffer);
-    const base64 = buffer.toString("base64");
+    // Upload all files to OpenAI
+    const uploadedFiles = await Promise.all(
+      files.map(async (file) => {
+        const createdFile = await openai!.files.create({
+          file,
+          purpose: "assistants",
+        });
+        return createdFile;
+      })
+    );
 
-    console.log(base64);
-    const createdFile = await openai.files.create({
-      file,
-      purpose: "user_data",
-    });
+    console.log(
+      "Uploaded files to OpenAI:",
+      uploadedFiles.map((f) => ({ id: f.id, filename: f.filename }))
+    );
 
-    console.log(createdFile.id);
+    // Build content array with text and all files
+    const contentItems: Array<
+      | { type: "input_text"; text: string }
+      | { type: "input_file"; file_id: string }
+    > = [
+      { type: "input_text", text: PROMPT },
+      ...uploadedFiles.map((file) => ({
+        type: "input_file" as const,
+        file_id: file.id,
+      })),
+    ];
 
     const response = await openai.responses.create({
-      model: "gpt-4o-mini", // Fast and cost-effective
+      model: "gpt-5.1",
       input: [
         {
           role: "user",
-          content: [
-            {
-              type: "input_text",
-              text: "Analyze the following document and extract the data.",
-            },
-            {
-              type: "input_file",
-              file_id: createdFile.id,
-            },
-          ],
+          content: contentItems,
         },
       ],
     });
 
-    console.log(response.output_text);
-    // Simulate processing delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    // Mock AI result for now
-    const mockAiResult = {
-      processed: true,
-      extractedData: {
-        documentType: "unknown",
-        confidence: 0,
-        message: "AI processing not yet implemented",
-      },
+    const responseText = response.output_text || "";
+    console.log("AI Response:", responseText);
+
+    // Store the response as markdown
+    const aiResult: Record<string, unknown> = {
+      markdown: responseText,
+      model: "gpt-4o",
+      processedAt: new Date().toISOString(),
     };
 
-    updateDocument(documentId, {
-      status: "completed",
-      aiResult: mockAiResult,
+    // Update all documents with the result
+    documents.forEach((doc) => {
+      updateDocument(doc.id, {
+        status: "completed",
+        aiResult,
+      });
     });
   } catch (error) {
-    console.error("Error processing document with AI:", error);
-    updateDocument(documentId, {
-      status: "error",
-      error: "AI processing failed",
+    console.error("Error processing documents with AI:", error);
+    documents.forEach((doc) => {
+      updateDocument(doc.id, {
+        status: "error",
+        error: error instanceof Error ? error.message : "AI processing failed",
+      });
     });
   }
 }

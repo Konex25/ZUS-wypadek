@@ -40,12 +40,14 @@ export default function ZUSPage() {
     return () => clearInterval(interval);
   }, [fetchDocuments]);
 
-  const handleFileUpload = async (file: File) => {
+  const handleFilesUpload = async (files: File[]) => {
+    if (files.length === 0) return;
+
     setIsUploading(true);
     setUploadError(null);
 
     const formData = new FormData();
-    formData.append("file", file);
+    files.forEach((file) => formData.append("files", file));
 
     try {
       const response = await fetch("/api/documents", {
@@ -64,8 +66,8 @@ export default function ZUSPage() {
       await fetchDocuments();
       setViewMode("documents");
     } catch (error) {
-      console.error("Error uploading file:", error);
-      setUploadError("Failed to upload file");
+      console.error("Error uploading files:", error);
+      setUploadError("Failed to upload files");
     } finally {
       setIsUploading(false);
     }
@@ -75,9 +77,9 @@ export default function ZUSPage() {
     e.preventDefault();
     setIsDragging(false);
 
-    const file = e.dataTransfer.files[0];
-    if (file) {
-      handleFileUpload(file);
+    const files = Array.from(e.dataTransfer.files);
+    if (files.length > 0) {
+      handleFilesUpload(files);
     }
   };
 
@@ -91,10 +93,12 @@ export default function ZUSPage() {
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      handleFileUpload(file);
+    const files = Array.from(e.target.files || []);
+    if (files.length > 0) {
+      handleFilesUpload(files);
     }
+    // Reset input so same files can be selected again
+    e.target.value = "";
   };
 
   const formatFileSize = (bytes: number) => {
@@ -182,8 +186,9 @@ export default function ZUSPage() {
                   <input
                     ref={fileInputRef}
                     type="file"
+                    multiple
                     onChange={handleFileSelect}
-                    accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx"
+                    accept=".jpg,.jpeg,.png,.webp,.gif,.pdf,image/*,application/pdf"
                     className="hidden"
                   />
 
@@ -209,21 +214,22 @@ export default function ZUSPage() {
                       <div className="flex items-center gap-2">
                         <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
                         <span className="text-slate-600">
-                          Przesyłanie pliku...
+                          Przesyłanie plików...
                         </span>
                       </div>
                     ) : (
                       <>
                         <div>
                           <p className="text-lg font-medium text-slate-700">
-                            Przeciągnij i upuść plik tutaj
+                            Przeciągnij i upuść pliki tutaj
                           </p>
                           <p className="text-slate-500 mt-1">
-                            lub kliknij, aby wybrać plik
+                            lub kliknij, aby wybrać pliki
                           </p>
                         </div>
                         <p className="text-sm text-slate-400">
-                          Obsługiwane formaty: PDF, JPEG, PNG, WEBP, DOC, DOCX
+                          Możesz wybrać wiele plików naraz • JPEG, PNG, WEBP,
+                          GIF, PDF
                         </p>
                       </>
                     )}
