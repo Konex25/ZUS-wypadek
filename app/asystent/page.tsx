@@ -6,7 +6,11 @@ import { Krok0RodzajZgloszenia } from "@/components/asystent/steps/Krok0RodzajZg
 import { Krok1DaneOsobowe } from "@/components/asystent/steps/Krok1DaneOsobowe";
 import { Krok2Adresy } from "@/components/asystent/steps/Krok2Adresy";
 import { Krok4DaneOWypadku } from "@/components/asystent/steps/Krok4DaneOWypadku";
-import { RodzajZgloszeniaForm, DaneOsoboweForm, DaneWypadkuForm } from "@/lib/validation/schemas";
+import { Krok5WeryfikacjaElementow } from "@/components/asystent/steps/Krok5WeryfikacjaElementow";
+import { Krok6Wyjasnienia } from "@/components/asystent/steps/Krok6Wyjasnienia";
+import { Krok7Swiadkowie } from "@/components/asystent/steps/Krok7Swiadkowie";
+import { Krok8Podsumowanie } from "@/components/asystent/steps/Krok8Podsumowanie";
+import { RodzajZgloszeniaForm, DaneOsoboweForm, DaneWypadkuForm, WyjasnieniaForm, SwiadkowieForm } from "@/lib/validation/schemas";
 import { AccidentReport } from "@/types";
 
 export default function AsystentPage() {
@@ -163,6 +167,99 @@ export default function AsystentPage() {
     }));
   }, []);
 
+  const handleKrok6Complete = useCallback((data: WyjasnieniaForm) => {
+    setFormData((prev) => ({
+      ...prev,
+      victimStatement: {
+        activityTypeBeforeAccident: data.rodzajCzynnosciPrzedWypadkiem,
+        accidentCircumstances: data.okolicznosciWypadku,
+        accidentCauses: data.przyczynyWypadku,
+        machineryTools: data.maszynyNarzedzia ? {
+          applicable: data.maszynyNarzedzia.dotyczy,
+          name: data.maszynyNarzedzia.nazwa,
+          type: data.maszynyNarzedzia.typ,
+          productionDate: data.maszynyNarzedzia.dataProdukcji,
+          operational: data.maszynyNarzedzia.sprawne,
+          compliantWithManufacturer: data.maszynyNarzedzia.zgodneZProducentem,
+          usageMethod: data.maszynyNarzedzia.sposobUzycia,
+        } : undefined,
+        protectiveMeasures: data.srodkiOchrony ? {
+          used: data.srodkiOchrony.stosowane,
+          type: data.srodkiOchrony.rodzaj,
+          appropriate: data.srodkiOchrony.wlasciwe,
+          operational: data.srodkiOchrony.sprawne,
+        } : undefined,
+        safetyMeasures: data.asekuracja ? {
+          used: data.asekuracja.stosowana,
+          description: data.asekuracja.opis,
+        } : undefined,
+        requiredNumberOfPeople: data.wymaganaLiczbaOsob ? {
+          independently: data.wymaganaLiczbaOsob.samodzielnie,
+          twoPeopleRequired: data.wymaganaLiczbaOsob.wymaganeDwieOsoby,
+        } : undefined,
+        healthAndSafety: data.bhp ? {
+          complied: data.bhp.przestrzegane,
+          preparation: data.bhp.przygotowanie,
+          healthAndSafetyTraining: data.bhp.szkoleniaBHP,
+          occupationalRiskAssessment: data.bhp.ocenaRyzykaZawodowego,
+          riskReductionMeasures: data.bhp.srodkiZmniejszajaceRyzyko,
+        } : undefined,
+        sobrietyState: data.stanTrzezwosci ? {
+          intoxication: data.stanTrzezwosci.nietrzezwosc,
+          drugs: data.stanTrzezwosci.srodkiOdurzajace,
+          examinationOnAccidentDay: data.stanTrzezwosci.badanieWymienDnia ? {
+            conducted: data.stanTrzezwosci.badanieWymienDnia.przeprowadzone,
+            byWhom: data.stanTrzezwosci.badanieWymienDnia.przezKogo,
+          } : undefined,
+        } : undefined,
+        controlAuthorities: data.organyKontroli ? {
+          actionsTaken: data.organyKontroli.podjeteCzynnosci,
+          authorityName: data.organyKontroli.nazwaOrganu,
+          address: data.organyKontroli.adres,
+          caseNumber: data.organyKontroli.numerSprawy,
+          status: data.organyKontroli.status,
+        } : undefined,
+        firstAid: data.pierwszaPomoc ? {
+          provided: data.pierwszaPomoc.udzielona,
+          when: data.pierwszaPomoc.kiedy,
+          where: data.pierwszaPomoc.gdzie,
+          facilityName: data.pierwszaPomoc.nazwaPlacowki,
+          hospitalizationPeriod: data.pierwszaPomoc.okresHospitalizacji,
+          hospitalizationPlace: data.pierwszaPomoc.miejsceHospitalizacji,
+          recognizedInjury: data.pierwszaPomoc.urazRozpoznany,
+          incapacityPeriod: data.pierwszaPomoc.okresNiezdolnosci,
+        } : undefined,
+        sickLeave: data.zwolnienieLekarskie ? {
+          onAccidentDay: data.zwolnienieLekarskie.wDniuWypadku,
+          description: data.zwolnienieLekarskie.opis,
+        } : undefined,
+      },
+    }));
+  }, []);
+
+  const handleKrok7Complete = useCallback((data: SwiadkowieForm) => {
+    setFormData((prev) => ({
+      ...prev,
+      witnesses: data.swiadkowie?.map((swiadek) => ({
+        firstName: swiadek.imie,
+        lastName: swiadek.nazwisko,
+        street: swiadek.ulica,
+        houseNumber: swiadek.numerDomu,
+        apartmentNumber: swiadek.numerLokalu,
+        postalCode: swiadek.kodPocztowy,
+        city: swiadek.miejscowosc,
+        country: swiadek.panstwo,
+        phone: swiadek.telefon,
+      })),
+    }));
+  }, []);
+
+  const handleGenerateDocuments = useCallback(() => {
+    console.log("Generowanie dokumentów dla:", formData);
+    // Tutaj będzie logika generowania PDF
+    alert("Funkcjonalność generowania dokumentów PDF będzie dostępna wkrótce!");
+  }, [formData]);
+
   const handleWizardComplete = useCallback(() => {
     console.log("Formularz ukończony:", formData);
     // Tutaj będzie logika generowania dokumentów
@@ -186,8 +283,8 @@ export default function AsystentPage() {
   const goToNextStep = useCallback(() => {
     setCurrentStepIndex((prev) => {
       // Używamy funkcjonalnej aktualizacji, aby uniknąć zależności od steps
-      // Faktyczna liczba kroków to 4 (indeksy 0-3), więc maksymalny indeks to 3
-      const MAX_STEP_INDEX = 3;
+      // Faktyczna liczba kroków to 8 (indeksy 0-7), więc maksymalny indeks to 7
+      const MAX_STEP_INDEX = 7;
       if (prev < MAX_STEP_INDEX) {
         return prev + 1;
       }
@@ -346,71 +443,160 @@ export default function AsystentPage() {
     };
   }, [formData.accidentData]);
 
-  const steps: WizardStep[] = useMemo(() => [
-    {
-      id: "rodzaj-zgloszenia",
-      title: "Wybór rodzaju zgłoszenia",
-      description: "Wybierz, jakie dokumenty chcesz złożyć",
+  // Sprawdź czy należy pokazać krok 6 (wyjaśnienia)
+  const shouldShowWyjasnienia = formData.notificationType === "wyjasnienia" || formData.notificationType === "oba";
+
+  const steps: WizardStep[] = useMemo(() => {
+    const baseSteps: WizardStep[] = [
+      {
+        id: "rodzaj-zgloszenia",
+        title: "Wybór rodzaju zgłoszenia",
+        description: "Wybierz, jakie dokumenty chcesz złożyć",
+        component: () => (
+          <Krok0RodzajZgloszenia
+            key="krok0"
+            onNext={(data) => {
+              handleKrok0Complete(data);
+              goToNextStep();
+            }}
+            initialData={krok0InitialData}
+          />
+        ),
+      },
+      {
+        id: "dane-osobowe",
+        title: "Dane osobowe",
+        description: "Podaj swoje dane osobowe",
+        component: () => (
+          <Krok1DaneOsobowe
+            key="krok1"
+            onNext={(data) => {
+              handleKrok1Complete(data);
+              goToNextStep();
+            }}
+            onPrevious={goToPreviousStep}
+            initialData={krok1InitialData}
+          />
+        ),
+      },
+      {
+        id: "adresy",
+        title: "Adresy",
+        description: "Podaj adresy zamieszkania i działalności",
+        component: () => (
+          <Krok2Adresy
+            key="krok2"
+            onNext={(data) => {
+              handleKrok2Complete(data);
+              goToNextStep();
+            }}
+            onPrevious={goToPreviousStep}
+            initialData={krok2InitialData}
+          />
+        ),
+      },
+      {
+        id: "dane-wypadku",
+        title: "Dane o wypadku",
+        description: "Podaj szczegółowe informacje o wypadku",
+        component: () => (
+          <Krok4DaneOWypadku
+            key="krok4"
+            onNext={(data) => {
+              handleKrok4Complete(data);
+              goToNextStep();
+            }}
+            onPrevious={goToPreviousStep}
+            initialData={krok4InitialData}
+          />
+        ),
+      },
+      {
+        id: "weryfikacja-elementow",
+        title: "Weryfikacja elementów",
+        description: "Sprawdź, czy wszystkie elementy definicji są spełnione",
+        component: () => (
+          <Krok5WeryfikacjaElementow
+            key="krok5"
+            onNext={goToNextStep}
+            onPrevious={goToPreviousStep}
+            accidentData={formData.accidentData}
+          />
+        ),
+      },
+    ];
+
+    // Dodaj krok 6 (wyjaśnienia) tylko jeśli wybrano "wyjasnienia" lub "oba"
+    if (shouldShowWyjasnienia) {
+      baseSteps.push({
+        id: "wyjasnienia",
+        title: "Szczegółowe wyjaśnienia",
+        description: "Podaj szczegółowe wyjaśnienia dotyczące wypadku",
+        component: () => (
+          <Krok6Wyjasnienia
+            key="krok6"
+            onNext={(data) => {
+              handleKrok6Complete(data);
+              goToNextStep();
+            }}
+            onPrevious={goToPreviousStep}
+            initialData={undefined}
+          />
+        ),
+      });
+    }
+
+    // Krok 7 - Świadkowie (zawsze dostępny, opcjonalny)
+    baseSteps.push({
+      id: "swiadkowie",
+      title: "Świadkowie",
+      description: "Dodaj dane świadków wypadku (opcjonalnie)",
       component: () => (
-        <Krok0RodzajZgloszenia
-          key="krok0"
+        <Krok7Swiadkowie
+          key="krok7"
           onNext={(data) => {
-            handleKrok0Complete(data);
-            goToNextStep();
-          }}
-          initialData={krok0InitialData}
-        />
-      ),
-    },
-    {
-      id: "dane-osobowe",
-      title: "Dane osobowe",
-      description: "Podaj swoje dane osobowe",
-      component: () => (
-        <Krok1DaneOsobowe
-          key="krok1"
-          onNext={(data) => {
-            handleKrok1Complete(data);
+            handleKrok7Complete(data);
             goToNextStep();
           }}
           onPrevious={goToPreviousStep}
-          initialData={krok1InitialData}
+          initialData={undefined}
         />
       ),
-    },
-    {
-      id: "adresy",
-      title: "Adresy",
-      description: "Podaj adresy zamieszkania i działalności",
+    });
+
+    // Krok 8 - Podsumowanie
+    baseSteps.push({
+      id: "podsumowanie",
+      title: "Podsumowanie",
+      description: "Sprawdź dane i wygeneruj dokumenty",
       component: () => (
-        <Krok2Adresy
-          key="krok2"
-          onNext={(data) => {
-            handleKrok2Complete(data);
-            goToNextStep();
-          }}
+        <Krok8Podsumowanie
+          key="krok8"
           onPrevious={goToPreviousStep}
-          initialData={krok2InitialData}
+          onGenerateDocuments={handleGenerateDocuments}
+          formData={formData}
         />
       ),
-    },
-    {
-      id: "dane-wypadku",
-      title: "Dane o wypadku",
-      description: "Podaj szczegółowe informacje o wypadku",
-      component: () => (
-        <Krok4DaneOWypadku
-          key="krok4"
-          onNext={(data) => {
-            handleKrok4Complete(data);
-            goToNextStep();
-          }}
-          onPrevious={goToPreviousStep}
-          initialData={krok4InitialData}
-        />
-      ),
-    },
-  ], [krok0InitialData, krok1InitialData, krok2InitialData, krok4InitialData, handleKrok0Complete, handleKrok1Complete, handleKrok2Complete, handleKrok4Complete, goToNextStep, goToPreviousStep, currentStepIndex]);
+    });
+
+    return baseSteps;
+  }, [
+    krok0InitialData,
+    krok1InitialData,
+    krok2InitialData,
+    krok4InitialData,
+    handleKrok0Complete,
+    handleKrok1Complete,
+    handleKrok2Complete,
+    handleKrok4Complete,
+    handleKrok6Complete,
+    handleKrok7Complete,
+    handleGenerateDocuments,
+    goToNextStep,
+    goToPreviousStep,
+    shouldShowWyjasnienia,
+    formData,
+  ]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">

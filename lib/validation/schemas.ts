@@ -102,8 +102,104 @@ export const daneWypadkuSchema = z.object({
   }).optional(),
 });
 
+// Schemat dla wyjaśnień poszkodowanego
+export const wyjasnieniaSchema = z.object({
+  rodzajCzynnosciPrzedWypadkiem: z.string().min(10, "Opis czynności musi mieć co najmniej 10 znaków"),
+  okolicznosciWypadku: z.string().min(10, "Opis okoliczności musi mieć co najmniej 10 znaków"),
+  przyczynyWypadku: z.string().min(10, "Opis przyczyn musi mieć co najmniej 10 znaków"),
+  
+  maszynyNarzedzia: z.object({
+    dotyczy: z.boolean(),
+    nazwa: z.string().optional(),
+    typ: z.string().optional(),
+    dataProdukcji: z.string().optional(),
+    sprawne: z.boolean().optional(),
+    zgodneZProducentem: z.boolean().optional(),
+    sposobUzycia: z.string().optional(),
+  }).optional(),
+  
+  srodkiOchrony: z.object({
+    stosowane: z.boolean(),
+    rodzaj: z.array(z.string()).optional(),
+    wlasciwe: z.boolean().optional(),
+    sprawne: z.boolean().optional(),
+  }).optional(),
+  
+  asekuracja: z.object({
+    stosowana: z.boolean(),
+    opis: z.string().optional(),
+  }).optional(),
+  
+  wymaganaLiczbaOsob: z.object({
+    samodzielnie: z.boolean(),
+    wymaganeDwieOsoby: z.boolean().optional(),
+  }).optional(),
+  
+  bhp: z.object({
+    przestrzegane: z.boolean(),
+    przygotowanie: z.boolean().optional(),
+    szkoleniaBHP: z.boolean().optional(),
+    ocenaRyzykaZawodowego: z.boolean().optional(),
+    srodkiZmniejszajaceRyzyko: z.string().optional(),
+  }).optional(),
+  
+  stanTrzezwosci: z.object({
+    nietrzezwosc: z.boolean(),
+    srodkiOdurzajace: z.boolean(),
+    badanieWymienDnia: z.object({
+      przeprowadzone: z.boolean(),
+      przezKogo: z.string().optional(),
+    }).optional(),
+  }).optional(),
+  
+  organyKontroli: z.object({
+    podjeteCzynnosci: z.boolean(),
+    nazwaOrganu: z.string().optional(),
+    adres: z.string().optional(),
+    numerSprawy: z.string().optional(),
+    status: z.string().optional(),
+  }).optional(),
+  
+  pierwszaPomoc: z.object({
+    udzielona: z.boolean(),
+    kiedy: z.string().optional(),
+    gdzie: z.string().optional(),
+    nazwaPlacowki: z.string().optional(),
+    okresHospitalizacji: z.string().optional(),
+    miejsceHospitalizacji: z.string().optional(),
+    urazRozpoznany: z.string().optional(),
+    okresNiezdolnosci: z.string().optional(),
+  }).optional(),
+  
+  zwolnienieLekarskie: z.object({
+    wDniuWypadku: z.boolean(),
+    opis: z.string().optional(),
+  }).optional(),
+});
+
+// Schemat dla świadka
+export const swiadekSchema = z.object({
+  imie: z.string().min(2, "Imię musi mieć co najmniej 2 znaki"),
+  nazwisko: z.string().min(2, "Nazwisko musi mieć co najmniej 2 znaki"),
+  ulica: z.string().optional(),
+  numerDomu: z.string().optional(),
+  numerLokalu: z.string().optional(),
+  kodPocztowy: z.string().optional(),
+  miejscowosc: z.string().optional(),
+  panstwo: z.string().optional(),
+  telefon: z.string().optional(),
+});
+
+// Schemat dla listy świadków (opcjonalnie)
+export const swiadkowieSchema = z.object({
+  swiadkowie: z.array(swiadekSchema).optional(),
+});
+
 // Eksport typu dla rodzaju zgłoszenia
 export type RodzajZgloszeniaForm = z.infer<typeof rodzajZgloszeniaSchema>;
 export type DaneOsoboweForm = z.infer<typeof daneOsoboweSchema>;
 export type AdresForm = z.infer<typeof adresSchema>;
 export type DaneWypadkuForm = z.infer<typeof daneWypadkuSchema>;
+export type WyjasnieniaForm = z.infer<typeof wyjasnieniaSchema>;
+export type SwiadekForm = z.infer<typeof swiadekSchema>;
+export type SwiadkowieForm = z.infer<typeof swiadkowieSchema>;

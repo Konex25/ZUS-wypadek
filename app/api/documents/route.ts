@@ -76,12 +76,14 @@ export async function POST(request: NextRequest) {
       // TODO: Send file to AI processing endpoint
       // const aiResponse = await fetch('/api/ai/process', { ... });
       // const aiResult = await aiResponse.json();
-      const response = await openai.responses.create({
-        model: 'gpt-4o-mini', // Fast and cost-effective
-            input: 'jaka jest pogoda w Bydgoszczy?',
-      }); 
-
-      console.log(response.output_text);
+      // TODO: Implement OpenAI integration when API key is available
+      // if (openai) {
+      //   const response = await openai.responses.create({
+      //     model: 'gpt-4o-mini',
+      //     input: 'jaka jest pogoda w Bydgoszczy?',
+      //   });
+      //   console.log(response.output_text);
+      // }
       // Simulate processing delay
       await new Promise((resolve) => setTimeout(resolve, 1000));
     // Mock AI result for now
