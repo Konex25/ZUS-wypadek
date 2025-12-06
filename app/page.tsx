@@ -269,7 +269,7 @@ export default function Home() {
                     <ul className="space-y-3">
                       <li>
                         <a
-                          href="https://isap.sejm.gov.pl/isap.nsf/DocDetails.xsp?id=WDU20021671340"
+                          href="hhttps://isap.sejm.gov.pl/isap.nsf/download.xsp/WDU20021991673/U/D20021673Lj.pdf"
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-blue-600 hover:text-blue-800 underline flex items-start gap-2"
@@ -280,7 +280,7 @@ export default function Home() {
                       </li>
                       <li>
                         <a
-                          href="https://isap.sejm.gov.pl/isap.nsf/DocDetails.xsp?id=WDU20220000255"
+                          href="https://isap.sejm.gov.pl/isap.nsf/DocDetails.xsp?id=WDU20220000223"
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-blue-600 hover:text-blue-800 underline flex items-start gap-2"
