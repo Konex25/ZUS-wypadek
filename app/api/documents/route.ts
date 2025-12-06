@@ -9,7 +9,9 @@ import {
 } from "@/lib/store/cases";
 import { Case, UploadedDocument, CaseUploadResponse } from "@/types";
 import openai from "@/lib/openai/openai";
-import { PROMPT } from "./prompt";
+import { DECISION_PROMPT } from "./prompt";
+import { EXTRACTION_PROMPT } from "./extraction-prompt";
+import { getCompanyDetailsByNip } from "@/backend";
 
 const ALLOWED_TYPES = [
   "image/jpeg",
@@ -39,6 +41,7 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData();
     const files = formData.getAll("files") as File[];
+    const nip = formData.get("nip") as string;
 
     // Fallback for single file upload (backwards compatibility)
     const singleFile = formData.get("file") as File | null;
@@ -86,7 +89,7 @@ export async function POST(request: NextRequest) {
     addCase(newCase);
 
     // Process case with AI in background
-    processCaseWithAI(newCase.id, files);
+    processCaseWithAI(newCase.id, files, nip);
 
     return NextResponse.json<CaseUploadResponse>({
       success: true,
@@ -102,7 +105,7 @@ export async function POST(request: NextRequest) {
 }
 
 // Process case documents with OpenAI
-async function processCaseWithAI(caseId: string, files: File[]) {
+async function processCaseWithAI(caseId: string, files: File[], nip: string) {
   try {
     if (!openai) {
       throw new Error("OpenAI client not initialized");
@@ -124,35 +127,75 @@ async function processCaseWithAI(caseId: string, files: File[]) {
       uploadedFiles.map((f) => ({ id: f.id, filename: f.filename }))
     );
 
-    // Build content array with text and all files
-    const contentItems: Array<
-      | { type: "input_text"; text: string }
-      | { type: "input_file"; file_id: string }
-    > = [
-      { type: "input_text", text: PROMPT },
-      ...uploadedFiles.map((file) => ({
-        type: "input_file" as const,
-        file_id: file.id,
-      })),
-    ];
-
-    const response = await openai.responses.create({
-      model: "gpt-4o-mini",
+    const extractionData = await openai.responses.create({
+      model: "gpt-5.1",
       input: [
         {
+          role: "system",
+          content:
+            "You are part of a bigger system, and you must always respond with a pure JSON response. The system will break if you don’t.",
+        },
+        {
           role: "user",
-          content: contentItems,
+          content: [
+            { type: "input_text", text: EXTRACTION_PROMPT },
+            ...uploadedFiles.map((file) => ({
+              type: "input_file" as const,
+              file_id: file.id,
+            })),
+          ],
         },
       ],
     });
 
-    const opinionText = response.output_text || "";
-    console.log("AI Opinion:", opinionText);
+    console.log("Extraction data:", extractionData.output_text);
+    const parsedExtractionData = JSON.parse(extractionData.output_text);
+
+    const company = await getCompanyDetailsByNip(nip);
+    console.log("Company:", company);
+
+    const decisionData = {
+      ...parsedExtractionData,
+      company,
+    };
+
+    // Build content array with text and all files
+    console.log("Decision data:", decisionData);
+
+    const response = await openai.responses.create({
+      model: "gpt-5.1",
+      input: [
+        {
+          role: "system",
+          content:
+            "You are part of a bigger system, and you must always respond with a pure JSON response. The system will break if you don’t.",
+        },
+        {
+          role: "user",
+          content: [
+            {
+              type: "input_text",
+              text: DECISION_PROMPT(JSON.stringify(decisionData)),
+            },
+          ],
+        },
+      ],
+    });
+
+    const decisionResponse = response.output_text || "";
+
+    console.log("AI Opinion:", decisionResponse);
 
     // Update case with AI opinion
     updateCase(caseId, {
       status: "completed",
-      aiOpinion: opinionText,
+      aiOpinion: decisionResponse,
+    });
+    console.log("Decision response:", decisionResponse);
+
+    return NextResponse.json({
+      success: true,
+      data: decisionResponse,
     });
   } catch (error) {
     console.error("Error processing case with AI:", error);

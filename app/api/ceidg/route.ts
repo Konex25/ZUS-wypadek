@@ -1,13 +1,4 @@
-const getCompanyDetailsDetails = async (companyId: string) => {
-  const url = new URL(
-    "https://www.biznes.gov.pl/pl/wyszukiwarka-firm/api/data-warehouse/GetCompanyDetails"
-  );
-  url.searchParams.set("id", companyId);
-  const response = await fetch(url.toString());
-  const parsedResponse = await response.json();
-  console.log(parsedResponse);
-  return parsedResponse;
-};
+import { getCompanyDetailsDetails } from "@/backend";
 
 export const GET = async (request: Request) => {
   const { searchParams } = new URL(request.url);
@@ -27,8 +18,6 @@ export const GET = async (request: Request) => {
   const parsedResponse = await companiesResponse.json();
   const companies = parsedResponse.companyList;
   const company = companies[0];
-
-  console.log(company);
 
   if (!company) {
     return Response.json({ error: "Company not found" }, { status: 404 });

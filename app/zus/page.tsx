@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Case, UploadedDocument } from "@/types";
+import { Input } from "@/components/ui/input";
 
 type ViewMode = "upload" | "cases" | "case-detail";
 
@@ -12,6 +13,8 @@ export default function ZUSPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [nip, setNip] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const casesRef = useRef<Case[]>([]);
 
@@ -64,6 +67,9 @@ export default function ZUSPage() {
 
     const formData = new FormData();
     files.forEach((file) => formData.append("files", file));
+    if (nip.trim()) {
+      formData.append("nip", nip.trim());
+    }
 
     try {
       const response = await fetch("/api/documents", {
@@ -83,6 +89,7 @@ export default function ZUSPage() {
         setSelectedCase(result.case);
         setViewMode("case-detail");
       }
+      setNip(""); // Clear NIP after successful upload
     } catch (error) {
       console.error("Error uploading files:", error);
       setUploadError("Failed to upload files");
@@ -195,6 +202,22 @@ export default function ZUSPage() {
           <div className="bg-white rounded-xl shadow-sm border border-slate-200">
             {viewMode === "upload" && (
               <div className="p-8">
+                <div className="mb-6">
+                  <Input
+                    label="NIP (opcjonalnie)"
+                    type="text"
+                    placeholder="Wprowadź NIP"
+                    value={nip}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, ""); // Tylko cyfry
+                      if (value.length <= 10) {
+                        setNip(value);
+                      }
+                    }}
+                    helperText="10 cyfr"
+                    disabled={isUploading}
+                  />
+                </div>
                 <div
                   onDrop={handleDrop}
                   onDragOver={handleDragOver}
@@ -264,6 +287,17 @@ export default function ZUSPage() {
 
             {viewMode === "cases" && (
               <div className="p-6">
+                {cases.length > 0 && (
+                  <div className="mb-4">
+                    <Input
+                      type="text"
+                      placeholder="Szukaj sprawy..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="max-w-md"
+                    />
+                  </div>
+                )}
                 {cases.length === 0 ? (
                   <div className="text-center py-12">
                     <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
@@ -294,15 +328,65 @@ export default function ZUSPage() {
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    {cases.map((caseData) => (
-                      <div
-                        key={caseData.id}
-                        onClick={() => openCase(caseData)}
-                        className="flex items-center gap-4 p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
-                      >
-                        <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                    {(() => {
+                      const filteredCases = cases.filter((caseData) => {
+                        if (!searchQuery) return true;
+                        const query = searchQuery.toLowerCase();
+                        return (
+                          caseData.id.toLowerCase().includes(query) ||
+                          caseData.documents.some((doc) =>
+                            doc.fileName.toLowerCase().includes(query)
+                          )
+                        );
+                      });
+
+                      if (filteredCases.length === 0 && cases.length > 0) {
+                        return (
+                          <div className="text-center py-8 text-slate-500">
+                            Brak wyników wyszukiwania
+                          </div>
+                        );
+                      }
+
+                      return filteredCases.map((caseData) => (
+                        <div
+                          key={caseData.id}
+                          onClick={() => openCase(caseData)}
+                          className="flex items-center gap-4 p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+                        >
+                          <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                            <svg
+                              className="w-6 h-6 text-blue-600"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                              />
+                            </svg>
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="font-semibold text-slate-900">
+                              {caseData.id}
+                            </p>
+                            <p className="text-sm text-slate-500">
+                              {caseData.documents.length}{" "}
+                              {caseData.documents.length === 1
+                                ? "dokument"
+                                : "dokumentów"}{" "}
+                              •{" "}
+                              {new Date(caseData.createdAt).toLocaleString(
+                                "pl-PL"
+                              )}
+                            </p>
+                          </div>
+                          {getStatusBadge(caseData.status)}
                           <svg
-                            className="w-6 h-6 text-blue-600"
+                            className="w-5 h-5 text-slate-400"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -311,41 +395,12 @@ export default function ZUSPage() {
                               strokeLinecap="round"
                               strokeLinejoin="round"
                               strokeWidth={2}
-                              d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                              d="M9 5l7 7-7 7"
                             />
                           </svg>
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-semibold text-slate-900">
-                            {caseData.id}
-                          </p>
-                          <p className="text-sm text-slate-500">
-                            {caseData.documents.length}{" "}
-                            {caseData.documents.length === 1
-                              ? "dokument"
-                              : "dokumentów"}{" "}
-                            •{" "}
-                            {new Date(caseData.createdAt).toLocaleString(
-                              "pl-PL"
-                            )}
-                          </p>
-                        </div>
-                        {getStatusBadge(caseData.status)}
-                        <svg
-                          className="w-5 h-5 text-slate-400"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M9 5l7 7-7 7"
-                          />
-                        </svg>
-                      </div>
-                    ))}
+                      ));
+                    })()}
                   </div>
                 )}
               </div>
@@ -426,12 +481,141 @@ export default function ZUSPage() {
                   </div>
                 </div>
 
-                {/* Opinion Section - TODO: implement */}
+                {/* Opinion Section */}
                 <div className="p-6">
                   <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-4">
                     Opinia AI
                   </h3>
-                  {/* aiOpinion is available in selectedCase.aiOpinion */}
+
+                  {selectedCase.status === "processing" ? (
+                    <div className="flex items-center gap-3 p-8 bg-amber-50 rounded-lg">
+                      <div className="w-6 h-6 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" />
+                      <span className="text-amber-700">
+                        Analizowanie dokumentów...
+                      </span>
+                    </div>
+                  ) : selectedCase.status === "error" ? (
+                    <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+                      <p className="font-medium">
+                        Wystąpił błąd podczas analizy
+                      </p>
+                      {selectedCase.error && (
+                        <p className="text-sm mt-1">{selectedCase.error}</p>
+                      )}
+                    </div>
+                  ) : selectedCase.aiOpinion ? (
+                    <div className="space-y-6">
+                      {/* Decision Banner */}
+                      <div
+                        className={`p-4 rounded-lg border-2 ${
+                          selectedCase.aiOpinion.decision === "ACCEPTED"
+                            ? "bg-emerald-50 border-emerald-200"
+                            : selectedCase.aiOpinion.decision === "REJECTED"
+                            ? "bg-red-50 border-red-200"
+                            : "bg-amber-50 border-amber-200"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">
+                            {selectedCase.aiOpinion.decision === "ACCEPTED"
+                              ? "✅"
+                              : selectedCase.aiOpinion.decision === "REJECTED"
+                              ? "❌"
+                              : "⚠️"}
+                          </span>
+                          <div>
+                            <p className="text-sm font-medium text-slate-600">
+                              Proponowana decyzja
+                            </p>
+                            <p
+                              className={`text-xl font-bold ${
+                                selectedCase.aiOpinion.decision === "ACCEPTED"
+                                  ? "text-emerald-700"
+                                  : selectedCase.aiOpinion.decision ===
+                                    "REJECTED"
+                                  ? "text-red-700"
+                                  : "text-amber-700"
+                              }`}
+                            >
+                              {selectedCase.aiOpinion.decision === "ACCEPTED"
+                                ? "Uznać za wypadek przy pracy"
+                                : selectedCase.aiOpinion.decision === "REJECTED"
+                                ? "Nie uznać za wypadek przy pracy"
+                                : "Wymaga dodatkowych wyjaśnień"}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Details Grid */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="p-4 bg-slate-50 rounded-lg">
+                          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">
+                            Data wypadku
+                          </p>
+                          <p className="text-slate-900 font-medium">
+                            {selectedCase.aiOpinion.date || "—"}
+                          </p>
+                        </div>
+                        <div className="p-4 bg-slate-50 rounded-lg">
+                          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">
+                            Miejsce wypadku
+                          </p>
+                          <p className="text-slate-900 font-medium">
+                            {selectedCase.aiOpinion.place || "—"}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Description */}
+                      <div className="p-4 bg-slate-50 rounded-lg">
+                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                          Opis okoliczności
+                        </p>
+                        <p className="text-slate-700 leading-relaxed">
+                          {selectedCase.aiOpinion.description || "—"}
+                        </p>
+                      </div>
+
+                      {/* Causes */}
+                      <div className="p-4 bg-slate-50 rounded-lg">
+                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                          Przyczyny wypadku
+                        </p>
+                        <p className="text-slate-700 leading-relaxed">
+                          {selectedCase.aiOpinion.causes || "—"}
+                        </p>
+                      </div>
+
+                      {/* Justifications */}
+                      {selectedCase.aiOpinion.justifications?.length > 0 && (
+                        <div className="space-y-3">
+                          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                            Uzasadnienie prawne
+                          </p>
+                          {selectedCase.aiOpinion.justifications.map(
+                            (item, index) => (
+                              <div
+                                key={index}
+                                className="p-4 bg-blue-50 rounded-lg border border-blue-200"
+                              >
+                                <p className="font-semibold text-blue-900 mb-2">
+                                  {item.title}
+                                </p>
+                                <p className="text-slate-700 leading-relaxed">
+                                  {item.justification}
+                                </p>
+                              </div>
+                            )
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="p-4 bg-slate-50 rounded-lg text-slate-500 text-center">
+                      Brak opinii
+                    </div>
+                  )}
                 </div>
               </div>
             )}
@@ -441,4 +625,3 @@ export default function ZUSPage() {
     </div>
   );
 }
-
