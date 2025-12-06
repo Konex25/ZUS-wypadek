@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Case, UploadedDocument } from "@/types";
+import { Case, UploadedDocument, Differences } from "@/types";
 import { Input } from "@/components/ui/input";
 
 type ViewMode = "upload" | "cases" | "case-detail";
@@ -15,6 +15,8 @@ export default function ZUSPage() {
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [nip, setNip] = useState("");
+  const [isCheckingDifferences, setIsCheckingDifferences] = useState(false);
+  const [differencesError, setDifferencesError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const casesRef = useRef<Case[]>([]);
 
@@ -125,6 +127,41 @@ export default function ZUSPage() {
   const openCase = (caseData: Case) => {
     setSelectedCase(caseData);
     setViewMode("case-detail");
+    setDifferencesError(null);
+  };
+
+  const checkDifferences = async () => {
+    if (!selectedCase) return;
+
+    setIsCheckingDifferences(true);
+    setDifferencesError(null);
+
+    try {
+      const response = await fetch("/api/documents/differences", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ caseId: selectedCase.id }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        setDifferencesError(result.error || "Nie udało się sprawdzić różnic");
+        return;
+      }
+
+      // Update the selected case with differences
+      const updatedCase = { ...selectedCase, differences: result.differences };
+      setSelectedCase(updatedCase);
+      setCases((prev) =>
+        prev.map((c) => (c.id === selectedCase.id ? updatedCase : c))
+      );
+    } catch (error) {
+      console.error("Error checking differences:", error);
+      setDifferencesError("Wystąpił błąd podczas sprawdzania różnic");
+    } finally {
+      setIsCheckingDifferences(false);
+    }
   };
 
   const formatFileSize = (bytes: number) => {
@@ -437,8 +474,181 @@ export default function ZUSPage() {
                         )}
                       </p>
                     </div>
-                    {getStatusBadge(selectedCase.status)}
+                    <div className="flex items-center gap-3">
+                      {selectedCase.status === "completed" && (
+                        <button
+                          onClick={checkDifferences}
+                          disabled={isCheckingDifferences}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                        >
+                          {isCheckingDifferences ? (
+                            <>
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                              Sprawdzanie...
+                            </>
+                          ) : (
+                            <>
+                              <svg
+                                className="w-4 h-4"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                                />
+                              </svg>
+                              Sprawdź spójność dokumentów
+                            </>
+                          )}
+                        </button>
+                      )}
+                      {getStatusBadge(selectedCase.status)}
+                    </div>
                   </div>
+
+                  {/* Differences Error */}
+                  {differencesError && (
+                    <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 mb-4">
+                      {differencesError}
+                    </div>
+                  )}
+
+                  {/* Differences Results */}
+                  {selectedCase.differences && (
+                    <div className="mt-4 space-y-4">
+                      <div
+                        className={`p-4 rounded-lg border-2 ${
+                          selectedCase.differences.isInGeneralConsistent
+                            ? "bg-emerald-50 border-emerald-200"
+                            : "bg-red-50 border-red-200"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">
+                            {selectedCase.differences.isInGeneralConsistent
+                              ? "✅"
+                              : "⚠️"}
+                          </span>
+                          <div>
+                            <p
+                              className={`text-lg font-bold ${
+                                selectedCase.differences.isInGeneralConsistent
+                                  ? "text-emerald-700"
+                                  : "text-red-700"
+                              }`}
+                            >
+                              {selectedCase.differences.isInGeneralConsistent
+                                ? "Dokumenty są spójne"
+                                : "Wykryto niespójności w dokumentach"}
+                            </p>
+                            <p className="text-sm text-slate-600 mt-1">
+                              {selectedCase.differences.summary}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Individual differences */}
+                      {selectedCase.differences.differences.length > 0 && (
+                        <div className="space-y-3">
+                          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                            Szczegóły różnic ({selectedCase.differences.differences.length})
+                          </p>
+                          {selectedCase.differences.differences.map(
+                            (diff, index) => (
+                              <div
+                                key={index}
+                                className="p-4 bg-amber-50 rounded-lg border border-amber-200"
+                              >
+                                <p className="font-semibold text-amber-900 capitalize">
+                                  {diff.field.charAt(0).toUpperCase() + diff.field.slice(1)}
+                                </p>
+                                <p className="text-sm text-amber-700 mt-1">
+                                  {diff.details}
+                                </p>
+                                {diff.documents.length > 0 && (
+                                  <p className="text-xs text-amber-600 mt-2">
+                                    <strong>Dotyczy dokumentów:</strong>{" "}
+                                    {diff.documents.join(", ")}
+                                  </p>
+                                )}
+                              </div>
+                            )
+                          )}
+                        </div>
+                      )}
+
+                      {/* Consistency flags */}
+                      <div className="grid grid-cols-2 gap-3">
+                        <div
+                          className={`p-3 rounded-lg ${
+                            selectedCase.differences.allDatesConsistent
+                              ? "bg-emerald-50"
+                              : "bg-red-50"
+                          }`}
+                        >
+                          <p
+                            className={`text-sm font-semibold ${
+                              selectedCase.differences.allDatesConsistent
+                                ? "text-emerald-900"
+                                : "text-red-900"
+                            }`}
+                          >
+                            {selectedCase.differences.allDatesConsistent
+                              ? "✅"
+                              : "❌"}{" "}
+                            Daty
+                          </p>
+                          <p
+                            className={`text-xs font-medium ${
+                              selectedCase.differences.allDatesConsistent
+                                ? "text-emerald-700"
+                                : "text-red-700"
+                            }`}
+                          >
+                            {selectedCase.differences.allDatesConsistent
+                              ? "Spójne"
+                              : "Niespójne"}
+                          </p>
+                        </div>
+                        <div
+                          className={`p-3 rounded-lg ${
+                            selectedCase.differences.allStatementsConsistent
+                              ? "bg-emerald-50"
+                              : "bg-red-50"
+                          }`}
+                        >
+                          <p
+                            className={`text-sm font-semibold ${
+                              selectedCase.differences.allStatementsConsistent
+                                ? "text-emerald-900"
+                                : "text-red-900"
+                            }`}
+                          >
+                            {selectedCase.differences.allStatementsConsistent
+                              ? "✅"
+                              : "❌"}{" "}
+                            Zeznania
+                          </p>
+                          <p
+                            className={`text-xs font-medium ${
+                              selectedCase.differences.allStatementsConsistent
+                                ? "text-emerald-700"
+                                : "text-red-700"
+                            }`}
+                          >
+                            {selectedCase.differences.allStatementsConsistent
+                              ? "Spójne"
+                              : "Niespójne"}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Documents Section */}
