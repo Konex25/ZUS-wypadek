@@ -36,3 +36,7 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# pomocnicze notatki
+NASTĘPNE_KROKI.md
+PLAN.md
+PLAN_SZCZEGOLOWY.md
