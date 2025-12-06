@@ -215,6 +215,7 @@ export async function POST(request: NextRequest) {
       createdAt: new Date().toISOString(),
       status: "processing",
       documents,
+      fileIds: [],
     };
 
     addCase(newCase);
@@ -272,6 +273,9 @@ async function processCaseWithAI(caseId: string, files: File[], nip: string) {
       "Uploaded files to OpenAI:",
       uploadedFiles.map((f) => ({ id: f.id, filename: f.filename }))
     );
+
+    const fileIds = uploadedFiles.map((f) => f.id);
+    updateCase(caseId, { fileIds });
 
     const extractionData = await openai.responses.create({
       model: "gpt-4o-mini",
