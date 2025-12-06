@@ -701,10 +701,9 @@ export const Krok2Adresy: React.FC<Krok2AdresyProps> = React.memo(({
   );
 }, (prevProps, nextProps) => {
   // Porównaj wszystkie props, które mogą wpływać na renderowanie
+  // Uwaga: nie porównujemy funkcji onNext/onPrevious, ponieważ są tworzone jako nowe instancje w każdym renderze
   return (
-    JSON.stringify(prevProps.initialData) === JSON.stringify(nextProps.initialData) &&
-    prevProps.onNext === nextProps.onNext &&
-    prevProps.onPrevious === nextProps.onPrevious
+    JSON.stringify(prevProps.initialData) === JSON.stringify(nextProps.initialData)
   );
 });
 

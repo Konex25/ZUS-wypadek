@@ -481,12 +481,141 @@ export default function ZUSPage() {
                   </div>
                 </div>
 
-                {/* Opinion Section - TODO: implement */}
+                {/* Opinion Section */}
                 <div className="p-6">
                   <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-4">
                     Opinia AI
                   </h3>
-                  {/* aiOpinion is available in selectedCase.aiOpinion */}
+
+                  {selectedCase.status === "processing" ? (
+                    <div className="flex items-center gap-3 p-8 bg-amber-50 rounded-lg">
+                      <div className="w-6 h-6 border-2 border-amber-600 border-t-transparent rounded-full animate-spin" />
+                      <span className="text-amber-700">
+                        Analizowanie dokumentów...
+                      </span>
+                    </div>
+                  ) : selectedCase.status === "error" ? (
+                    <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+                      <p className="font-medium">
+                        Wystąpił błąd podczas analizy
+                      </p>
+                      {selectedCase.error && (
+                        <p className="text-sm mt-1">{selectedCase.error}</p>
+                      )}
+                    </div>
+                  ) : selectedCase.aiOpinion ? (
+                    <div className="space-y-6">
+                      {/* Decision Banner */}
+                      <div
+                        className={`p-4 rounded-lg border-2 ${
+                          selectedCase.aiOpinion.decision === "ACCEPTED"
+                            ? "bg-emerald-50 border-emerald-200"
+                            : selectedCase.aiOpinion.decision === "REJECTED"
+                            ? "bg-red-50 border-red-200"
+                            : "bg-amber-50 border-amber-200"
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">
+                            {selectedCase.aiOpinion.decision === "ACCEPTED"
+                              ? "✅"
+                              : selectedCase.aiOpinion.decision === "REJECTED"
+                              ? "❌"
+                              : "⚠️"}
+                          </span>
+                          <div>
+                            <p className="text-sm font-medium text-slate-600">
+                              Proponowana decyzja
+                            </p>
+                            <p
+                              className={`text-xl font-bold ${
+                                selectedCase.aiOpinion.decision === "ACCEPTED"
+                                  ? "text-emerald-700"
+                                  : selectedCase.aiOpinion.decision ===
+                                    "REJECTED"
+                                  ? "text-red-700"
+                                  : "text-amber-700"
+                              }`}
+                            >
+                              {selectedCase.aiOpinion.decision === "ACCEPTED"
+                                ? "Uznać za wypadek przy pracy"
+                                : selectedCase.aiOpinion.decision === "REJECTED"
+                                ? "Nie uznać za wypadek przy pracy"
+                                : "Wymaga dodatkowych wyjaśnień"}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Details Grid */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="p-4 bg-slate-50 rounded-lg">
+                          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">
+                            Data wypadku
+                          </p>
+                          <p className="text-slate-900 font-medium">
+                            {selectedCase.aiOpinion.date || "—"}
+                          </p>
+                        </div>
+                        <div className="p-4 bg-slate-50 rounded-lg">
+                          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">
+                            Miejsce wypadku
+                          </p>
+                          <p className="text-slate-900 font-medium">
+                            {selectedCase.aiOpinion.place || "—"}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Description */}
+                      <div className="p-4 bg-slate-50 rounded-lg">
+                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                          Opis okoliczności
+                        </p>
+                        <p className="text-slate-700 leading-relaxed">
+                          {selectedCase.aiOpinion.description || "—"}
+                        </p>
+                      </div>
+
+                      {/* Causes */}
+                      <div className="p-4 bg-slate-50 rounded-lg">
+                        <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+                          Przyczyny wypadku
+                        </p>
+                        <p className="text-slate-700 leading-relaxed">
+                          {selectedCase.aiOpinion.causes || "—"}
+                        </p>
+                      </div>
+
+                      {/* Justifications */}
+                      {selectedCase.aiOpinion.justifications?.length > 0 && (
+                        <div className="space-y-3">
+                          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
+                            Uzasadnienie prawne
+                          </p>
+                          {selectedCase.aiOpinion.justifications.map(
+                            (item, index) => (
+                              <div
+                                key={index}
+                                className="p-4 bg-blue-50 rounded-lg border border-blue-200"
+                              >
+                                <p className="font-semibold text-blue-900 mb-2">
+                                  {item.title}
+                                </p>
+                                <p className="text-slate-700 leading-relaxed">
+                                  {item.justification}
+                                </p>
+                              </div>
+                            )
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="p-4 bg-slate-50 rounded-lg text-slate-500 text-center">
+                      Brak opinii
+                    </div>
+                  )}
                 </div>
               </div>
             )}

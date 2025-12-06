@@ -372,10 +372,9 @@ export const Krok6Wyjasnienia: React.FC<Krok6WyjasnieniaProps> = React.memo(({
     </form>
   );
 }, (prevProps, nextProps) => {
+  // Uwaga: nie porównujemy funkcji onNext/onPrevious, ponieważ są tworzone jako nowe instancje w każdym renderze
   return (
-    JSON.stringify(prevProps.initialData) === JSON.stringify(nextProps.initialData) &&
-    prevProps.onNext === nextProps.onNext &&
-    prevProps.onPrevious === nextProps.onPrevious
+    JSON.stringify(prevProps.initialData) === JSON.stringify(nextProps.initialData)
   );
 });
 

@@ -195,10 +195,9 @@ export const Krok7Swiadkowie: React.FC<Krok7SwiadkowieProps> = React.memo(({
     </form>
   );
 }, (prevProps, nextProps) => {
+  // Uwaga: nie porównujemy funkcji onNext/onPrevious, ponieważ są tworzone jako nowe instancje w każdym renderze
   return (
-    JSON.stringify(prevProps.initialData) === JSON.stringify(nextProps.initialData) &&
-    prevProps.onNext === nextProps.onNext &&
-    prevProps.onPrevious === nextProps.onPrevious
+    JSON.stringify(prevProps.initialData) === JSON.stringify(nextProps.initialData)
   );
 });
 

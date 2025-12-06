@@ -423,12 +423,28 @@ export interface UploadedDocument {
 // Case types
 export type CaseStatus = "pending" | "processing" | "completed" | "error";
 
+export type Decision = "ACCEPTED" | "REJECTED" | "NEED_MORE_INFORMATION";
+
+export interface Justification {
+  title: string;
+  justification: string;
+}
+
+export interface AIOpinion {
+  date: string; // YYYY-MM-DD
+  place: string;
+  description: string;
+  causes: string;
+  decision: Decision;
+  justifications: Justification[];
+}
+
 export interface Case {
   id: string;
   createdAt: string;
   status: CaseStatus;
   documents: UploadedDocument[];
-  aiOpinion?: string; // Markdown opinion from AI
+  aiOpinion?: AIOpinion;
   error?: string;
 }
 
