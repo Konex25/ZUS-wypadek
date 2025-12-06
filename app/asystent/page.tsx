@@ -24,16 +24,22 @@ export default function AsystentPage() {
 
   // Auto-save
   const { restoreData, clearData, hasSavedData } = useAutoSave(formData, true);
+  const [isMounted, setIsMounted] = useState(false);
 
-  // Przywróć zapisane dane przy pierwszym załadowaniu
+  // Oznacz komponent jako zamontowany po hydratacji
   useEffect(() => {
-    if (hasSavedData && Object.keys(formData).length === 0) {
+    setIsMounted(true);
+  }, []);
+
+  // Przywróć zapisane dane przy pierwszym załadowaniu (tylko po hydratacji)
+  useEffect(() => {
+    if (isMounted && hasSavedData && Object.keys(formData).length === 0) {
       const saved = restoreData();
       if (saved && Object.keys(saved).length > 0) {
         setShowRestoreDialog(true);
       }
     }
-  }, []); // Tylko przy pierwszym renderze
+  }, [isMounted, hasSavedData, formData, restoreData]); // Tylko po hydratacji
 
   const handleRestoreData = () => {
     const saved = restoreData();
@@ -705,12 +711,13 @@ export default function AsystentPage() {
       component: () => (
         <Krok9Zalaczniki
           key="krok8"
-          onNext={(attachments, responseDeliveryMethod, signatureDate) => {
+          onNext={(attachments, responseDeliveryMethod, signatureDate, documentCommitments) => {
             setFormData((prev) => ({
               ...prev,
               attachments,
               responseDeliveryMethod,
               signatureDate,
+              documentCommitments,
             }));
             goToNextStep();
           }}
@@ -718,6 +725,7 @@ export default function AsystentPage() {
           initialAttachments={formData.attachments}
           initialResponseDeliveryMethod={formData.responseDeliveryMethod}
           initialSignatureDate={formData.signatureDate}
+          initialDocumentCommitments={formData.documentCommitments}
         />
       ),
     });
@@ -783,7 +791,7 @@ export default function AsystentPage() {
                 </p>
               </div>
               <div className="flex-1 flex justify-end">
-                {hasSavedData && (
+                {isMounted && hasSavedData && (
                   <button
                     onClick={() => {
                       if (confirm("Czy na pewno chcesz wyczyścić zapisane dane?")) {

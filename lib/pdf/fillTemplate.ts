@@ -158,6 +158,10 @@ export async function fillPDFTemplate(
       const type = d.addresses?.correspondenceAddress?.type;
       return type === "skrytka" ? "true" : "";
     },
+    "topmostSubform[0].Page2[0].przegrodkapocztowa[0]": (d) => {
+      const type = d.addresses?.correspondenceAddress?.type;
+      return type === "przegrodka" ? "true" : "";
+    },
     
     // ========== STRONA 3 - DANE O WYPADKU ==========
     "topmostSubform[0].Page3[0].Datawyp[0]": (d) => formatDateForPDF(d.accidentData?.accidentDate || ""),
@@ -209,6 +213,13 @@ export async function fillPDFTemplate(
     "topmostSubform[0].Page3[0].Kodpocztowy4[0]": (d) => d.representativeData?.addresses?.residentialAddress?.postalCode || "",
     "topmostSubform[0].Page3[0].Poczta4[0]": (d) => transliteratePolish(d.representativeData?.addresses?.residentialAddress?.city || ""),
     "topmostSubform[0].Page3[0].Nazwapaństwa4[0]": (d) => transliteratePolish(d.representativeData?.addresses?.residentialAddress?.country || "Polska"),
+    
+    // Adres ostatniego zamieszkania w Polsce osoby zawiadamiającej - Strona 3
+    "topmostSubform[0].Page3[0].Ulica5[0]": (d) => transliteratePolish(d.representativeData?.addresses?.lastResidentialAddressInPoland?.street || ""),
+    "topmostSubform[0].Page3[0].Numerdomu5[0]": (d) => d.representativeData?.addresses?.lastResidentialAddressInPoland?.houseNumber || "",
+    "topmostSubform[0].Page3[0].Numerlokalu5[0]": (d) => d.representativeData?.addresses?.lastResidentialAddressInPoland?.apartmentNumber || "",
+    "topmostSubform[0].Page3[0].Kodpocztowy5[0]": (d) => d.representativeData?.addresses?.lastResidentialAddressInPoland?.postalCode || "",
+    "topmostSubform[0].Page3[0].Poczta5[0]": (d) => transliteratePolish(d.representativeData?.addresses?.lastResidentialAddressInPoland?.city || ""),
     
     // Adres działalności - alternatywny (Strona 3)
     "topmostSubform[0].Page3[0].Ulica2[0]": (d) => transliteratePolish(d.addresses?.businessAddress?.street || ""),
@@ -346,7 +357,19 @@ export async function fillPDFTemplate(
     
     // Sposób odbioru odpowiedzi
     "topmostSubform[0].Page6[0].OdbiorZUS[0]": (d) => d.responseDeliveryMethod === "zus_office" ? "true" : "",
+    "topmostSubform[0].Page6[0].OdbiorPoczta[0]": (d) => d.responseDeliveryMethod === "poczta" ? "true" : "",
     "topmostSubform[0].Page6[0].OdbiorPUE[0]": (d) => d.responseDeliveryMethod === "pue_zus" ? "true" : "",
+    "topmostSubform[0].Page6[0].OdbiorOsobaUpowazniona[0]": (d) => d.responseDeliveryMethod === "osoba_upowazniona" ? "true" : "",
+    
+    // Zobowiązanie do dostarczenia dokumentów (8 pozycji)
+    "topmostSubform[0].Page6[0].Zobowiazanie1[0]": (d) => d.documentCommitments?.[0] ? "true" : "",
+    "topmostSubform[0].Page6[0].Zobowiazanie2[0]": (d) => d.documentCommitments?.[1] ? "true" : "",
+    "topmostSubform[0].Page6[0].Zobowiazanie3[0]": (d) => d.documentCommitments?.[2] ? "true" : "",
+    "topmostSubform[0].Page6[0].Zobowiazanie4[0]": (d) => d.documentCommitments?.[3] ? "true" : "",
+    "topmostSubform[0].Page6[0].Zobowiazanie5[0]": (d) => d.documentCommitments?.[4] ? "true" : "",
+    "topmostSubform[0].Page6[0].Zobowiazanie6[0]": (d) => d.documentCommitments?.[5] ? "true" : "",
+    "topmostSubform[0].Page6[0].Zobowiazanie7[0]": (d) => d.documentCommitments?.[6] ? "true" : "",
+    "topmostSubform[0].Page6[0].Zobowiazanie8[0]": (d) => d.documentCommitments?.[7] ? "true" : "",
     
     // Data podpisu
     "topmostSubform[0].Page6[0].DataPodpisu[0]": (d) => formatDateForPDF(d.signatureDate || new Date().toISOString().split('T')[0]),

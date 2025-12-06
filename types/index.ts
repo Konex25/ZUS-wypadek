@@ -15,8 +15,9 @@ export interface AccidentReport {
   witnesses?: Witness[];
   documents?: File[];
   attachments?: AttachmentInfo[]; // Informacje o załącznikach
-  responseDeliveryMethod?: "zus_office" | "pue_zus"; // Sposób odbioru odpowiedzi
+  responseDeliveryMethod?: "zus_office" | "pue_zus" | "poczta" | "osoba_upowazniona"; // Sposób odbioru odpowiedzi
   signatureDate?: string; // Data podpisu
+  documentCommitments?: boolean[]; // Zobowiązanie do dostarczenia dokumentów (8 pozycji)
 }
 
 export interface VictimPersonalData {
@@ -67,7 +68,7 @@ export interface Address {
   phone?: string; // dla adresu działalności
 }
 
-export type CorrespondenceAddressType = "adres" | "poste_restante" | "skrytka";
+export type CorrespondenceAddressType = "adres" | "poste_restante" | "skrytka" | "przegrodka";
 
 export interface CorrespondenceAddress {
   type: CorrespondenceAddressType;
@@ -77,6 +78,11 @@ export interface CorrespondenceAddress {
     postOfficeName: string;
   };
   postOfficeBox?: {
+    number: string;
+    postalCode: string;
+    postOfficeName: string;
+  };
+  postOfficeBoxP?: {
     number: string;
     postalCode: string;
     postOfficeName: string;

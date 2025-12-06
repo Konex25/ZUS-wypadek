@@ -13,22 +13,24 @@ export function useLocalStorage<T>(
   initialValue: T
 ): [T, (value: T | ((val: T) => T)) => void, () => void] {
   // State to store our value
-  // Pass initial state function to useState so logic is only executed once
-  const [storedValue, setStoredValue] = useState<T>(() => {
-    if (typeof window === "undefined") {
-      return initialValue;
+  // Zawsze zaczynamy od initialValue, aby uniknąć błędów hydratacji
+  const [storedValue, setStoredValue] = useState<T>(initialValue);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // Po zamontowaniu komponentu, sprawdź localStorage
+  useEffect(() => {
+    setIsMounted(true);
+    if (typeof window !== "undefined") {
+      try {
+        const item = window.localStorage.getItem(key);
+        if (item) {
+          setStoredValue(JSON.parse(item));
+        }
+      } catch (error) {
+        console.error(`Error reading localStorage key "${key}":`, error);
+      }
     }
-    try {
-      // Get from local storage by key
-      const item = window.localStorage.getItem(key);
-      // Parse stored json or if none return initialValue
-      return item ? JSON.parse(item) : initialValue;
-    } catch (error) {
-      // If error also return initialValue
-      console.error(`Error reading localStorage key "${key}":`, error);
-      return initialValue;
-    }
-  });
+  }, [key]);
 
   // Return a wrapped version of useState's setter function that
   // persists the new value to localStorage.

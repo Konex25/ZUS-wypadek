@@ -26,6 +26,9 @@ export const Krok1DaneOsobowe: React.FC<Krok1DaneOsoboweProps> = React.memo(({
   const [innaOsobaZawiadamia, setInnaOsobaZawiadamia] = useState(
     initialData?.innaOsobaZawiadamia || false
   );
+  const [mieszkaZaGranicaOsobaZawiadamiajaca, setMieszkaZaGranicaOsobaZawiadamiajaca] = useState(
+    initialData?.osobaZawiadamiajaca?.mieszkaZaGranica || false
+  );
   const [adresDoKorespondencjiInny, setAdresDoKorespondencjiInny] = useState(
     initialData?.osobaZawiadamiajaca?.adresDoKorespondencjiInny || false
   );
@@ -163,7 +166,6 @@ export const Krok1DaneOsobowe: React.FC<Krok1DaneOsoboweProps> = React.memo(({
             type="date"
             required
             error={errors.dataUrodzenia?.message}
-            helperText="Format: RRRR-MM-DD"
             {...register("dataUrodzenia")}
           />
           <Input
@@ -309,6 +311,15 @@ export const Krok1DaneOsobowe: React.FC<Krok1DaneOsoboweProps> = React.memo(({
               <div className="pt-4 border-t border-gray-200">
                 <h5 className="text-sm font-medium text-gray-900 mb-4">Adres zamieszkania osoby zawiadamiającej</h5>
                 <div className="space-y-4">
+                  <Checkbox
+                    label="Osoba zawiadamiająca mieszka obecnie za granicą"
+                    checked={mieszkaZaGranicaOsobaZawiadamiajaca}
+                    onCheckedChange={(checked) => {
+                      setMieszkaZaGranicaOsobaZawiadamiajaca(checked || false);
+                      setValue("osobaZawiadamiajaca.mieszkaZaGranica", checked || false);
+                    }}
+                  />
+                  
                   <div className="grid md:grid-cols-2 gap-4">
                     <Input
                       label="Ulica"
@@ -363,6 +374,57 @@ export const Krok1DaneOsobowe: React.FC<Krok1DaneOsoboweProps> = React.memo(({
                     error={errors.osobaZawiadamiajaca?.adresZamieszkania?.panstwo?.message}
                     {...register("osobaZawiadamiajaca.adresZamieszkania.panstwo")}
                   />
+                  
+                  {/* Adres ostatniego zamieszkania w Polsce dla osoby zawiadamiającej */}
+                  {mieszkaZaGranicaOsobaZawiadamiajaca && (
+                    <div className="pt-4 border-t border-gray-200">
+                      <h6 className="text-sm font-medium text-gray-900 mb-4">Adres ostatniego miejsca zamieszkania w Polsce / adres miejsca pobytu</h6>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <Input
+                          label="Ulica"
+                          type="text"
+                          error={errors.osobaZawiadamiajaca?.adresOstatniegoZamieszkaniaWPolsce?.ulica?.message}
+                          {...register("osobaZawiadamiajaca.adresOstatniegoZamieszkaniaWPolsce.ulica")}
+                        />
+                        <div className="grid grid-cols-2 gap-2">
+                          <Input
+                            label="Numer domu"
+                            type="text"
+                            error={errors.osobaZawiadamiajaca?.adresOstatniegoZamieszkaniaWPolsce?.numerDomu?.message}
+                            {...register("osobaZawiadamiajaca.adresOstatniegoZamieszkaniaWPolsce.numerDomu")}
+                          />
+                          <Input
+                            label="Numer lokalu"
+                            type="text"
+                            error={errors.osobaZawiadamiajaca?.adresOstatniegoZamieszkaniaWPolsce?.numerLokalu?.message}
+                            {...register("osobaZawiadamiajaca.adresOstatniegoZamieszkaniaWPolsce.numerLokalu")}
+                          />
+                        </div>
+                      </div>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        <Input
+                          label="Kod pocztowy"
+                          type="text"
+                          error={errors.osobaZawiadamiajaca?.adresOstatniegoZamieszkaniaWPolsce?.kodPocztowy?.message}
+                          helperText="Format: XX-XXX"
+                          {...register("osobaZawiadamiajaca.adresOstatniegoZamieszkaniaWPolsce.kodPocztowy")}
+                          onChange={(e) => {
+                            const value = e.target.value.replace(/\D/g, "");
+                            if (value.length <= 5) {
+                              const formatted = value.length > 2 ? `${value.slice(0, 2)}-${value.slice(2)}` : value;
+                              setValue("osobaZawiadamiajaca.adresOstatniegoZamieszkaniaWPolsce.kodPocztowy", formatted);
+                            }
+                          }}
+                        />
+                        <Input
+                          label="Miejscowość"
+                          type="text"
+                          error={errors.osobaZawiadamiajaca?.adresOstatniegoZamieszkaniaWPolsce?.miejscowosc?.message}
+                          {...register("osobaZawiadamiajaca.adresOstatniegoZamieszkaniaWPolsce.miejscowosc")}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 

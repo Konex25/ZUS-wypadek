@@ -8,11 +8,17 @@ import { Input } from "@/components/ui/input";
 import { AttachmentInfo } from "@/types";
 
 interface Krok9ZalacznikiProps {
-  onNext: (attachments: AttachmentInfo[], responseDeliveryMethod: "zus_office" | "pue_zus", signatureDate: string) => void;
+  onNext: (
+    attachments: AttachmentInfo[], 
+    responseDeliveryMethod: "zus_office" | "pue_zus" | "poczta" | "osoba_upowazniona", 
+    signatureDate: string,
+    documentCommitments?: boolean[]
+  ) => void;
   onPrevious: () => void;
   initialAttachments?: AttachmentInfo[];
-  initialResponseDeliveryMethod?: "zus_office" | "pue_zus";
+  initialResponseDeliveryMethod?: "zus_office" | "pue_zus" | "poczta" | "osoba_upowazniona";
   initialSignatureDate?: string;
+  initialDocumentCommitments?: boolean[];
 }
 
 export const Krok9Zalaczniki: React.FC<Krok9ZalacznikiProps> = React.memo(({
@@ -21,9 +27,10 @@ export const Krok9Zalaczniki: React.FC<Krok9ZalacznikiProps> = React.memo(({
   initialAttachments = [],
   initialResponseDeliveryMethod,
   initialSignatureDate,
+  initialDocumentCommitments,
 }) => {
   const [attachments, setAttachments] = useState<AttachmentInfo[]>(initialAttachments);
-  const [responseDeliveryMethod, setResponseDeliveryMethod] = useState<"zus_office" | "pue_zus" | undefined>(
+  const [responseDeliveryMethod, setResponseDeliveryMethod] = useState<"zus_office" | "pue_zus" | "poczta" | "osoba_upowazniona" | undefined>(
     initialResponseDeliveryMethod
   );
   const [signatureDate, setSignatureDate] = useState(
@@ -31,6 +38,10 @@ export const Krok9Zalaczniki: React.FC<Krok9ZalacznikiProps> = React.memo(({
   );
   const [otherDescription, setOtherDescription] = useState(
     initialAttachments.find(a => a.type === "other")?.description || ""
+  );
+  // Zobowiązanie do dostarczenia dokumentów - 8 pozycji
+  const [documentCommitments, setDocumentCommitments] = useState<boolean[]>(
+    initialDocumentCommitments || [false, false, false, false, false, false, false, false]
   );
 
   const handleAttachmentChange = (type: AttachmentInfo["type"], checked: boolean) => {
@@ -58,7 +69,7 @@ export const Krok9Zalaczniki: React.FC<Krok9ZalacznikiProps> = React.memo(({
       return;
     }
     
-    onNext(updatedAttachments, responseDeliveryMethod, signatureDate);
+    onNext(updatedAttachments, responseDeliveryMethod, signatureDate, documentCommitments);
   };
 
   return (
@@ -142,6 +153,91 @@ export const Krok9Zalaczniki: React.FC<Krok9ZalacznikiProps> = React.memo(({
           </div>
         </Card>
 
+        {/* Zobowiązanie do dostarczenia dokumentów */}
+        <Card>
+          <div className="space-y-4">
+            <h4 className="font-medium text-gray-900">Zobowiązanie do dostarczenia dokumentów</h4>
+            <p className="text-sm text-gray-600">
+              Zaznacz dokumenty, które zobowiązujesz się dostarczyć
+            </p>
+
+            <div className="space-y-3">
+              <Checkbox
+                label="Pozycja 1: Kserokopia karty informacyjnej ze szpitala / dokumentów pierwszej pomocy"
+                checked={documentCommitments[0]}
+                onCheckedChange={(checked) => {
+                  const updated = [...documentCommitments];
+                  updated[0] = checked || false;
+                  setDocumentCommitments(updated);
+                }}
+              />
+              <Checkbox
+                label="Pozycja 2: Dokumenty z prokuratury"
+                checked={documentCommitments[1]}
+                onCheckedChange={(checked) => {
+                  const updated = [...documentCommitments];
+                  updated[1] = checked || false;
+                  setDocumentCommitments(updated);
+                }}
+              />
+              <Checkbox
+                label="Pozycja 3: Dokumenty dotyczące zgonu (jeśli dotyczy)"
+                checked={documentCommitments[2]}
+                onCheckedChange={(checked) => {
+                  const updated = [...documentCommitments];
+                  updated[2] = checked || false;
+                  setDocumentCommitments(updated);
+                }}
+              />
+              <Checkbox
+                label="Pozycja 4: Dokumenty potwierdzające prawo do wydania karty wypadku innej osobie"
+                checked={documentCommitments[3]}
+                onCheckedChange={(checked) => {
+                  const updated = [...documentCommitments];
+                  updated[3] = checked || false;
+                  setDocumentCommitments(updated);
+                }}
+              />
+              <Checkbox
+                label="Pozycja 5: Inne dokumenty"
+                checked={documentCommitments[4]}
+                onCheckedChange={(checked) => {
+                  const updated = [...documentCommitments];
+                  updated[4] = checked || false;
+                  setDocumentCommitments(updated);
+                }}
+              />
+              <Checkbox
+                label="Pozycja 6: Dokumenty potwierdzające wykonywanie czynności związanych z działalnością"
+                checked={documentCommitments[5]}
+                onCheckedChange={(checked) => {
+                  const updated = [...documentCommitments];
+                  updated[5] = checked || false;
+                  setDocumentCommitments(updated);
+                }}
+              />
+              <Checkbox
+                label="Pozycja 7: Kopia licencji lub koncesji (jeśli wymagana)"
+                checked={documentCommitments[6]}
+                onCheckedChange={(checked) => {
+                  const updated = [...documentCommitments];
+                  updated[6] = checked || false;
+                  setDocumentCommitments(updated);
+                }}
+              />
+              <Checkbox
+                label="Pozycja 8: Notatka służbowa policji drogowej (w przypadku wypadku komunikacyjnego)"
+                checked={documentCommitments[7]}
+                onCheckedChange={(checked) => {
+                  const updated = [...documentCommitments];
+                  updated[7] = checked || false;
+                  setDocumentCommitments(updated);
+                }}
+              />
+            </div>
+          </div>
+        </Card>
+
         {/* Sposób odbioru odpowiedzi */}
         <Card>
           <div className="space-y-4">
@@ -161,7 +257,21 @@ export const Krok9Zalaczniki: React.FC<Krok9ZalacznikiProps> = React.memo(({
                   className="w-4 h-4 text-blue-600 focus:ring-blue-500"
                 />
                 <span className="text-sm text-gray-900">
-                  W placówce ZUS (osobiście lub pocztą na adres wskazany we wniosku)
+                  W placówce ZUS
+                </span>
+              </label>
+              
+              <label className="flex items-center space-x-3 cursor-pointer">
+                <input
+                  type="radio"
+                  name="responseDeliveryMethod"
+                  value="poczta"
+                  checked={responseDeliveryMethod === "poczta"}
+                  onChange={(e) => setResponseDeliveryMethod(e.target.value as "poczta")}
+                  className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-900">
+                  Pocztą
                 </span>
               </label>
               
@@ -175,7 +285,21 @@ export const Krok9Zalaczniki: React.FC<Krok9ZalacznikiProps> = React.memo(({
                   className="w-4 h-4 text-blue-600 focus:ring-blue-500"
                 />
                 <span className="text-sm text-gray-900">
-                  Przez Platformę Usług Elektronicznych (PUE ZUS)
+                  Na adres z PUE
+                </span>
+              </label>
+              
+              <label className="flex items-center space-x-3 cursor-pointer">
+                <input
+                  type="radio"
+                  name="responseDeliveryMethod"
+                  value="osoba_upowazniona"
+                  checked={responseDeliveryMethod === "osoba_upowazniona"}
+                  onChange={(e) => setResponseDeliveryMethod(e.target.value as "osoba_upowazniona")}
+                  className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-900">
+                  Przez osobę upoważnioną
                 </span>
               </label>
             </div>

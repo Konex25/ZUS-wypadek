@@ -18,7 +18,7 @@ const adresySchema = z.object({
   adresZamieszkania: adresSchema,
   adresOstatniegoZamieszkaniaWPolsce: adresSchema.optional(),
   adresDoKorespondencji: z.object({
-    typ: z.enum(["adres", "poste_restante", "skrytka"]).optional(),
+    typ: z.enum(["adres", "poste_restante", "skrytka", "przegrodka"]).optional(),
     adres: adresSchema.optional(),
     posteRestante: z.object({
       kodPocztowy: z.string().regex(/^\d{2}-\d{3}$/, "Kod pocztowy musi być w formacie XX-XXX"),
@@ -26,6 +26,11 @@ const adresySchema = z.object({
     }).optional(),
     skrytka: z.object({
       numer: z.string().min(1, "Numer skrytki jest wymagany"),
+      kodPocztowy: z.string().regex(/^\d{2}-\d{3}$/, "Kod pocztowy musi być w formacie XX-XXX"),
+      nazwaPlacowki: z.string().min(1, "Nazwa placówki jest wymagana"),
+    }).optional(),
+    przegrodka: z.object({
+      numer: z.string().min(1, "Numer przegródki jest wymagany"),
       kodPocztowy: z.string().regex(/^\d{2}-\d{3}$/, "Kod pocztowy musi być w formacie XX-XXX"),
       nazwaPlacowki: z.string().min(1, "Nazwa placówki jest wymagana"),
     }).optional(),
@@ -66,7 +71,7 @@ export const Krok2Adresy: React.FC<Krok2AdresyProps> = React.memo(({
     initialData?.opiekaNadDzieckiem || false
   );
   const [typAdresuKorespondencji, setTypAdresuKorespondencji] = useState<
-    "adres" | "poste_restante" | "skrytka" | undefined
+    "adres" | "poste_restante" | "skrytka" | "przegrodka" | undefined
   >(initialData?.adresDoKorespondencji?.typ);
   
   // CEIDG integration
@@ -613,10 +618,11 @@ export const Krok2Adresy: React.FC<Krok2AdresyProps> = React.memo(({
                   { value: "adres", label: "Adres" },
                   { value: "poste_restante", label: "Poste restante" },
                   { value: "skrytka", label: "Skrytka pocztowa" },
+                  { value: "przegrodka", label: "Przegródka pocztowa" },
                 ]}
                 value={typAdresuKorespondencji}
                 onValueChange={(value) => {
-                  setTypAdresuKorespondencji(value as "adres" | "poste_restante" | "skrytka");
+                  setTypAdresuKorespondencji(value as "adres" | "poste_restante" | "skrytka" | "przegrodka");
                   setValue("adresDoKorespondencji.typ", value as any);
                 }}
               />
@@ -655,7 +661,7 @@ export const Krok2Adresy: React.FC<Krok2AdresyProps> = React.memo(({
               {typAdresuKorespondencji === "skrytka" && (
                 <div className="mt-4 space-y-4">
                   <Input
-                    label="Numer skrytki/przegródki"
+                    label="Numer skrytki"
                     required
                     error={errors.adresDoKorespondencji?.skrytka?.numer?.message}
                     {...register("adresDoKorespondencji.skrytka.numer" as any)}
@@ -679,6 +685,37 @@ export const Krok2Adresy: React.FC<Krok2AdresyProps> = React.memo(({
                     required
                     error={errors.adresDoKorespondencji?.skrytka?.nazwaPlacowki?.message}
                     {...register("adresDoKorespondencji.skrytka.nazwaPlacowki" as any)}
+                  />
+                </div>
+              )}
+
+              {typAdresuKorespondencji === "przegrodka" && (
+                <div className="mt-4 space-y-4">
+                  <Input
+                    label="Numer przegródki"
+                    required
+                    error={errors.adresDoKorespondencji?.przegrodka?.numer?.message}
+                    {...register("adresDoKorespondencji.przegrodka.numer" as any)}
+                  />
+                  <Input
+                    label="Kod pocztowy placówki"
+                    required
+                    error={errors.adresDoKorespondencji?.przegrodka?.kodPocztowy?.message}
+                    helperText="Format: XX-XXX"
+                    {...register("adresDoKorespondencji.przegrodka.kodPocztowy" as any)}
+                    onChange={(e) => {
+                      let value = e.target.value.replace(/\D/g, "");
+                      if (value.length > 2) {
+                        value = value.slice(0, 2) + "-" + value.slice(2, 5);
+                      }
+                      setValue("adresDoKorespondencji.przegrodka.kodPocztowy" as any, value);
+                    }}
+                  />
+                  <Input
+                    label="Nazwa placówki pocztowej"
+                    required
+                    error={errors.adresDoKorespondencji?.przegrodka?.nazwaPlacowki?.message}
+                    {...register("adresDoKorespondencji.przegrodka.nazwaPlacowki" as any)}
                   />
                 </div>
               )}
