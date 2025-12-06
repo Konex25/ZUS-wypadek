@@ -332,6 +332,6 @@ Dokument tożsamości (dowód osobisty lub paszport):
 ## Format of the response:
 {
   "compatibilityScore": 0-100,
-  "compatibilityReasoning": "krótki opis dlaczego odpowiedź nie jest zgodna z pytaniem w oparciu o rozporządzenie i ustawę"
+  "compatibilityReasoning": "krótki opis max 1 zdanie - dlaczego odpowiedź nie jest zgodna z pytaniem w oparciu o rozporządzenie i ustawę"
 }
 `;

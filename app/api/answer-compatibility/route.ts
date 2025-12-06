@@ -13,7 +13,7 @@ export async function POST(request: Request) {
   }
 
   const response = await openai.responses.create({
-    model: "gpt-4o-mini",
+    model: "gpt-5.1",
     input: [
       { role: "system", content: SYSTEM_PROMPT },
       { role: "user", content: ANSWER_COMPATIBILITY_PROMPT(question, answer) },
