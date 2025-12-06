@@ -110,30 +110,53 @@ export const FormularzKartyWypadku: React.FC<FormularzKartyWypadkuProps> = ({
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
       {/* Nagłówek */}
-      <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Nazwa i adres podmiotu sporządzającego kartę wypadku
-        </label>
+      <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6 rounded-2xl border border-blue-200/50 shadow-lg backdrop-blur-sm">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-md">
+            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+          </div>
+          <label className="block text-base font-bold text-slate-800">
+            Nazwa i adres podmiotu sporządzającego kartę wypadku
+          </label>
+        </div>
         <textarea
           value={formData.nazwaIAdresPodmiotuSporzadzajacego || ""}
           onChange={(e) =>
             updateField(["nazwaIAdresPodmiotuSporzadzajacego"], e.target.value)
           }
-          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-5 py-3.5 border-2 border-blue-200 rounded-xl bg-white/80 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400 transition-all text-slate-700 shadow-sm hover:border-blue-300"
           rows={2}
+          placeholder="Wprowadź nazwę i adres..."
         />
       </div>
 
       {/* I. DANE IDENTYFIKACYJNE PŁATNIKA SKŁADEK */}
-      <div className="border border-gray-300 rounded-lg p-6">
-        <h2 className="text-lg font-bold mb-4 bg-gray-100 p-2 rounded">
-          I. DANE IDENTYFIKACYJNE PŁATNIKA SKŁADEK
-        </h2>
-        <p className="text-xs text-gray-600 mb-4 italic">
-          Nie wypełniają podmioty niebędące płatnikami składek na ubezpieczenie wypadkowe.
-        </p>
+      <div className="bg-white rounded-2xl shadow-xl border border-slate-200/60 overflow-hidden transition-all hover:shadow-2xl">
+        <div className="bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 px-6 py-5 border-b border-slate-200">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center">
+              <span className="text-white font-bold text-sm">I</span>
+            </div>
+            <h2 className="text-lg font-bold text-white tracking-wide">
+              DANE IDENTYFIKACYJNE PŁATNIKA SKŁADEK
+            </h2>
+          </div>
+        </div>
+        <div className="p-7 bg-white">
+        <div className="mb-6 p-4 bg-gradient-to-r from-amber-50 to-yellow-50 border-l-4 border-amber-400 rounded-lg shadow-sm">
+          <div className="flex items-start gap-2">
+            <svg className="w-5 h-5 text-amber-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <p className="text-sm text-amber-800 font-medium">
+              Nie wypełniają podmioty niebędące płatnikami składek na ubezpieczenie wypadkowe.
+            </p>
+          </div>
+        </div>
 
-        <div className="space-y-4">
+        <div className="space-y-5">
           <Input
             label="1. Imię i nazwisko lub nazwa"
             value={formData.daneIdentyfikacyjnePlatnika?.imieNazwiskoLubNazwa || ""}
@@ -146,7 +169,7 @@ export const FormularzKartyWypadku: React.FC<FormularzKartyWypadkuProps> = ({
           />
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
               2. Adres siedziby
             </label>
             <textarea
@@ -157,13 +180,13 @@ export const FormularzKartyWypadku: React.FC<FormularzKartyWypadkuProps> = ({
                   e.target.value
                 )
               }
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-5 py-3.5 border-2 border-slate-300 rounded-xl bg-white/90 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400 transition-all text-slate-700 shadow-sm hover:border-slate-400 hover:shadow-md"
               rows={2}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
               3. NIP REGON PESEL
             </label>
             <div className="grid grid-cols-3 gap-4">
@@ -200,8 +223,8 @@ export const FormularzKartyWypadku: React.FC<FormularzKartyWypadkuProps> = ({
             </div>
           </div>
 
-          <div className="border-t pt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="border-t border-slate-200 pt-5 mt-5">
+            <label className="block text-sm font-semibold text-slate-700 mb-3">
               Dokument tożsamości (dowód osobisty lub paszport)
             </label>
             <div className="space-y-2">
@@ -261,15 +284,24 @@ export const FormularzKartyWypadku: React.FC<FormularzKartyWypadkuProps> = ({
             </div>
           </div>
         </div>
+        </div>
       </div>
 
       {/* II. DANE IDENTYFIKACYJNE POSZKODOWANEGO */}
-      <div className="border border-gray-300 rounded-lg p-6">
-        <h2 className="text-lg font-bold mb-4 bg-gray-100 p-2 rounded">
-          II. DANE IDENTYFIKACYJNE POSZKODOWANEGO
-        </h2>
+      <div className="bg-white rounded-2xl shadow-xl border border-slate-200/60 overflow-hidden transition-all hover:shadow-2xl">
+        <div className="bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 px-6 py-5 border-b border-slate-200">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center">
+              <span className="text-white font-bold text-sm">II</span>
+            </div>
+            <h2 className="text-lg font-bold text-white tracking-wide">
+              DANE IDENTYFIKACYJNE POSZKODOWANEGO
+            </h2>
+          </div>
+        </div>
+        <div className="p-7 bg-white">
 
-        <div className="space-y-4">
+        <div className="space-y-5">
           <Input
             label="1. Imię i nazwisko poszkodowanego"
             value={
@@ -296,8 +328,8 @@ export const FormularzKartyWypadku: React.FC<FormularzKartyWypadkuProps> = ({
             required
           />
 
-          <div className="border-t pt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="border-t border-slate-200 pt-5 mt-5">
+            <label className="block text-sm font-semibold text-slate-700 mb-3">
               Dokument tożsamości (dowód osobisty lub paszport)
             </label>
             <div className="space-y-2">
@@ -391,7 +423,7 @@ export const FormularzKartyWypadku: React.FC<FormularzKartyWypadkuProps> = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
               4. Adres zamieszkania
             </label>
             <textarea
@@ -405,22 +437,24 @@ export const FormularzKartyWypadku: React.FC<FormularzKartyWypadkuProps> = ({
                   e.target.value
                 )
               }
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-5 py-3.5 border-2 border-slate-300 rounded-xl bg-white/90 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400 transition-all text-slate-700 shadow-sm hover:border-slate-400 hover:shadow-md"
               rows={2}
               required
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
               5. Tytuł ubezpieczenia wypadkowego
             </label>
-            <p className="text-xs text-gray-600 mb-2 italic">
-              Wymienić numer pozycji i pełny tytuł ubezpieczenia społecznego,
-              zgodnie z art. 3 ust. 3 albo art. 3a ustawy z dnia 30 października
-              2002 r. o ubezpieczeniu społecznym z tytułu wypadków przy pracy i
-              chorób zawodowych (Dz. U. z 2019 r. poz. 1205, z późn. zm.)
-            </p>
+            <div className="mb-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 rounded-lg shadow-sm">
+              <p className="text-xs text-blue-800 font-medium leading-relaxed">
+                <span className="font-bold">Uwaga:</span> Wymienić numer pozycji i pełny tytuł ubezpieczenia społecznego,
+                zgodnie z art. 3 ust. 3 albo art. 3a ustawy z dnia 30 października
+                2002 r. o ubezpieczeniu społecznym z tytułu wypadków przy pracy i
+                chorób zawodowych (Dz. U. z 2019 r. poz. 1205, z późn. zm.)
+              </p>
+            </div>
             <textarea
               value={
                 formData.daneIdentyfikacyjnePoszkodowanego
@@ -435,21 +469,30 @@ export const FormularzKartyWypadku: React.FC<FormularzKartyWypadkuProps> = ({
                   e.target.value
                 )
               }
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-5 py-3.5 border-2 border-slate-300 rounded-xl bg-white/90 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400 transition-all text-slate-700 shadow-sm hover:border-slate-400 hover:shadow-md"
               rows={3}
               required
             />
           </div>
         </div>
+        </div>
       </div>
 
       {/* III. INFORMACJE O WYPADKU */}
-      <div className="border border-gray-300 rounded-lg p-6">
-        <h2 className="text-lg font-bold mb-4 bg-gray-100 p-2 rounded">
-          III. INFORMACJE O WYPADKU
-        </h2>
+      <div className="bg-white rounded-2xl shadow-xl border border-slate-200/60 overflow-hidden transition-all hover:shadow-2xl">
+        <div className="bg-gradient-to-r from-rose-500 via-pink-500 to-fuchsia-500 px-6 py-5 border-b border-slate-200">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center">
+              <span className="text-white font-bold text-sm">III</span>
+            </div>
+            <h2 className="text-lg font-bold text-white tracking-wide">
+              INFORMACJE O WYPADKU
+            </h2>
+          </div>
+        </div>
+        <div className="p-7 bg-white">
 
-        <div className="space-y-4">
+        <div className="space-y-5">
           <div className="grid grid-cols-2 gap-4">
             <Input
               label="1. Data zgłoszenia"
@@ -479,7 +522,7 @@ export const FormularzKartyWypadku: React.FC<FormularzKartyWypadkuProps> = ({
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
               2. Informacje dotyczące okoliczności, przyczyn, czasu i miejsca
               wypadku, rodzaju i umiejscowienia urazu
             </label>
@@ -491,19 +534,24 @@ export const FormularzKartyWypadku: React.FC<FormularzKartyWypadkuProps> = ({
                   e.target.value
                 )
               }
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-5 py-3.5 border-2 border-slate-300 rounded-xl bg-white/90 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400 transition-all text-slate-700 shadow-sm hover:border-slate-400 hover:shadow-md"
               rows={6}
               required
             />
           </div>
 
-          <div className="border-t pt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="border-t border-slate-200 pt-5 mt-5">
+            <label className="block text-sm font-semibold text-slate-700 mb-3">
               3. Świadkowie wypadku:
             </label>
             {formData.informacjeOWypadku?.swiadkowie?.map((swiadek, index) => (
-              <div key={index} className="mb-4 p-4 bg-gray-50 rounded-lg">
-                <p className="text-sm font-medium mb-2">Świadek {index + 1}</p>
+              <div key={index} className="mb-5 p-5 bg-gradient-to-br from-slate-50 to-blue-50/30 rounded-xl border-2 border-slate-200/60 shadow-sm hover:shadow-md transition-all">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-sm">
+                    <span className="text-white font-bold text-xs">{index + 1}</span>
+                  </div>
+                  <p className="text-sm font-bold text-slate-700">Świadek {index + 1}</p>
+                </div>
                 <div className="space-y-2">
                   <Input
                     placeholder="imię i nazwisko"
@@ -544,16 +592,21 @@ export const FormularzKartyWypadku: React.FC<FormularzKartyWypadkuProps> = ({
             ))}
           </div>
 
-          <div className="border-t pt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="border-t border-slate-200 pt-5 mt-5">
+            <label className="block text-sm font-semibold text-slate-700 mb-3">
               4. Wypadek jest / nie jest wypadkiem przy pracy określonym w art.
               3 ust. 3 pkt / albo art. 3a ustawy z dnia 30 października 2002 r.
               o ubezpieczeniu społecznym z tytułu wypadków przy pracy i chorób
               zawodowych
             </label>
-            <p className="text-xs text-gray-600 mb-2 italic">
-              Niepotrzebne skreślić.
-            </p>
+            <div className="mb-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 rounded-lg shadow-sm">
+              <p className="text-xs text-blue-800 font-medium flex items-center gap-2">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Niepotrzebne skreślić.
+              </p>
+            </div>
             <div className="space-y-2">
               <Select
                 options={[
@@ -599,7 +652,7 @@ export const FormularzKartyWypadku: React.FC<FormularzKartyWypadkuProps> = ({
               {formData.informacjeOWypadku?.czyJestWypadkiemPrzyPracy ===
                 "nie_jest" && (
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-semibold text-slate-700 mb-2">
                     Uzasadnienie i wskazanie dowodów, jeżeli zdarzenia nie
                     uznano za wypadek przy pracy
                   </label>
@@ -613,7 +666,7 @@ export const FormularzKartyWypadku: React.FC<FormularzKartyWypadkuProps> = ({
                         e.target.value
                       )
                     }
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-5 py-3.5 border-2 border-slate-300 rounded-xl bg-white/90 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400 transition-all text-slate-700 shadow-sm hover:border-slate-400 hover:shadow-md"
                     rows={4}
                   />
                 </div>
@@ -621,8 +674,8 @@ export const FormularzKartyWypadku: React.FC<FormularzKartyWypadkuProps> = ({
             </div>
           </div>
 
-          <div className="border-t pt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+          <div className="border-t border-slate-200 pt-5 mt-5">
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
               5. Stwierdzono, że wyłączną przyczyną wypadku było udowodnione
               naruszenie przez poszkodowanego przepisów dotyczących ochrony
               życia i zdrowia, spowodowane przez niego umyślnie lub wskutek
@@ -642,13 +695,13 @@ export const FormularzKartyWypadku: React.FC<FormularzKartyWypadkuProps> = ({
                   e.target.value
                 )
               }
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-5 py-3.5 border-2 border-slate-300 rounded-xl bg-white/90 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400 transition-all text-slate-700 shadow-sm hover:border-slate-400 hover:shadow-md"
               rows={4}
             />
           </div>
 
-          <div className="border-t pt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+          <div className="border-t border-slate-200 pt-5 mt-5">
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
               6. Stwierdzono, że poszkodowany, będąc w stanie nietrzeźwości lub
               pod wpływem środków odurzających lub substancji psychotropowych,
               przyczynił się w znacznym stopniu do spowodowania wypadku (wskazać
@@ -666,22 +719,31 @@ export const FormularzKartyWypadku: React.FC<FormularzKartyWypadkuProps> = ({
                   e.target.value
                 )
               }
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-5 py-3.5 border-2 border-slate-300 rounded-xl bg-white/90 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400 transition-all text-slate-700 shadow-sm hover:border-slate-400 hover:shadow-md"
               rows={4}
             />
           </div>
         </div>
+        </div>
       </div>
 
       {/* IV. POZOSTAŁE INFORMACJE */}
-      <div className="border border-gray-300 rounded-lg p-6">
-        <h2 className="text-lg font-bold mb-4 bg-gray-100 p-2 rounded">
-          IV. POZOSTAŁE INFORMACJE
-        </h2>
+      <div className="bg-white rounded-2xl shadow-xl border border-slate-200/60 overflow-hidden transition-all hover:shadow-2xl">
+        <div className="bg-gradient-to-r from-violet-500 via-purple-500 to-indigo-500 px-6 py-5 border-b border-slate-200">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center">
+              <span className="text-white font-bold text-sm">IV</span>
+            </div>
+            <h2 className="text-lg font-bold text-white tracking-wide">
+              POZOSTAŁE INFORMACJE
+            </h2>
+          </div>
+        </div>
+        <div className="p-7 bg-white">
 
-        <div className="space-y-4">
-          <div className="border-t pt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+        <div className="space-y-5">
+          <div className="border-t border-slate-200 pt-5 mt-5">
+            <label className="block text-sm font-semibold text-slate-700 mb-3">
               1. Poszkodowanego (członka rodziny) zapoznano z treścią karty
               wypadku i pouczono o prawie zgłaszania uwag i zastrzeżeń do
               ustaleń zawartych w karcie wypadku
@@ -739,8 +801,8 @@ export const FormularzKartyWypadku: React.FC<FormularzKartyWypadkuProps> = ({
             </div>
           </div>
 
-          <div className="border-t pt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="border-t border-slate-200 pt-5 mt-5">
+            <label className="block text-sm font-semibold text-slate-700 mb-3">
               2. Kartę wypadku sporządzono w dniu
             </label>
             <div className="space-y-2">
@@ -783,8 +845,8 @@ export const FormularzKartyWypadku: React.FC<FormularzKartyWypadkuProps> = ({
             </div>
           </div>
 
-          <div className="border-t pt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+          <div className="border-t border-slate-200 pt-5 mt-5">
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
               3. Przeszkody i trudności uniemożliwiające sporządzenie karty
               wypadku w wymaganym terminie 14 dni
             </label>
@@ -796,13 +858,13 @@ export const FormularzKartyWypadku: React.FC<FormularzKartyWypadkuProps> = ({
                   e.target.value
                 )
               }
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-5 py-3.5 border-2 border-slate-300 rounded-xl bg-white/90 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400 transition-all text-slate-700 shadow-sm hover:border-slate-400 hover:shadow-md"
               rows={3}
             />
           </div>
 
-          <div className="border-t pt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+          <div className="border-t border-slate-200 pt-5 mt-5">
+            <label className="block text-sm font-semibold text-slate-700 mb-3">
               4. Kartę wypadku odebrano w dniu
             </label>
             <div className="space-y-2">
@@ -831,8 +893,8 @@ export const FormularzKartyWypadku: React.FC<FormularzKartyWypadkuProps> = ({
             </div>
           </div>
 
-          <div className="border-t pt-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+          <div className="border-t border-slate-200 pt-5 mt-5">
+            <label className="block text-sm font-semibold text-slate-700 mb-2">
               5. Załączniki:
             </label>
             <textarea
@@ -845,20 +907,36 @@ export const FormularzKartyWypadku: React.FC<FormularzKartyWypadkuProps> = ({
                   e.target.value.split("\n").filter((line) => line.trim())
                 )
               }
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-5 py-3.5 border-2 border-slate-300 rounded-xl bg-white/90 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-400 transition-all text-slate-700 shadow-sm hover:border-slate-400 hover:shadow-md"
               rows={3}
               placeholder="Wpisz załączniki, każdy w osobnej linii"
             />
           </div>
         </div>
+        </div>
       </div>
 
       {/* Przyciski */}
-      <div className="flex justify-end space-x-4">
-        <Button type="button" variant="outline">
+      <div className="flex justify-end gap-4 pt-8 pb-6 bg-gradient-to-br from-slate-50 to-white rounded-2xl shadow-lg border border-slate-200/60 px-8">
+        <Button 
+          type="button" 
+          variant="outline" 
+          className="px-8 py-3 rounded-xl border-2 border-slate-300 hover:border-slate-400 hover:bg-slate-50 font-semibold transition-all shadow-sm hover:shadow-md"
+        >
+          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+          </svg>
           Zapisz jako szkic
         </Button>
-        <Button type="submit">Zapisz i wygeneruj dokument</Button>
+        <Button 
+          type="submit" 
+          className="px-8 py-3 rounded-xl bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 shadow-xl hover:shadow-2xl font-semibold text-white transition-all transform hover:scale-105"
+        >
+          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          Zapisz i wygeneruj dokument
+        </Button>
       </div>
     </form>
   );

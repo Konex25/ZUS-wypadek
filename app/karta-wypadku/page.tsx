@@ -108,7 +108,8 @@ function KartaWypadkuContent() {
   }, [caseId]);
 
   return (
-    <div className="container mx-auto py-8 px-4 max-w-5xl">
+    <div className="min-h-screen bg-white">
+      <div className="container mx-auto py-8 px-4 max-w-5xl">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-gray-900 mb-2">
           KARTA WYPADKU
@@ -156,6 +157,7 @@ function KartaWypadkuContent() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }
