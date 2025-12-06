@@ -110,7 +110,7 @@ export const Krok6Wyjasnienia: React.FC<Krok6WyjasnieniaProps> = React.memo(({
 
         {/* Podstawowe informacje */}
         <Card className="p-6">
-          <h4 className="text-md font-semibold text-gray-900 mb-4">Podstawowe informacje</h4>
+          <h4 className="text-md font-semibold text-gray-900 mb-4 text-center">Podstawowe informacje</h4>
           
           <div className="space-y-4">
             <div>
@@ -370,11 +370,6 @@ export const Krok6Wyjasnienia: React.FC<Krok6WyjasnieniaProps> = React.memo(({
         </Button>
       </div>
     </form>
-  );
-}, (prevProps, nextProps) => {
-  // Uwaga: nie porównujemy funkcji onNext/onPrevious, ponieważ są tworzone jako nowe instancje w każdym renderze
-  return (
-    JSON.stringify(prevProps.initialData) === JSON.stringify(nextProps.initialData)
   );
 });
 

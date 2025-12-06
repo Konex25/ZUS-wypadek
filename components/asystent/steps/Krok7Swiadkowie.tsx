@@ -194,11 +194,6 @@ export const Krok7Swiadkowie: React.FC<Krok7SwiadkowieProps> = React.memo(({
       </div>
     </form>
   );
-}, (prevProps, nextProps) => {
-  // Uwaga: nie porównujemy funkcji onNext/onPrevious, ponieważ są tworzone jako nowe instancje w każdym renderze
-  return (
-    JSON.stringify(prevProps.initialData) === JSON.stringify(nextProps.initialData)
-  );
 });
 
 Krok7Swiadkowie.displayName = "Krok7Swiadkowie";

@@ -214,12 +214,16 @@ export const Krok0RodzajZgloszenia: React.FC<Krok0RodzajZgloszeniaProps> = React
                 />
               </div>
               <div className="text-center">
-                <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
                   Złóż oba dokumenty
                 </h3>
-                <p className="text-sm text-gray-600">
-                  Złóż zarówno zawiadomienie o wypadku, jak i zapis wyjaśnień poszkodowanego
-                </p>
+                <div className="text-sm text-gray-600 space-y-1">
+                  <p className="font-medium">Formularze do złożenia:</p>
+                  <ul className="list-disc list-inside text-left space-y-0.5">
+                    <li>Zawiadomienie o wypadku</li>
+                    <li>Zapis wyjaśnień poszkodowanego</li>
+                  </ul>
+                </div>
               </div>
             </div>
           </div>
@@ -243,12 +247,6 @@ export const Krok0RodzajZgloszenia: React.FC<Krok0RodzajZgloszeniaProps> = React
         </Button>
       </div>
     </form>
-  );
-}, (prevProps, nextProps) => {
-  // Porównaj wszystkie props, które mogą wpływać na renderowanie
-  // Uwaga: nie porównujemy funkcji onNext, ponieważ są tworzone jako nowe instancje w każdym renderze
-  return (
-    prevProps.initialData?.rodzajZgloszenia === nextProps.initialData?.rodzajZgloszenia
   );
 });
 

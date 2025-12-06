@@ -15,8 +15,8 @@ function transliteratePolish(text: string): string {
 }
 
 /**
- * Formatuje datę do formatu DD.MM.YYYY (10 znaków) dla PDF
- * PDF wymaga formatu DD.MM.YYYY (nie DD.MM.YY)
+ * Formatuje datę do formatu DDMMYYYY (8 znaków) dla PDF
+ * PDF wymaga formatu DDMMYYYY (bez kropek)
  */
 function formatDateForPDF(dateString: string): string {
   if (!dateString) return "";
@@ -29,19 +29,23 @@ function formatDateForPDF(dateString: string): string {
     const day = String(date.getDate()).padStart(2, '0');
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const year = String(date.getFullYear()); // Pełny rok (4 cyfry)
-    return `${day}.${month}.${year}`;
+    return `${day}${month}${year}`;
   } catch {
     // Jeśli nie można sparsować, spróbuj wyciągnąć datę z formatu YYYY-MM-DD
     const match = dateString.match(/(\d{4})-(\d{2})-(\d{2})/);
     if (match) {
       const [, year, month, day] = match;
-      return `${day}.${month}.${year}`;
+      return `${day}${month}${year}`;
     }
-    // Jeśli to już format DD.MM.YYYY, zwróć jak jest (ale obetnij do 10 znaków)
+    // Jeśli to format DD.MM.YYYY, usuń kropki
     if (dateString.match(/^\d{2}\.\d{2}\.\d{4}$/)) {
+      return dateString.replace(/\./g, '');
+    }
+    // Jeśli to format DDMMYYYY, zwróć jak jest
+    if (dateString.match(/^\d{8}$/)) {
       return dateString;
     }
-    return dateString.slice(0, 10); // Obetnij do 10 znaków jeśli nie można sparsować
+    return dateString.slice(0, 8); // Obetnij do 8 znaków jeśli nie można sparsować
   }
 }
 

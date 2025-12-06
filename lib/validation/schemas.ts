@@ -46,6 +46,15 @@ export const daneOsoboweSchema = z.object({
       miejscowosc: z.string().min(2, "Miejscowość jest wymagana"),
       panstwo: z.string().optional(),
     }).optional(),
+    adresDoKorespondencjiInny: z.boolean().optional(),
+    adresDoKorespondencji: z.object({
+      ulica: z.string().min(1, "Ulica jest wymagana"),
+      numerDomu: z.string().min(1, "Numer domu jest wymagany"),
+      numerLokalu: z.string().optional(),
+      kodPocztowy: z.string().regex(/^\d{2}-\d{3}$/, "Kod pocztowy musi być w formacie XX-XXX"),
+      miejscowosc: z.string().min(2, "Miejscowość jest wymagana"),
+      panstwo: z.string().optional(),
+    }).optional(),
   }).optional(),
 }).refine((data) => {
   // Jeśli zaznaczono "inna osoba zawiadamia", wymagaj danych osoby zawiadamiającej

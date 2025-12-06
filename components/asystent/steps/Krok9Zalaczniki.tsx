@@ -77,29 +77,37 @@ export const Krok9Zalaczniki: React.FC<Krok9ZalacznikiProps> = React.memo(({
             </p>
 
             <div className="space-y-3">
-              <Checkbox
-                label="Kserokopia karty informacyjnej ze szpitala / zaświadczenia o udzieleniu pierwszej pomocy z pogotowia ratunkowego wraz z wywiadem"
-                checked={attachments.some(a => a.type === "hospital_card")}
-                onCheckedChange={(checked) => handleAttachmentChange("hospital_card", checked || false)}
-              />
+              <div className="w-full">
+                <Checkbox
+                  label="Kserokopia karty informacyjnej ze szpitala / zaświadczenia o udzieleniu pierwszej pomocy z pogotowia ratunkowego wraz z wywiadem"
+                  checked={attachments.some(a => a.type === "hospital_card")}
+                  onCheckedChange={(checked) => handleAttachmentChange("hospital_card", checked || false)}
+                />
+              </div>
               
-              <Checkbox
-                label="Kserokopia postanowienia prokuratury o wszczęciu postępowania karnego lub zawieszeniu/umorzeniu postępowania"
-                checked={attachments.some(a => a.type === "prosecutor_decision")}
-                onCheckedChange={(checked) => handleAttachmentChange("prosecutor_decision", checked || false)}
-              />
+              <div className="w-full">
+                <Checkbox
+                  label="Kserokopia postanowienia prokuratury o wszczęciu postępowania karnego lub zawieszeniu/umorzeniu postępowania"
+                  checked={attachments.some(a => a.type === "prosecutor_decision")}
+                  onCheckedChange={(checked) => handleAttachmentChange("prosecutor_decision", checked || false)}
+                />
+              </div>
               
-              <Checkbox
-                label="Kserokopia statystycznej karty zgonu lub zaświadczenie lekarskie stwierdzające przyczynę zgonu, skrócony odpis aktu zgonu (w przypadku wypadku ze skutkiem śmiertelnym)"
-                checked={attachments.some(a => a.type === "death_certificate")}
-                onCheckedChange={(checked) => handleAttachmentChange("death_certificate", checked || false)}
-              />
+              <div className="w-full">
+                <Checkbox
+                  label="Kserokopia statystycznej karty zgonu lub zaświadczenie lekarskie stwierdzające przyczynę zgonu, skrócony odpis aktu zgonu (w przypadku wypadku ze skutkiem śmiertelnym)"
+                  checked={attachments.some(a => a.type === "death_certificate")}
+                  onCheckedChange={(checked) => handleAttachmentChange("death_certificate", checked || false)}
+                />
+              </div>
               
-              <Checkbox
-                label="Dokumenty potwierdzające prawo do wydania karty wypadku osobie innej niż poszkodowany (m.in. skrócony odpis aktu urodzenia, skrócony odpis aktu małżeństwa, pełnomocnictwo)"
-                checked={attachments.some(a => a.type === "power_of_attorney")}
-                onCheckedChange={(checked) => handleAttachmentChange("power_of_attorney", checked || false)}
-              />
+              <div className="w-full">
+                <Checkbox
+                  label="Dokumenty potwierdzające prawo do wydania karty wypadku osobie innej niż poszkodowany (m.in. skrócony odpis aktu urodzenia, skrócony odpis aktu małżeństwa, pełnomocnictwo)"
+                  checked={attachments.some(a => a.type === "power_of_attorney")}
+                  onCheckedChange={(checked) => handleAttachmentChange("power_of_attorney", checked || false)}
+                />
+              </div>
               
               <div className="space-y-2">
                 <Checkbox

@@ -277,7 +277,7 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
 
             {/* Nagłość */}
             <div className="space-y-3 p-4 bg-blue-50 rounded-lg">
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center justify-center space-x-2">
                 <Checkbox
                   checked={watch("naglosc.potwierdzona")}
                   onCheckedChange={(checked) => {
@@ -318,7 +318,7 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
 
             {/* Przyczyna zewnętrzna */}
             <div className="space-y-3 p-4 bg-blue-50 rounded-lg">
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center justify-center space-x-2">
                 <Checkbox
                   checked={watch("przyczynaZewnetrzna.potwierdzona")}
                   onCheckedChange={(checked) => {
@@ -371,7 +371,7 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
 
             {/* Uraz */}
             <div className="space-y-3 p-4 bg-blue-50 rounded-lg">
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center justify-center space-x-2">
                 <Checkbox
                   checked={watch("uraz.potwierdzony")}
                   onCheckedChange={(checked) => {
@@ -625,12 +625,6 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
         </Button>
       </div>
     </form>
-  );
-}, (prevProps, nextProps) => {
-  // Porównaj wszystkie props, które mogą wpływać na renderowanie
-  // Uwaga: nie porównujemy funkcji onNext/onPrevious, ponieważ są tworzone jako nowe instancje w każdym renderze
-  return (
-    JSON.stringify(prevProps.initialData) === JSON.stringify(nextProps.initialData)
   );
 });
 

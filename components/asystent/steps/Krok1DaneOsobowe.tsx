@@ -26,6 +26,9 @@ export const Krok1DaneOsobowe: React.FC<Krok1DaneOsoboweProps> = React.memo(({
   const [innaOsobaZawiadamia, setInnaOsobaZawiadamia] = useState(
     initialData?.innaOsobaZawiadamia || false
   );
+  const [adresDoKorespondencjiInny, setAdresDoKorespondencjiInny] = useState(
+    initialData?.osobaZawiadamiajaca?.adresDoKorespondencjiInny || false
+  );
 
   const {
     register,
@@ -362,6 +365,80 @@ export const Krok1DaneOsobowe: React.FC<Krok1DaneOsoboweProps> = React.memo(({
                   />
                 </div>
               </div>
+
+              {/* Adres do korespondencji osoby zawiadamiającej */}
+              <div className="pt-4 border-t border-gray-200">
+                <Checkbox
+                  label="Adres do korespondencji jest inny niż adres zamieszkania / adres ostatniego miejsca zamieszkania w Polsce / adres miejsca pobytu"
+                  checked={adresDoKorespondencjiInny}
+                  onCheckedChange={(checked) => {
+                    setAdresDoKorespondencjiInny(checked || false);
+                    setValue("osobaZawiadamiajaca.adresDoKorespondencjiInny", checked || false);
+                    if (!checked) {
+                      setValue("osobaZawiadamiajaca.adresDoKorespondencji", undefined);
+                    }
+                  }}
+                />
+                {adresDoKorespondencjiInny && (
+                  <div className="mt-4 space-y-4">
+                    <h5 className="text-sm font-medium text-gray-900 mb-4">Adres do korespondencji osoby zawiadamiającej</h5>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <Input
+                        label="Ulica"
+                        type="text"
+                        required={adresDoKorespondencjiInny}
+                        error={errors.osobaZawiadamiajaca?.adresDoKorespondencji?.ulica?.message}
+                        {...register("osobaZawiadamiajaca.adresDoKorespondencji.ulica")}
+                      />
+                      <div className="grid grid-cols-2 gap-2">
+                        <Input
+                          label="Numer domu"
+                          type="text"
+                          required={adresDoKorespondencjiInny}
+                          error={errors.osobaZawiadamiajaca?.adresDoKorespondencji?.numerDomu?.message}
+                          {...register("osobaZawiadamiajaca.adresDoKorespondencji.numerDomu")}
+                        />
+                        <Input
+                          label="Numer lokalu"
+                          type="text"
+                          error={errors.osobaZawiadamiajaca?.adresDoKorespondencji?.numerLokalu?.message}
+                          {...register("osobaZawiadamiajaca.adresDoKorespondencji.numerLokalu")}
+                        />
+                      </div>
+                    </div>
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <Input
+                        label="Kod pocztowy"
+                        type="text"
+                        required={adresDoKorespondencjiInny}
+                        error={errors.osobaZawiadamiajaca?.adresDoKorespondencji?.kodPocztowy?.message}
+                        helperText="Format: XX-XXX"
+                        {...register("osobaZawiadamiajaca.adresDoKorespondencji.kodPocztowy")}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/\D/g, "");
+                          if (value.length <= 5) {
+                            const formatted = value.length > 2 ? `${value.slice(0, 2)}-${value.slice(2)}` : value;
+                            setValue("osobaZawiadamiajaca.adresDoKorespondencji.kodPocztowy", formatted);
+                          }
+                        }}
+                      />
+                      <Input
+                        label="Miejscowość"
+                        type="text"
+                        required={adresDoKorespondencjiInny}
+                        error={errors.osobaZawiadamiajaca?.adresDoKorespondencji?.miejscowosc?.message}
+                        {...register("osobaZawiadamiajaca.adresDoKorespondencji.miejscowosc")}
+                      />
+                    </div>
+                    <Input
+                      label="Nazwa państwa (jeśli inna niż Polska)"
+                      type="text"
+                      error={errors.osobaZawiadamiajaca?.adresDoKorespondencji?.panstwo?.message}
+                      {...register("osobaZawiadamiajaca.adresDoKorespondencji.panstwo")}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
@@ -403,12 +480,6 @@ export const Krok1DaneOsobowe: React.FC<Krok1DaneOsoboweProps> = React.memo(({
         </Button>
       </div>
     </form>
-  );
-}, (prevProps, nextProps) => {
-  // Porównaj wszystkie props, które mogą wpływać na renderowanie
-  // Uwaga: nie porównujemy funkcji onNext/onPrevious, ponieważ są tworzone jako nowe instancje w każdym renderze
-  return (
-    JSON.stringify(prevProps.initialData) === JSON.stringify(nextProps.initialData)
   );
 });
 
