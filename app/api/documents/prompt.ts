@@ -1,57 +1,36 @@
-export const PROMPT = `Jesteś ekspertem ds. prawa pracy i ubezpieczeń społecznych specjalizującym się w wypadkach przy pracy osób prowadzących działalność gospodarczą.
-
-Przeanalizuj dostarczone dokumenty dotyczące zgłoszenia wypadku przy pracy i przygotuj OPINIĘ w formacie Markdown.
+export const DECISION_PROMPT = (
+  data: any
+) => `Return valid raw JSON only. Begin your response with { 
+Na podstawie dostarczonych danych w formacie JSON:
+${JSON.stringify(data)}
 
 ## Twoje zadanie:
 
-1. **Wyekstrahuj kluczowe informacje z dokumentów:**
-   - Dane poszkodowanego
-   - Data, godzina i miejsce wypadku
-   - Okoliczności zdarzenia
-   - Przyczyny wypadku
-   - Rodzaj urazu/obrażeń
-   - Informacje o świadkach (jeśli są)
+1. **Oceń czy zdarzenie spełnia definicję wypadku przy pracy** zgodnie z poniej zdefiniowanymi przepisami.
 
-2. **Oceń czy zdarzenie spełnia definicję wypadku przy pracy** zgodnie z poniej zdefiniowanymi przepisami.
-
-3. **Wydaj opinię** czy zdarzenie powinno zostać uznane za wypadek przy pracy:
+2. **Wydaj opinię** czy zdarzenie powinno zostać uznane za wypadek przy pracy:
    - ✅ **UZNAĆ** - jeśli spełnia wszystkie przesłanki
    - ❌ **NIE UZNAĆ** - jeśli nie spełnia przesłanek (wskaż których)
    - ⚠️ **WYMAGA WYJAŚNIEŃ** - jeśli brakuje informacji do wydania opinii
 
-4. **Uzasadnij szczegółowo swoją opinię** - odwołaj się do konkretnych faktów z dokumentów i przepisów prawa.
+3. **Uzasadnij szczegółowo swoją opinię** - odwołaj się do konkretnych faktów z dokumentów i przepisów prawa.
 
-## Format odpowiedzi:
-
-# Opinia w sprawie wypadku przy pracy
-
-## Dane sprawy
-(dane poszkodowanego, data wypadku, miejsce)
-
-## Stan faktyczny
-(opis okoliczności na podstawie dokumentów)
-
-## Analiza przesłanek
-- **Nagłość zdarzenia:** (ocena)
-- **Przyczyna zewnętrzna:** (ocena)
-- **Uraz:** (ocena)
-- **Związek z wykonywaną działalnością:** (ocena)
-
-## Opinia
-(UZNAĆ / NIE UZNAĆ / WYMAGA WYJAŚNIEŃ)
-
-## Uzasadnienie
-(szczegółowe uzasadnienie prawne z odwołaniem do faktów i przepisów)
-
----
+## Format odpowiedzi JSON:
+{
+   "date": string, // Data wypadku w formacie YYYY-MM-DD
+   "place": string, // Miejsce wypadku
+   "description": string, // Opis okoliczności wypadku na podstawie dokumentów
+   "causes": string, // Opis przyczyn wypadku na podstawie dokumentów
+   "decision": "ACCEPTED" | "REJECTED" | "NEED_MORE_INFORMATION",
+   "justifications": [] // Lista tytułów oraz uzasadnień do każdego tytułu w formacie: { "title": "Tytuł", "justification": "Uzasadnienie" }, szczegółowe uzasadnienie prawne z odwołaniem do faktów i przepisów
+}
 
 **WAŻNE:**
-- Opieraj się WYŁĄCZNIE na informacjach z dostarczonych dokumentów
+- Opieraj się WYŁĄCZNIE na informacjach z dostarczonych w formacie JSON
+- Zwróć uwagę na PKD ubezpieczonego oraz czy uraz mógł być spowodowany w ramach pracy lub w drodze do pracy na podstawie PKD
 - Jeśli brakuje jakichś danych, zaznacz to wyraźnie
 - Nie wymyślaj faktów - jeśli czegoś nie ma w dokumentach, napisz "brak informacji"
 - Bądź obiektywny i bezstronny
-
-
 
 # PRZEPISY
 
@@ -372,4 +351,4 @@ Dokument tożsamości (dowód osobisty lub paszport):
 
 5. **Załączniki**:  
    ..............................................................................................................................
-`
+`;
