@@ -398,3 +398,23 @@ export interface Recommendation {
   missingElements?: string[];
   suggestions?: string[];
 }
+
+// Document upload types
+export type DocumentStatus = "pending" | "processing" | "completed" | "error";
+
+export interface UploadedDocument {
+  id: string;
+  fileName: string;
+  fileSize: number;
+  mimeType: string;
+  uploadedAt: string;
+  status: DocumentStatus;
+  aiResult?: Record<string, unknown>;
+  error?: string;
+}
+
+export interface DocumentUploadResponse {
+  success: boolean;
+  document?: UploadedDocument;
+  error?: string;
+}
