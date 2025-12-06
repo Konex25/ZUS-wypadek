@@ -1,13 +1,16 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { Case, UploadedDocument, Differences } from "@/types";
 import { Input } from "@/components/ui/input";
 
 type ViewMode = "upload" | "cases" | "case-detail";
 
-export default function ZUSPage() {
-  const [viewMode, setViewMode] = useState<ViewMode>("cases");
+function ZUSPageContent() {
+  const searchParams = useSearchParams();
+  const initialViewMode = (searchParams.get("view") as ViewMode) || "cases";
+  const [viewMode, setViewMode] = useState<ViewMode>(initialViewMode);
   const [cases, setCases] = useState<Case[]>([]);
   const [selectedCase, setSelectedCase] = useState<Case | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -1718,5 +1721,17 @@ export default function ZUSPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ZUSPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    }>
+      <ZUSPageContent />
+    </Suspense>
   );
 }
