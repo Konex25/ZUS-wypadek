@@ -52,6 +52,7 @@ export interface RepresentativeData {
   phone?: string;
   addresses: Addresses;
   powerOfAttorneyProvided: boolean;
+  mieszkaZaGranica?: boolean; // Czy osoba zawiadamiająca mieszka za granicą
 }
 
 export interface Addresses {

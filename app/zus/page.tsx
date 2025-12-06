@@ -20,6 +20,7 @@ export default function ZUSPage() {
   const [expandedVerifications, setExpandedVerifications] = useState<
     Set<string>
   >(new Set());
+  const [isDownloadingCard, setIsDownloadingCard] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const casesRef = useRef<Case[]>([]);
 
@@ -164,6 +165,39 @@ export default function ZUSPage() {
       setDifferencesError("Wystąpił błąd podczas sprawdzania różnic");
     } finally {
       setIsCheckingDifferences(false);
+    }
+  };
+
+  const downloadAccidentCard = async () => {
+    if (!selectedCase) return;
+
+    setIsDownloadingCard(true);
+
+    try {
+      const response = await fetch(
+        `/api/accident-card?caseId=${selectedCase.id}`
+      );
+
+      if (!response.ok) {
+        const error = await response.json();
+        alert(error.error || "Nie udało się wygenerować karty wypadku");
+        return;
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `karta-wypadku-${selectedCase.id}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error("Error downloading accident card:", error);
+      alert("Wystąpił błąd podczas pobierania karty wypadku");
+    } finally {
+      setIsDownloadingCard(false);
     }
   };
 
@@ -479,35 +513,73 @@ export default function ZUSPage() {
                     </div>
                     <div className="flex items-center gap-3">
                       {selectedCase.status === "completed" && (
-                        <button
-                          onClick={checkDifferences}
-                          disabled={isCheckingDifferences}
-                          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-                        >
-                          {isCheckingDifferences ? (
-                            <>
-                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                              Sprawdzanie...
-                            </>
-                          ) : (
-                            <>
-                              <svg
-                                className="w-4 h-4"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
-                                />
-                              </svg>
-                              Sprawdź spójność dokumentów
-                            </>
-                          )}
-                        </button>
+                        <>
+                          <button
+                            onClick={checkDifferences}
+                            disabled={isCheckingDifferences}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                          >
+                            {isCheckingDifferences ? (
+                              <>
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                Sprawdzanie...
+                              </>
+                            ) : (
+                              <>
+                                <svg
+                                  className="w-4 h-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+                                  />
+                                </svg>
+                                Sprawdź spójność
+                              </>
+                            )}
+                          </button>
+                          <button
+                            onClick={downloadAccidentCard}
+                            disabled={
+                              isDownloadingCard || !selectedCase.aiOpinion
+                            }
+                            className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                            title={
+                              !selectedCase.aiOpinion
+                                ? "Poczekaj na zakończenie analizy"
+                                : "Pobierz kartę wypadku"
+                            }
+                          >
+                            {isDownloadingCard ? (
+                              <>
+                                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                                Generowanie...
+                              </>
+                            ) : (
+                              <>
+                                <svg
+                                  className="w-4 h-4"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                  />
+                                </svg>
+                                Karta wypadku
+                              </>
+                            )}
+                          </button>
+                        </>
                       )}
                       {getStatusBadge(selectedCase.status)}
                     </div>
