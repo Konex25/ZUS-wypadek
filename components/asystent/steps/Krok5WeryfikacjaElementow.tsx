@@ -336,10 +336,9 @@ export const Krok5WeryfikacjaElementow: React.FC<Krok5WeryfikacjaElementowProps>
     </div>
   );
 }, (prevProps, nextProps) => {
+  // Uwaga: nie porównujemy funkcji onNext/onPrevious, ponieważ są tworzone jako nowe instancje w każdym renderze
   return (
-    prevProps.accidentData === nextProps.accidentData &&
-    prevProps.onNext === nextProps.onNext &&
-    prevProps.onPrevious === nextProps.onPrevious
+    prevProps.accidentData === nextProps.accidentData
   );
 });
 

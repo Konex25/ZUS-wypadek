@@ -237,6 +237,7 @@ export const Krok0RodzajZgloszenia: React.FC<Krok0RodzajZgloszeniaProps> = React
           type="submit" 
           variant="primary" 
           size="lg"
+          disabled={!selectedType}
         >
           Dalej →
         </Button>
@@ -245,9 +246,9 @@ export const Krok0RodzajZgloszenia: React.FC<Krok0RodzajZgloszeniaProps> = React
   );
 }, (prevProps, nextProps) => {
   // Porównaj wszystkie props, które mogą wpływać na renderowanie
+  // Uwaga: nie porównujemy funkcji onNext, ponieważ są tworzone jako nowe instancje w każdym renderze
   return (
-    prevProps.initialData?.rodzajZgloszenia === nextProps.initialData?.rodzajZgloszenia &&
-    prevProps.onNext === nextProps.onNext
+    prevProps.initialData?.rodzajZgloszenia === nextProps.initialData?.rodzajZgloszenia
   );
 });
 
