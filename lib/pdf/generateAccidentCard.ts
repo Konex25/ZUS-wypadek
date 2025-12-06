@@ -2,11 +2,22 @@ import { PDFDocument, rgb, PDFPage, PDFFont, StandardFonts } from "pdf-lib";
 import { Case } from "@/types";
 
 /**
- * Transliterate Polish characters to ASCII
+ * Transliterate Polish characters to ASCII and remove all non-ASCII characters
+ * This function ensures compatibility with WinAnsi encoding
  */
 function toAscii(text: string): string {
+  if (!text) return '';
+  
   return text
-    // Polish characters
+    // First, normalize Unicode (decompose characters, e.g., é -> e + ́)
+    .normalize('NFD')
+    // Remove combining diacritical marks (accents, etc.) - Unicode range 0x0300-0x036F
+    .replace(/[\u0300-\u036F]/g, '')
+    // Remove control characters (newlines, tabs, etc.) - replace with space
+    .replace(/[\r\n\t]/g, ' ')
+    // Remove other control characters (0x00-0x1F, 0x7F)
+    .replace(/[\x00-\x1F\x7F]/g, '')
+    // Polish characters - transliterate to ASCII
     .replace(/ą/g, 'a').replace(/Ą/g, 'A')
     .replace(/ć/g, 'c').replace(/Ć/g, 'C')
     .replace(/ę/g, 'e').replace(/Ę/g, 'E')
@@ -24,29 +35,46 @@ function toAscii(text: string): string {
     // Special spaces
     .replace(/[\u00A0\u202F]/g, ' ')
     // Ellipsis
-    .replace(/\u2026/g, '...');
+    .replace(/\u2026/g, '...')
+    // Remove any remaining non-ASCII characters (keep only 0x20-0x7E)
+    .replace(/[^\x20-\x7E]/g, '')
+    // Normalize multiple spaces to single space
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 /**
  * Word wrap text to fit within a given width
  */
 function wrapText(text: string, font: PDFFont, fontSize: number, maxWidth: number): string[] {
+  if (!text) return [];
+  
   const safeText = toAscii(text);
-  const words = safeText.split(" ");
+  const words = safeText.split(" ").filter(w => w.length > 0);
   const lines: string[] = [];
   let currentLine = "";
 
   for (const word of words) {
     const testLine = currentLine ? `${currentLine} ${word}` : word;
-    const testWidth = font.widthOfTextAtSize(testLine, fontSize);
+    
+    // Double-check that testLine is safe (extra safety)
+    const safeTestLine = toAscii(testLine);
+    
+    try {
+      const testWidth = font.widthOfTextAtSize(safeTestLine, fontSize);
 
-    if (testWidth <= maxWidth) {
-      currentLine = testLine;
-    } else {
-      if (currentLine) {
-        lines.push(currentLine);
+      if (testWidth <= maxWidth) {
+        currentLine = safeTestLine;
+      } else {
+        if (currentLine) {
+          lines.push(currentLine);
+        }
+        currentLine = toAscii(word);
       }
-      currentLine = word;
+    } catch (error) {
+      // If there's still an encoding error, skip this word
+      console.warn(`Skipping word due to encoding error: ${word}`, error);
+      continue;
     }
   }
 
@@ -422,7 +450,7 @@ export async function generateAccidentCard(caseData: Case): Promise<Uint8Array> 
     color: rgb(0.7, 0.7, 0.7),
   });
   
-  page.drawText(`Karta wypadku nr ${cardNumber} | Wygenerowano: ${new Date().toLocaleString("pl-PL")}`, {
+  page.drawText(toAscii(`Karta wypadku nr ${cardNumber} | Wygenerowano: ${new Date().toLocaleString("pl-PL")}`), {
     x: margin,
     y: footerY,
     size: 8,
