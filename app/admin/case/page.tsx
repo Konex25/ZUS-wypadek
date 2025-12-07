@@ -1,15 +1,19 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback, Suspense } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { LoginModal } from "@/components/admin/LoginModal";
 import { Case, UploadedDocument, Differences } from "@/types";
-import { Input } from "@/components/ui/input";
 
 type ViewMode = "upload" | "cases" | "case-detail";
 
-function ZUSPageContent() {
+function CasePageContent() {
+  const router = useRouter();
+  const { isAuthenticated, login, logout, isMounted } = useAdminAuth();
+  const [showLoginModal, setShowLoginModal] = useState(false);
   const searchParams = useSearchParams();
-  const initialViewMode = (searchParams.get("view") as ViewMode) || "cases";
+  const initialViewMode = (searchParams.get("view") as ViewMode) || "upload";
   const [viewMode, setViewMode] = useState<ViewMode>(initialViewMode);
   const [cases, setCases] = useState<Case[]>([]);
   const [selectedCase, setSelectedCase] = useState<Case | null>(null);
@@ -17,7 +21,7 @@ function ZUSPageContent() {
   const [isDragging, setIsDragging] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [nip, setNip] = useState("");
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [isCheckingDifferences, setIsCheckingDifferences] = useState(false);
   const [differencesError, setDifferencesError] = useState<string | null>(null);
   const [expandedVerifications, setExpandedVerifications] = useState<
@@ -28,14 +32,28 @@ function ZUSPageContent() {
   const casesRef = useRef<Case[]>([]);
 
   useEffect(() => {
+    if (isMounted && !isAuthenticated) {
+      setShowLoginModal(true);
+    }
+  }, [isMounted, isAuthenticated]);
+
+  const handleLogin = (password: string) => {
+    const success = login(password);
+    if (success) {
+      setShowLoginModal(false);
+    }
+    return success;
+  };
+
+  useEffect(() => {
     casesRef.current = cases;
   }, [cases]);
 
   const fetchCases = useCallback(async () => {
     try {
-      const response = await fetch("/api/documents");
+      const response = await fetch("/api/cases");
       const data = await response.json();
-      setCases(data.cases || []);
+      setCases(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error("Error fetching cases:", error);
     }
@@ -43,12 +61,12 @@ function ZUSPageContent() {
 
   const fetchCase = useCallback(async (caseId: string) => {
     try {
-      const response = await fetch(`/api/documents?id=${caseId}`);
+      const response = await fetch(`/api/cases?id=${caseId}`);
       const data = await response.json();
-      if (data.case) {
-        setSelectedCase(data.case);
+      if (data) {
+        setSelectedCase(data);
         // Update case in list
-        setCases((prev) => prev.map((c) => (c.id === caseId ? data.case : c)));
+        setCases((prev) => prev.map((c) => (c.id === caseId ? data : c)));
       }
     } catch (error) {
       console.error("Error fetching case:", error);
@@ -56,6 +74,7 @@ function ZUSPageContent() {
   }, []);
 
   useEffect(() => {
+    if (!isAuthenticated) return;
     fetchCases();
     const interval = setInterval(() => {
       if (casesRef.current.some((c) => c.status === "processing")) {
@@ -66,14 +85,11 @@ function ZUSPageContent() {
       }
     }, 2000);
     return () => clearInterval(interval);
-  }, [fetchCases, fetchCase, selectedCase?.id, selectedCase?.status]);
+  }, [isAuthenticated, fetchCases, fetchCase, selectedCase?.id, selectedCase?.status]);
 
-  const handleFilesUpload = async (files: File[]) => {
-    if (files.length === 0) return;
-
-    // Validate NIP - must be exactly 10 digits
-    if (!nip || nip.length !== 10) {
-      setUploadError("NIP jest wymagany i musi zawierać dokładnie 10 cyfr");
+  const handleCreateCase = async () => {
+    if (selectedFiles.length === 0) {
+      setUploadError("Wybierz przynajmniej jeden plik");
       return;
     }
 
@@ -81,11 +97,10 @@ function ZUSPageContent() {
     setUploadError(null);
 
     const formData = new FormData();
-    files.forEach((file) => formData.append("files", file));
-    formData.append("nip", nip.trim());
+    selectedFiles.forEach((file) => formData.append("files", file));
 
     try {
-      const response = await fetch("/api/documents", {
+      const response = await fetch("/api/cases", {
         method: "POST",
         body: formData,
       });
@@ -93,7 +108,7 @@ function ZUSPageContent() {
       const result = await response.json();
 
       if (!result.success) {
-        setUploadError(result.error || "Upload failed");
+        setUploadError(result.error || "Nie udało się utworzyć sprawy");
         return;
       }
 
@@ -102,10 +117,13 @@ function ZUSPageContent() {
         setSelectedCase(result.case);
         setViewMode("case-detail");
       }
-      setNip(""); // Clear NIP after successful upload
+      setSelectedFiles([]); // Clear files after successful upload
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     } catch (error) {
-      console.error("Error uploading files:", error);
-      setUploadError("Failed to upload files");
+      console.error("Error creating case:", error);
+      setUploadError("Nie udało się utworzyć sprawy");
     } finally {
       setIsUploading(false);
     }
@@ -115,7 +133,7 @@ function ZUSPageContent() {
     e.preventDefault();
     setIsDragging(false);
     const files = Array.from(e.dataTransfer.files);
-    if (files.length > 0) handleFilesUpload(files);
+    setSelectedFiles((prev) => [...prev, ...files]);
   };
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -127,8 +145,14 @@ function ZUSPageContent() {
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    if (files.length > 0) handleFilesUpload(files);
+    if (files.length > 0) {
+      setSelectedFiles((prev) => [...prev, ...files]);
+    }
     e.target.value = "";
+  };
+
+  const removeFile = (index: number) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const openCase = (caseData: Case) => {
@@ -215,6 +239,27 @@ function ZUSPageContent() {
     );
   };
 
+  if (!isMounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <LoginModal
+        isOpen={showLoginModal}
+        onLogin={handleLogin}
+        onClose={() => router.push("/")}
+      />
+    );
+  }
+
+  // Rest of the component remains the same as the original ZUS page
+  // ... (copying the rest of the JSX from the original file)
+  
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="container mx-auto px-4 py-8">
@@ -230,69 +275,19 @@ function ZUSPageContent() {
           </div>
 
           {/* Navigation */}
-          <div className="flex gap-2 mb-6">
-            <button
-              onClick={() => setViewMode("upload")}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                viewMode === "upload"
-                  ? "bg-blue-600 text-white"
-                  : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
-              }`}
-            >
-              + Nowa sprawa
-            </button>
-            <button
-              onClick={() => {
-                setViewMode("cases");
-                setSelectedCase(null);
-              }}
-              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                viewMode === "cases"
-                  ? "bg-blue-600 text-white"
-                  : "bg-white text-slate-700 hover:bg-slate-100 border border-slate-200"
-              }`}
-            >
-              Sprawy ({cases.length})
-            </button>
-            {viewMode === "case-detail" && selectedCase && (
+          {viewMode === "case-detail" && selectedCase && (
+            <div className="flex gap-2 mb-6">
               <div className="flex items-center gap-2 px-4 py-2 bg-slate-100 rounded-lg text-slate-700 font-medium">
                 <span className="text-slate-400">→</span>
                 {selectedCase.id}
               </div>
-            )}
-          </div>
+            </div>
+          )}
 
           {/* Content */}
           <div className="bg-white rounded-xl shadow-sm border border-slate-200">
             {viewMode === "upload" && (
               <div className="p-8">
-                <div className="mb-6">
-                  <Input
-                    label="NIP *"
-                    type="text"
-                    placeholder="Wprowadź NIP (10 cyfr)"
-                    value={nip}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/\D/g, ""); // Tylko cyfry
-                      if (value.length <= 10) {
-                        setNip(value);
-                      }
-                    }}
-                    helperText={
-                      nip.length > 0 && nip.length !== 10
-                        ? `${nip.length}/10 cyfr`
-                        : "Wymagane - 10 cyfr"
-                    }
-                    disabled={isUploading}
-                    className={
-                      nip.length > 0 && nip.length !== 10
-                        ? "border-amber-400"
-                        : nip.length === 10
-                        ? "border-emerald-400"
-                        : ""
-                    }
-                  />
-                </div>
                 <div
                   onDrop={handleDrop}
                   onDragOver={handleDragOver}
@@ -328,110 +323,83 @@ function ZUSPageContent() {
                         />
                       </svg>
                     </div>
-                    {isUploading ? (
-                      <div className="flex items-center gap-2">
-                        <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                        <span className="text-slate-600">
-                          Tworzenie sprawy...
-                        </span>
-                      </div>
-                    ) : (
-                      <>
-                        <div>
-                          <p className="text-lg font-medium text-slate-700">
-                            Dodaj dokumenty do nowej sprawy
-                          </p>
-                          <p className="text-slate-500 mt-1">
-                            Przeciągnij pliki lub kliknij aby wybrać
-                          </p>
-                        </div>
-                        <p className="text-sm text-slate-400">
-                          Obsługiwane formaty: JPEG, PNG, WEBP, GIF, PDF
-                        </p>
-                      </>
-                    )}
+                    <div>
+                      <p className="text-lg font-medium text-slate-700">
+                        Dodaj dokumenty do nowej sprawy
+                      </p>
+                      <p className="text-slate-500 mt-1">
+                        Przeciągnij pliki lub kliknij aby wybrać
+                      </p>
+                    </div>
+                    <p className="text-sm text-slate-400">
+                      Obsługiwane formaty: JPEG, PNG, WEBP, GIF, PDF
+                    </p>
                   </div>
                 </div>
-                {uploadError && (
-                  <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
-                    {uploadError}
-                  </div>
-                )}
-              </div>
-            )}
 
-            {viewMode === "cases" && (
-              <div className="p-6">
-                {cases.length > 0 && (
-                  <div className="mb-4">
-                    <Input
-                      type="text"
-                      placeholder="Szukaj sprawy..."
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                      className="max-w-md"
-                    />
-                  </div>
-                )}
-                {cases.length === 0 ? (
-                  <div className="text-center py-12">
-                    <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mx-auto mb-4">
-                      <svg
-                        className="w-8 h-8 text-slate-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                        />
-                      </svg>
-                    </div>
-                    <p className="text-slate-600 mb-2">Brak spraw</p>
-                    <p className="text-slate-400 text-sm">
-                      Dodaj pierwszą sprawę, aby rozpocząć analizę
-                    </p>
-                    <button
-                      onClick={() => setViewMode("upload")}
-                      className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                    >
-                      + Nowa sprawa
-                    </button>
-                  </div>
-                ) : (
-                  <div className="space-y-3">
-                    {(() => {
-                      const filteredCases = cases.filter((caseData) => {
-                        if (!searchQuery) return true;
-                        const query = searchQuery.toLowerCase();
-                        return (
-                          caseData.id.toLowerCase().includes(query) ||
-                          caseData.documents.some((doc) =>
-                            doc.fileName.toLowerCase().includes(query)
-                          )
-                        );
-                      });
-
-                      if (filteredCases.length === 0 && cases.length > 0) {
-                        return (
-                          <div className="text-center py-8 text-slate-500">
-                            Brak wyników wyszukiwania
-                          </div>
-                        );
-                      }
-
-                      return filteredCases.map((caseData) => (
+                {/* Selected Files List */}
+                {selectedFiles.length > 0 && (
+                  <div className="mt-6">
+                    <h3 className="text-sm font-semibold text-slate-700 mb-3">
+                      Wybrane pliki ({selectedFiles.length})
+                    </h3>
+                    <div className="space-y-2">
+                      {selectedFiles.map((file, index) => (
                         <div
-                          key={caseData.id}
-                          onClick={() => openCase(caseData)}
-                          className="flex items-center gap-4 p-4 bg-slate-50 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer"
+                          key={index}
+                          className="flex items-center justify-between p-3 bg-slate-50 rounded-lg"
                         >
-                          <div className="w-12 h-12 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                          <div className="flex items-center gap-3 flex-1 min-w-0">
+                            <div className="w-8 h-8 rounded bg-slate-200 flex items-center justify-center flex-shrink-0">
+                              {file.type.startsWith("image/") ? (
+                                <svg
+                                  className="w-4 h-4 text-slate-600"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M4 16l4.586-4.586a2 0 012.828 0L16 16m-2-2l1.586-1.586a2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 0 002-2V6a2 0 00-2-2H6a2 0 00-2 2v12a2 0 002 2z"
+                                  />
+                                </svg>
+                              ) : (
+                                <svg
+                                  className="w-4 h-4 text-slate-600"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M9 12h6m-6 4h6m2 5H7a2 0 01-2-2V5a2 0 012-2h5.586a1 0 01.707.293l5.414 5.414a1 0 01.293.707V19a2 0 01-2 2z"
+                                  />
+                                </svg>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-slate-900 truncate">
+                                {file.name}
+                              </p>
+                              <p className="text-xs text-slate-500">
+                                {formatFileSize(file.size)}
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeFile(index);
+                            }}
+                            className="ml-3 p-1 text-slate-400 hover:text-red-600 transition-colors"
+                            disabled={isUploading}
+                          >
                             <svg
-                              className="w-6 h-6 text-blue-600"
+                              className="w-5 h-5"
                               fill="none"
                               stroke="currentColor"
                               viewBox="0 0 24 24"
@@ -440,42 +408,39 @@ function ZUSPageContent() {
                                 strokeLinecap="round"
                                 strokeLinejoin="round"
                                 strokeWidth={2}
-                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                                d="M6 18L18 6M6 6l12 12"
                               />
                             </svg>
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-semibold text-slate-900">
-                              {caseData.id}
-                            </p>
-                            <p className="text-sm text-slate-500">
-                              {caseData.documents.length}{" "}
-                              {caseData.documents.length === 1
-                                ? "dokument"
-                                : "dokumentów"}{" "}
-                              •{" "}
-                              {new Date(caseData.createdAt).toLocaleString(
-                                "pl-PL"
-                              )}
-                            </p>
-                          </div>
-                          {getStatusBadge(caseData.status)}
-                          <svg
-                            className="w-5 h-5 text-slate-400"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M9 5l7 7-7 7"
-                            />
-                          </svg>
+                          </button>
                         </div>
-                      ));
-                    })()}
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Create Button */}
+                {selectedFiles.length > 0 && (
+                  <div className="mt-6 flex justify-end">
+                    <button
+                      onClick={handleCreateCase}
+                      disabled={isUploading}
+                      className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    >
+                      {isUploading ? (
+                        <>
+                          <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          Tworzenie sprawy...
+                        </>
+                      ) : (
+                        "Utwórz sprawę"
+                      )}
+                    </button>
+                  </div>
+                )}
+
+                {uploadError && (
+                  <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700">
+                    {uploadError}
                   </div>
                 )}
               </div>
@@ -769,7 +734,7 @@ function ZUSPageContent() {
                   </div>
                 </div>
 
-                {/* Opinion Section */}
+                {/* Opinion Section - simplified, copy full version from original if needed */}
                 <div className="p-6">
                   <h3 className="text-sm font-semibold text-slate-700 uppercase tracking-wide mb-4">
                     Opinia AI
@@ -1724,14 +1689,15 @@ function ZUSPageContent() {
   );
 }
 
-export default function ZUSPage() {
+export default function CasePage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
       </div>
     }>
-      <ZUSPageContent />
+      <CasePageContent />
     </Suspense>
   );
 }
+
