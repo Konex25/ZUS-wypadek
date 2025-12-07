@@ -440,7 +440,7 @@ export default function AdminPage() {
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <button
                               onClick={() =>
-                                router.push(`/admin/case?caseId=${caseItem.id}`)
+                                router.push(`/admin/cases/${caseItem.id}`)
                               }
                               className="text-blue-600 hover:text-blue-900 mr-4"
                             >
