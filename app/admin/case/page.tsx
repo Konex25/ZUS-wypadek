@@ -116,8 +116,8 @@ function CasePageContent() {
       // Save analysis result to sessionStorage for the form
       if (result) {
         sessionStorage.setItem("analysisResult", JSON.stringify(result));
-        // Redirect to form with analysis data
-        router.push("/asystent");
+        // Redirect to analysis page
+        router.push("/admin/analysis");
       } else {
         setUploadError("Nie otrzymano danych z analizy");
       }

@@ -101,8 +101,9 @@ export interface CorrespondenceAddress {
 export interface BusinessData {
   nip?: string;
   regon?: string;
-  pkdCode?: string; // automatycznie z CEIDG
-  businessScope?: string; // automatycznie z CEIDG
+  pkdCode?: string; // automatycznie z CEIDG - główny kod
+  businessScope?: string; // automatycznie z CEIDG - opis głównego kodu
+  pkdCodes?: Array<{ code: string; description?: string }>; // wszystkie kody PKD z CEIDG
   address?: Address; // automatycznie z CEIDG
 }
 
