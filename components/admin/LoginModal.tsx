@@ -175,9 +175,9 @@ export function LoginModal({ isOpen, onLogin, onClose }: LoginModalProps) {
               </Button>
             )}
           </div>
+          <div className="text-black">Hasło:admin123</div>
         </form>
       </div>
     </div>
   );
 }
-
