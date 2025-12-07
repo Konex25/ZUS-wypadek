@@ -13,6 +13,21 @@ function LegalQualificationPageContent() {
   const [formData, setFormData] = useState<Partial<AccidentReport>>({});
   const [loading, setLoading] = useState(true);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isCheckingDifferences, setIsCheckingDifferences] = useState(false);
+  const [differencesResult, setDifferencesResult] = useState<{
+    differences: Array<{
+      field: string;
+      details: string;
+      documents: string[];
+      severity?: string;
+    }>;
+    allDatesConsistent: boolean;
+    allStatementsConsistent: boolean;
+    allTimesConsistent?: boolean;
+    summary: string;
+    isInGeneralConsistent: boolean;
+  } | null>(null);
+  const [differencesError, setDifferencesError] = useState<string | null>(null);
   const [qualificationResult, setQualificationResult] = useState<{
     shouldAccept: boolean;
     shortExplanation: string;
@@ -52,12 +67,62 @@ function LegalQualificationPageContent() {
         const qualification = JSON.parse(qualificationStr);
         setQualificationResult(qualification);
       }
+
+      // Load existing differences result if available
+      const differencesStr = sessionStorage.getItem("documentDifferences");
+      if (differencesStr) {
+        const differences = JSON.parse(differencesStr);
+        setDifferencesResult(differences);
+      }
     } catch (error) {
       console.error("Error loading data:", error);
     } finally {
       setLoading(false);
     }
   }, [isAuthenticated]);
+
+  const handleCheckDifferences = async () => {
+    setIsCheckingDifferences(true);
+    setDifferencesError(null);
+
+    try {
+      // Load analysis result if available
+      const analysisResultStr = sessionStorage.getItem("analysisResult");
+      let analysisResult = null;
+      if (analysisResultStr) {
+        analysisResult = JSON.parse(analysisResultStr);
+      }
+
+      const requestBody = {
+        formData,
+        analysisResult,
+      };
+
+      const response = await fetch("/api/analysis/document-differences", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(requestBody),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || "Nie udało się sprawdzić różnic między dokumentami");
+      }
+
+      const result = await response.json();
+      setDifferencesResult(result);
+
+      // Save differences result to sessionStorage
+      sessionStorage.setItem("documentDifferences", JSON.stringify(result));
+    } catch (error: any) {
+      console.error("Error checking differences:", error);
+      setDifferencesError(error.message || "Nie udało się sprawdzić różnic między dokumentami");
+    } finally {
+      setIsCheckingDifferences(false);
+    }
+  };
 
   const handlePerformLegalQualification = async () => {
     setIsAnalyzing(true);
@@ -76,20 +141,38 @@ function LegalQualificationPageContent() {
         }
       }
 
-      // Prepare data for legal qualification
-      const accidentDescription =
+      // Prepare data for legal qualification - clean up descriptions (remove parentheses with field names)
+      let accidentDescription =
         formData.accidentData?.detailedCircumstancesDescription ||
         formData.accidentData?.accidentPlace ||
         "";
-      const activitiesPerformed =
+      // Remove patterns like "(businessAddress)" or "(fieldName)" from description
+      accidentDescription = accidentDescription.replace(/\s*\([^)]+\)/g, "").trim();
+
+      let activitiesPerformed =
         (formData.accidentData?.workRelation as any)?.description || "";
+      // Remove patterns like "(fieldName)" from activities
+      activitiesPerformed = activitiesPerformed.replace(/\s*\([^)]+\)/g, "").trim();
+
       const pkdCodes = formData.businessData?.pkdCodes || [];
+
+      // Load differences if available
+      const differencesStr = sessionStorage.getItem("documentDifferences");
+      let documentDifferences = null;
+      if (differencesStr) {
+        try {
+          documentDifferences = JSON.parse(differencesStr);
+        } catch (e) {
+          console.error("Error parsing document differences:", e);
+        }
+      }
 
       const requestBody = {
         accidentDescription,
         activitiesPerformed,
         pkdCodes,
         doctorOpinion,
+        documentDifferences,
       };
 
       const response = await fetch("/api/analysis/legal-qualification", {
@@ -279,6 +362,341 @@ function LegalQualificationPageContent() {
                 </div>
               </div>
             </div>
+          </div>
+
+          {/* Document Differences Section */}
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+            <h2 className="text-lg font-bold text-slate-900 mb-4">
+              Sprawdź różnice między dokumentami
+            </h2>
+            <p className="text-slate-600 mb-6">
+              Przeanalizuj dokumenty pod kątem niespójności w godzinach, datach, relacjach
+              świadków oraz innych szczegółach dotyczących wypadku.
+            </p>
+
+            <button
+              onClick={handleCheckDifferences}
+              disabled={isCheckingDifferences}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {isCheckingDifferences ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Analizowanie różnic...
+                </>
+              ) : (
+                <>
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                  Sprawdź różnice między dokumentami
+                </>
+              )}
+            </button>
+
+            {differencesError && (
+              <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-sm text-red-700">{differencesError}</p>
+              </div>
+            )}
+
+            {differencesResult && (
+              <div className="mt-6 space-y-4">
+                {/* Summary */}
+                <div
+                  className={`p-4 rounded-lg border-2 ${
+                    differencesResult.isInGeneralConsistent
+                      ? "bg-green-50 border-green-200"
+                      : "bg-amber-50 border-amber-200"
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <div
+                      className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                        differencesResult.isInGeneralConsistent
+                          ? "bg-green-500"
+                          : "bg-amber-500"
+                      }`}
+                    >
+                      {differencesResult.isInGeneralConsistent ? (
+                        <svg
+                          className="w-5 h-5 text-white"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      ) : (
+                        <svg
+                          className="w-5 h-5 text-white"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+                          />
+                        </svg>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <h3
+                        className={`font-bold text-lg mb-2 ${
+                          differencesResult.isInGeneralConsistent
+                            ? "text-green-900"
+                            : "text-amber-900"
+                        }`}
+                      >
+                        {differencesResult.isInGeneralConsistent
+                          ? "Dokumenty są spójne"
+                          : "Wykryto niespójności w dokumentach"}
+                      </h3>
+                      <p
+                        className={`text-sm ${
+                          differencesResult.isInGeneralConsistent
+                            ? "text-green-800"
+                            : "text-amber-800"
+                        }`}
+                      >
+                        {differencesResult.summary}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Consistency Flags */}
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div
+                    className={`p-3 rounded-lg border ${
+                      differencesResult.allDatesConsistent
+                        ? "bg-green-50 border-green-200"
+                        : "bg-red-50 border-red-200"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      {differencesResult.allDatesConsistent ? (
+                        <svg
+                          className="w-4 h-4 text-green-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      ) : (
+                        <svg
+                          className="w-4 h-4 text-red-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                      )}
+                      <span
+                        className={`text-xs font-semibold ${
+                          differencesResult.allDatesConsistent
+                            ? "text-green-900"
+                            : "text-red-900"
+                        }`}
+                      >
+                        Daty spójne
+                      </span>
+                    </div>
+                  </div>
+                  {differencesResult.allTimesConsistent !== undefined && (
+                    <div
+                      className={`p-3 rounded-lg border ${
+                        differencesResult.allTimesConsistent
+                          ? "bg-green-50 border-green-200"
+                          : "bg-red-50 border-red-200"
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        {differencesResult.allTimesConsistent ? (
+                          <svg
+                            className="w-4 h-4 text-green-600"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M5 13l4 4L19 7"
+                            />
+                          </svg>
+                        ) : (
+                          <svg
+                            className="w-4 h-4 text-red-600"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M6 18L18 6M6 6l12 12"
+                            />
+                          </svg>
+                        )}
+                        <span
+                          className={`text-xs font-semibold ${
+                            differencesResult.allTimesConsistent
+                              ? "text-green-900"
+                              : "text-red-900"
+                          }`}
+                        >
+                          Godziny spójne
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                  <div
+                    className={`p-3 rounded-lg border ${
+                      differencesResult.allStatementsConsistent
+                        ? "bg-green-50 border-green-200"
+                        : "bg-red-50 border-red-200"
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 mb-1">
+                      {differencesResult.allStatementsConsistent ? (
+                        <svg
+                          className="w-4 h-4 text-green-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 13l4 4L19 7"
+                          />
+                        </svg>
+                      ) : (
+                        <svg
+                          className="w-4 h-4 text-red-600"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M6 18L18 6M6 6l12 12"
+                          />
+                        </svg>
+                      )}
+                      <span
+                        className={`text-xs font-semibold ${
+                          differencesResult.allStatementsConsistent
+                            ? "text-green-900"
+                            : "text-red-900"
+                        }`}
+                      >
+                        Relacje spójne
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Individual Differences */}
+                {differencesResult.differences.length > 0 && (
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-semibold text-slate-900">
+                      Szczegóły różnic ({differencesResult.differences.length})
+                    </h4>
+                    {differencesResult.differences.map((diff, index) => (
+                      <div
+                        key={index}
+                        className={`p-4 rounded-lg border ${
+                          diff.severity === "high"
+                            ? "bg-red-50 border-red-200"
+                            : diff.severity === "medium"
+                            ? "bg-amber-50 border-amber-200"
+                            : "bg-yellow-50 border-yellow-200"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-2 mb-2">
+                          <p
+                            className={`font-semibold capitalize ${
+                              diff.severity === "high"
+                                ? "text-red-900"
+                                : diff.severity === "medium"
+                                ? "text-amber-900"
+                                : "text-yellow-900"
+                            }`}
+                          >
+                            {diff.field}
+                          </p>
+                          {diff.severity && (
+                            <span
+                              className={`text-xs px-2 py-1 rounded ${
+                                diff.severity === "high"
+                                  ? "bg-red-200 text-red-800"
+                                  : diff.severity === "medium"
+                                  ? "bg-amber-200 text-amber-800"
+                                  : "bg-yellow-200 text-yellow-800"
+                              }`}
+                            >
+                              {diff.severity === "high"
+                                ? "Wysoka"
+                                : diff.severity === "medium"
+                                ? "Średnia"
+                                : "Niska"}
+                            </span>
+                          )}
+                        </div>
+                        <p
+                          className={`text-sm ${
+                            diff.severity === "high"
+                              ? "text-red-800"
+                              : diff.severity === "medium"
+                              ? "text-amber-800"
+                              : "text-yellow-800"
+                          }`}
+                        >
+                          {diff.details}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           {/* Legal Qualification Section */}

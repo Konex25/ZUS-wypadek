@@ -9,6 +9,19 @@ interface LegalQualificationRequest {
     injuriesMatchDefinition: boolean;
     comment?: string;
   };
+  documentDifferences?: {
+    differences: Array<{
+      field: string;
+      details: string;
+      documents: string[];
+      severity?: string;
+    }>;
+    allDatesConsistent: boolean;
+    allStatementsConsistent: boolean;
+    allTimesConsistent?: boolean;
+    summary: string;
+    isInGeneralConsistent: boolean;
+  };
 }
 
 interface LegalQualificationResponse {
@@ -37,6 +50,7 @@ Na podstawie zebranego materiału dowodowego dokonaj prawnej kwalifikacji wypadk
 - Czynności wykonywane: {activitiesPerformed}
 - Kody PKD: {pkdCodes}
 - Opinia lekarza: {doctorOpinion}
+- Różnice w dokumentach: {documentDifferences}
 
 ## Format odpowiedzi JSON:
 
@@ -52,7 +66,8 @@ Na podstawie zebranego materiału dowodowego dokonaj prawnej kwalifikacji wypadk
 - Bądź precyzyjny i szczegółowy w uzasadnieniu
 - Jeśli brakuje danych, wyraźnie to zaznacz w notes
 - Prawdopodobieństwo PKD powinno odzwierciedlać jak bardzo czynności wykonywane podczas wypadku są zgodne z kodami PKD działalności
-- Uwzględnij opinię lekarza w ocenie, ale nie traktuj jej jako jedynego kryterium`;
+- Uwzględnij opinię lekarza w ocenie, ale nie traktuj jej jako jedynego kryterium
+- Jeśli wykryto różnice w dokumentach, szczególnie w datach, godzinach lub relacjach świadków, uwzględnij to w ocenie i notes - niespójności mogą wpływać na wiarygodność materiału dowodowego`;
 
 export async function POST(request: NextRequest) {
   try {
@@ -60,27 +75,80 @@ export async function POST(request: NextRequest) {
 
     if (!body.accidentDescription || !body.activitiesPerformed) {
       return NextResponse.json(
-        { error: "Brakuje wymaganych danych: opis wypadku i czynności wykonywane" },
+        {
+          error:
+            "Brakuje wymaganych danych: opis wypadku i czynności wykonywane",
+        },
         { status: 400 }
       );
     }
 
     // Format PKD codes for prompt
     const pkdCodesText = body.pkdCodes
-      .map((pkd) => `${pkd.code}${pkd.description ? ` - ${pkd.description}` : ""}`)
+      .map(
+        (pkd) => `${pkd.code}${pkd.description ? ` - ${pkd.description}` : ""}`
+      )
       .join(", ");
 
     // Format doctor opinion for prompt
     const doctorOpinionText = body.doctorOpinion
-      ? `Obrażenia ${body.doctorOpinion.injuriesMatchDefinition ? "wpisują się" : "NIE wpisują się"} w definicję wypadku przy pracy.${body.doctorOpinion.comment ? ` Komentarz: ${body.doctorOpinion.comment}` : ""}`
+      ? `Obrażenia ${
+          body.doctorOpinion.injuriesMatchDefinition
+            ? "wpisują się"
+            : "NIE wpisują się"
+        } w definicję wypadku przy pracy.${
+          body.doctorOpinion.comment
+            ? ` Komentarz: ${body.doctorOpinion.comment}`
+            : ""
+        }`
       : "Brak opinii lekarza";
 
+    // Format document differences for prompt
+    let documentDifferencesText = "Brak analizy różnic między dokumentami";
+    if (body.documentDifferences) {
+      const diff = body.documentDifferences;
+      if (diff.differences && diff.differences.length > 0) {
+        const differencesList = diff.differences
+          .map(
+            (d) =>
+              `- ${d.field}: ${d.details}${
+                d.documents.length > 0
+                  ? ` (dokumenty: ${d.documents.join(", ")})`
+                  : ""
+              }${d.severity ? ` [ważność: ${d.severity}]` : ""}`
+          )
+          .join("\n");
+        documentDifferencesText = `Wykryto ${
+          diff.differences.length
+        } różnic:\n${differencesList}\n\nPodsumowanie: ${
+          diff.summary
+        }\nSpójność dat: ${
+          diff.allDatesConsistent ? "TAK" : "NIE"
+        }\nSpójność godzin: ${
+          diff.allTimesConsistent !== undefined
+            ? diff.allTimesConsistent
+              ? "TAK"
+              : "NIE"
+            : "Nie sprawdzono"
+        }\nSpójność relacji: ${
+          diff.allStatementsConsistent ? "TAK" : "NIE"
+        }\nOgólna spójność: ${diff.isInGeneralConsistent ? "TAK" : "NIE"}`;
+      } else {
+        documentDifferencesText = `Brak wykrytych różnic. Dokumenty są spójne. ${
+          diff.summary || ""
+        }`;
+      }
+    }
+
     // Build prompt
-    const prompt = LEGAL_QUALIFICATION_PROMPT
-      .replace("{accidentDescription}", body.accidentDescription)
+    const prompt = LEGAL_QUALIFICATION_PROMPT.replace(
+      "{accidentDescription}",
+      body.accidentDescription
+    )
       .replace("{activitiesPerformed}", body.activitiesPerformed)
       .replace("{pkdCodes}", pkdCodesText || "Brak kodów PKD")
-      .replace("{doctorOpinion}", doctorOpinionText);
+      .replace("{doctorOpinion}", doctorOpinionText)
+      .replace("{documentDifferences}", documentDifferencesText);
 
     // Call AI for legal qualification
     const response = await qwen.chat.completions.create({
@@ -112,10 +180,12 @@ export async function POST(request: NextRequest) {
         // Fallback if no JSON found
         qualificationResult = {
           shouldAccept: true,
-          shortExplanation: "Nie udało się przeanalizować odpowiedzi AI. Wymagana ręczna weryfikacja.",
+          shortExplanation:
+            "Nie udało się przeanalizować odpowiedzi AI. Wymagana ręczna weryfikacja.",
           pkdProbability: 50,
           detailedJustification: aiResponse,
-          notes: "Odpowiedź AI nie została poprawnie sparsowana. Wymagana ręczna analiza.",
+          notes:
+            "Odpowiedź AI nie została poprawnie sparsowana. Wymagana ręczna analiza.",
         };
       }
     } catch (parseError) {
