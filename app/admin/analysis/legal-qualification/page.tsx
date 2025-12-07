@@ -61,18 +61,27 @@ function LegalQualificationPageContent() {
         setFormData(data);
       }
 
-      // Load existing qualification result if available
-      const qualificationStr = sessionStorage.getItem("legalQualification");
-      if (qualificationStr) {
-        const qualification = JSON.parse(qualificationStr);
-        setQualificationResult(qualification);
-      }
+      // Check if this is a new case (no currentCaseId means new case)
+      const currentCaseId = sessionStorage.getItem("currentCaseId");
+      if (!currentCaseId) {
+        // New case - clear previous qualification and differences
+        setQualificationResult(null);
+        setDifferencesResult(null);
+        sessionStorage.removeItem("legalQualification");
+        sessionStorage.removeItem("documentDifferences");
+      } else {
+        // Existing case - load saved data
+        const qualificationStr = sessionStorage.getItem("legalQualification");
+        if (qualificationStr) {
+          const qualification = JSON.parse(qualificationStr);
+          setQualificationResult(qualification);
+        }
 
-      // Load existing differences result if available
-      const differencesStr = sessionStorage.getItem("documentDifferences");
-      if (differencesStr) {
-        const differences = JSON.parse(differencesStr);
-        setDifferencesResult(differences);
+        const differencesStr = sessionStorage.getItem("documentDifferences");
+        if (differencesStr) {
+          const differences = JSON.parse(differencesStr);
+          setDifferencesResult(differences);
+        }
       }
     } catch (error) {
       console.error("Error loading data:", error);
@@ -108,7 +117,9 @@ function LegalQualificationPageContent() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || "Nie udało się sprawdzić różnic między dokumentami");
+        throw new Error(
+          errorData.error || "Nie udało się sprawdzić różnic między dokumentami"
+        );
       }
 
       const result = await response.json();
@@ -118,7 +129,9 @@ function LegalQualificationPageContent() {
       sessionStorage.setItem("documentDifferences", JSON.stringify(result));
     } catch (error: any) {
       console.error("Error checking differences:", error);
-      setDifferencesError(error.message || "Nie udało się sprawdzić różnic między dokumentami");
+      setDifferencesError(
+        error.message || "Nie udało się sprawdzić różnic między dokumentami"
+      );
     } finally {
       setIsCheckingDifferences(false);
     }
@@ -147,12 +160,16 @@ function LegalQualificationPageContent() {
         formData.accidentData?.accidentPlace ||
         "";
       // Remove patterns like "(businessAddress)" or "(fieldName)" from description
-      accidentDescription = accidentDescription.replace(/\s*\([^)]+\)/g, "").trim();
+      accidentDescription = accidentDescription
+        .replace(/\s*\([^)]+\)/g, "")
+        .trim();
 
       let activitiesPerformed =
         (formData.accidentData?.workRelation as any)?.description || "";
       // Remove patterns like "(fieldName)" from activities
-      activitiesPerformed = activitiesPerformed.replace(/\s*\([^)]+\)/g, "").trim();
+      activitiesPerformed = activitiesPerformed
+        .replace(/\s*\([^)]+\)/g, "")
+        .trim();
 
       const pkdCodes = formData.businessData?.pkdCodes || [];
 
@@ -185,7 +202,9 @@ function LegalQualificationPageContent() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || "Nie udało się przeprowadzić kwalifikacji prawnej");
+        throw new Error(
+          errorData.error || "Nie udało się przeprowadzić kwalifikacji prawnej"
+        );
       }
 
       const result = await response.json();
@@ -195,20 +214,22 @@ function LegalQualificationPageContent() {
       sessionStorage.setItem("legalQualification", JSON.stringify(result));
     } catch (error: any) {
       console.error("Error performing legal qualification:", error);
-      alert(error.message || "Nie udało się przeprowadzić kwalifikacji prawnej");
+      alert(
+        error.message || "Nie udało się przeprowadzić kwalifikacji prawnej"
+      );
     } finally {
       setIsAnalyzing(false);
     }
   };
 
-  const handleContinueToForm = () => {
+  const handleContinueToSummary = () => {
     if (!qualificationResult) {
       alert("Proszę najpierw przeprowadzić kwalifikację prawną");
       return;
     }
 
-    // Redirect to form
-    router.push("/asystent");
+    // Redirect to summary
+    router.push("/admin/analysis/summary");
   };
 
   if (!isMounted) {
@@ -270,9 +291,10 @@ function LegalQualificationPageContent() {
                 Prawna kwalifikacja wypadku
               </h1>
               <p className="text-slate-600">
-                Na podstawie całego zebranego materiału dowodowego dokonujemy prawnej
-                kwalifikacji wypadku. Polega ona na ocenie, czy zdarzenie spełnia łącznie
-                wszystkie warunki podane w definicji wypadku przy pracy.
+                Na podstawie całego zebranego materiału dowodowego dokonujemy
+                prawnej kwalifikacji wypadku. Polega ona na ocenie, czy
+                zdarzenie spełnia łącznie wszystkie warunki podane w definicji
+                wypadku przy pracy.
               </p>
             </div>
           </div>
@@ -286,35 +308,38 @@ function LegalQualificationPageContent() {
               <li className="flex items-start gap-2">
                 <span className="font-semibold">1.</span>
                 <span>
-                  <strong>Zdarzenie nagłe</strong> - wypadek był nagły (nastąpił nagle, nie
-                  był długotrwałym procesem)
+                  <strong>Zdarzenie nagłe</strong> - wypadek był nagły (nastąpił
+                  nagle, nie był długotrwałym procesem)
                 </span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="font-semibold">2.</span>
                 <span>
-                  <strong>Przyczyna zewnętrzna</strong> - wypadek został spowodowany przez
-                  przyczynę zewnętrzną (działanie siły zewnętrznej, czynnika zewnętrznego)
+                  <strong>Przyczyna zewnętrzna</strong> - wypadek został
+                  spowodowany przez przyczynę zewnętrzną (działanie siły
+                  zewnętrznej, czynnika zewnętrznego)
                 </span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="font-semibold">3.</span>
                 <span>
-                  <strong>Uraz</strong> - doprowadziło do urazu (uszkodzenia ciała, choroby)
+                  <strong>Uraz</strong> - doprowadziło do urazu (uszkodzenia
+                  ciała, choroby)
                 </span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="font-semibold">4.</span>
                 <span>
-                  <strong>Okres ubezpieczenia</strong> - nastąpiło w okresie ubezpieczenia
-                  wypadkowego z tytułu prowadzenia działalności pozarolniczej
+                  <strong>Okres ubezpieczenia</strong> - nastąpiło w okresie
+                  ubezpieczenia wypadkowego z tytułu prowadzenia działalności
+                  pozarolniczej
                 </span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="font-semibold">5.</span>
                 <span>
-                  <strong>Zwykłe czynności</strong> - nastąpiło podczas wykonywania zwykłych
-                  czynności związanych z działalnością
+                  <strong>Zwykłe czynności</strong> - nastąpiło podczas
+                  wykonywania zwykłych czynności związanych z działalnością
                 </span>
               </li>
             </ul>
@@ -341,13 +366,17 @@ function LegalQualificationPageContent() {
                   Czynności wykonywane:
                 </span>
                 <p className="text-slate-900 mt-1">
-                  {(formData.accidentData?.workRelation as any)?.description || "Brak danych"}
+                  {(formData.accidentData?.workRelation as any)?.description ||
+                    "Brak danych"}
                 </p>
               </div>
               <div>
-                <span className="text-sm font-medium text-slate-600">Kody PKD:</span>
+                <span className="text-sm font-medium text-slate-600">
+                  Kody PKD:
+                </span>
                 <div className="mt-1">
-                  {formData.businessData?.pkdCodes && formData.businessData.pkdCodes.length > 0 ? (
+                  {formData.businessData?.pkdCodes &&
+                  formData.businessData.pkdCodes.length > 0 ? (
                     <ul className="list-disc list-inside space-y-1">
                       {formData.businessData.pkdCodes.map((pkd, index) => (
                         <li key={index} className="text-slate-900">
@@ -370,8 +399,8 @@ function LegalQualificationPageContent() {
               Sprawdź różnice między dokumentami
             </h2>
             <p className="text-slate-600 mb-6">
-              Przeanalizuj dokumenty pod kątem niespójności w godzinach, datach, relacjach
-              świadków oraz innych szczegółach dotyczących wypadku.
+              Przeanalizuj dokumenty pod kątem niespójności w godzinach, datach,
+              relacjach świadków oraz innych szczegółach dotyczących wypadku.
             </p>
 
             <button
@@ -705,8 +734,8 @@ function LegalQualificationPageContent() {
               Przeprowadź kwalifikację prawną
             </h2>
             <p className="text-slate-600 mb-6">
-              System przeanalizuje wszystkie zebrane dane i oceni, czy zdarzenie spełnia
-              wszystkie warunki definicji wypadku przy pracy.
+              System przeanalizuje wszystkie zebrane dane i oceni, czy zdarzenie
+              spełnia wszystkie warunki definicji wypadku przy pracy.
             </p>
 
             <button
@@ -819,19 +848,45 @@ function LegalQualificationPageContent() {
                       Prawdopodobieństwo zgodności z PKD
                     </span>
                     <span className="text-lg font-bold text-slate-900">
-                      {qualificationResult.pkdProbability}%
+                      {(() => {
+                        const probability =
+                          qualificationResult.pkdProbability > 1
+                            ? qualificationResult.pkdProbability
+                            : qualificationResult.pkdProbability * 100;
+                        return Math.min(probability, 100).toFixed(1);
+                      })()}
+                      %
                     </span>
                   </div>
                   <div className="w-full bg-slate-200 rounded-full h-3">
                     <div
                       className={`h-3 rounded-full transition-all ${
-                        qualificationResult.pkdProbability >= 70
+                        (() => {
+                          const probability =
+                            qualificationResult.pkdProbability > 1
+                              ? qualificationResult.pkdProbability
+                              : qualificationResult.pkdProbability * 100;
+                          return Math.min(probability, 100);
+                        })() >= 70
                           ? "bg-green-500"
-                          : qualificationResult.pkdProbability >= 40
+                          : (() => {
+                              const probability =
+                                qualificationResult.pkdProbability > 1
+                                  ? qualificationResult.pkdProbability
+                                  : qualificationResult.pkdProbability * 100;
+                              return Math.min(probability, 100);
+                            })() >= 40
                           ? "bg-yellow-500"
                           : "bg-red-500"
                       }`}
-                      style={{ width: `${qualificationResult.pkdProbability}%` }}
+                      style={{
+                        width: `${Math.min(
+                          qualificationResult.pkdProbability > 1
+                            ? qualificationResult.pkdProbability
+                            : qualificationResult.pkdProbability * 100,
+                          100
+                        )}%`,
+                      }}
                     />
                   </div>
                 </div>
@@ -883,11 +938,11 @@ function LegalQualificationPageContent() {
               Wróć
             </button>
             <button
-              onClick={handleContinueToForm}
+              onClick={handleContinueToSummary}
               disabled={!qualificationResult}
               className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              Przejdź do formularza
+              Przejdź do podsumowania
               <svg
                 className="w-5 h-5"
                 fill="none"
