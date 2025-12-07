@@ -8,6 +8,7 @@ export async function POST(request: Request) {
   const files = formData.getAll("files") as File[];
 
   const analyzeResult = await analyzeFilesForCase(files);
+  console.log(analyzeResult);
   await database.insert(fileTable).values(analyzeResult);
 
   return NextResponse.json(analyzeResult);

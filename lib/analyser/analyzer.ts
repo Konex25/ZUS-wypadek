@@ -1,7 +1,10 @@
 import { NewFile } from "@/db/schema";
 import { v4 } from "uuid";
 import openai from "../openai/openai";
-import { ANALYZE_FILES_FOR_CASE_PROMPT } from "./prompts";
+import {
+  ANALYZE_FILES_FOR_CASE_PROMPT,
+  JSON_RESPONSE_SYSTEM_PROMPT,
+} from "./prompts";
 import { EXTRACTION_PROMPT } from "./prompts/extraction";
 
 export const analyzeFilesForCase = async (
@@ -33,7 +36,7 @@ const analyzeAndCreateFile = async (file: File): Promise<NewFile> => {
     input: [
       {
         role: "system",
-        content: ANALYZE_FILES_FOR_CASE_PROMPT,
+        content: JSON_RESPONSE_SYSTEM_PROMPT,
       },
       {
         role: "user",
