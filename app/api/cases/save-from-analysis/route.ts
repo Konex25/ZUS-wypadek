@@ -51,40 +51,58 @@ export async function POST(request: NextRequest) {
     }
 
     if (correspondenceAddressId && formData.addresses?.correspondenceAddress) {
-      await database.insert(addressesTable).values({
-        id: correspondenceAddressId,
-        street: formData.addresses.correspondenceAddress.street || "",
-        houseNumber: formData.addresses.correspondenceAddress.houseNumber || "",
-        apartmentNumber: formData.addresses.correspondenceAddress.apartmentNumber || undefined,
-        city: formData.addresses.correspondenceAddress.city || "",
-        postalCode: formData.addresses.correspondenceAddress.postalCode || "",
-        country: formData.addresses.correspondenceAddress.country || "Polska",
-      }).execute();
+      const corrAddr = formData.addresses.correspondenceAddress;
+      // CorrespondenceAddress has 'address' property of type Address
+      let addr: any = null;
+      if ("address" in corrAddr && corrAddr.address) {
+        addr = corrAddr.address;
+      } else if ("street" in corrAddr) {
+        addr = corrAddr;
+      }
+
+      if (addr && typeof addr === "object" && "street" in addr) {
+        await database
+          .insert(addressesTable)
+          .values({
+            id: correspondenceAddressId,
+            street: (addr as any).street || "",
+            houseNumber: (addr as any).houseNumber || "",
+            apartmentNumber: (addr as any).apartmentNumber || undefined,
+            city: (addr as any).city || "",
+            postalCode: (addr as any).postalCode || "",
+            country: (addr as any).country || "Polska",
+          })
+          .execute();
+      }
     }
 
     if (businessAddressId && formData.addresses?.businessAddress) {
-      await database.insert(addressesTable).values({
-        id: businessAddressId,
-        street: formData.addresses.businessAddress.street || "",
-        houseNumber: formData.addresses.businessAddress.houseNumber || "",
-        apartmentNumber: formData.addresses.businessAddress.apartmentNumber || undefined,
-        city: formData.addresses.businessAddress.city || "",
-        postalCode: formData.addresses.businessAddress.postalCode || "",
-        country: formData.addresses.businessAddress.country || "Polska",
-      }).execute();
+      await database
+        .insert(addressesTable)
+        .values({
+          id: businessAddressId,
+          street: formData.addresses.businessAddress.street || "",
+          houseNumber: formData.addresses.businessAddress.houseNumber || "",
+          apartmentNumber:
+            formData.addresses.businessAddress.apartmentNumber || undefined,
+          city: formData.addresses.businessAddress.city || "",
+          postalCode: formData.addresses.businessAddress.postalCode || "",
+          country: formData.addresses.businessAddress.country || "Polska",
+        })
+        .execute();
     }
 
     // Create subject
     const subjectId = formData.personalData?.pesel || v4();
     const nip = formData.businessData?.nip || "";
-    
+
     if (!nip) {
       return NextResponse.json(
         { error: "NIP jest wymagany do utworzenia sprawy" },
         { status: 400 }
       );
     }
-    
+
     const newSubject: NewSubject = {
       id: subjectId,
       name: formData.personalData?.firstName || "",
@@ -109,7 +127,10 @@ export async function POST(request: NextRequest) {
 
       if (existingSubject.length > 0) {
         // Subject exists, update it
-        console.log("Subject already exists, updating:", { id: subjectId, nip });
+        console.log("Subject already exists, updating:", {
+          id: subjectId,
+          nip,
+        });
         await database
           .update(subjectsTable)
           .set({
@@ -142,7 +163,10 @@ export async function POST(request: NextRequest) {
     // analysisResult is an array of NewFile objects with id field
     const fileIds: string[] = [];
     if (body.analysisResult && Array.isArray(body.analysisResult)) {
-      console.log("Analysis result is array with length:", body.analysisResult.length);
+      console.log(
+        "Analysis result is array with length:",
+        body.analysisResult.length
+      );
       body.analysisResult.forEach((file: any, index: number) => {
         console.log(`File ${index}:`, {
           hasId: !!file.id,
@@ -156,11 +180,15 @@ export async function POST(request: NextRequest) {
         }
       });
     } else {
-      console.log("Analysis result is not an array:", typeof body.analysisResult, body.analysisResult);
+      console.log(
+        "Analysis result is not an array:",
+        typeof body.analysisResult,
+        body.analysisResult
+      );
     }
-    
+
     console.log("File IDs extracted:", fileIds);
-    
+
     // Verify that files exist in database
     if (fileIds.length > 0) {
       const existingFiles = await database
@@ -168,28 +196,67 @@ export async function POST(request: NextRequest) {
         .from(fileTable)
         .where(inArray(fileTable.id, fileIds))
         .execute();
-      
-      const existingFileIds = existingFiles.map(f => f.id);
-      const missingFileIds = fileIds.filter(id => !existingFileIds.includes(id));
-      
-      console.log("Files found in database:", existingFileIds.length, "out of", fileIds.length);
+
+      const existingFileIds = existingFiles.map((f) => f.id);
+      const missingFileIds = fileIds.filter(
+        (id) => !existingFileIds.includes(id)
+      );
+
+      console.log(
+        "Files found in database:",
+        existingFileIds.length,
+        "out of",
+        fileIds.length
+      );
       if (missingFileIds.length > 0) {
         console.warn("Missing file IDs in database:", missingFileIds);
         // Use only files that exist in database
         fileIds.splice(0, fileIds.length, ...existingFileIds);
       }
     }
-    
+
     console.log("Final file IDs to save:", fileIds);
 
     // Create case
     const caseId = v4();
+
+    // Include formData in aiResponse if it's an array, or create new structure
+    let aiResponseData = body.analysisResult;
+    if (Array.isArray(aiResponseData) && aiResponseData.length > 0) {
+      // Add formData to the first item's data if it exists
+      if (body.formData) {
+        const firstItem = aiResponseData[0];
+        if (firstItem && typeof firstItem.data === "string") {
+          try {
+            const parsedData = JSON.parse(firstItem.data);
+            firstItem.data = JSON.stringify({
+              ...parsedData,
+              ...body.formData,
+            });
+          } catch (e) {
+            // If parsing fails, create new structure
+            firstItem.data = JSON.stringify({ ...body.formData });
+          }
+        } else if (firstItem) {
+          firstItem.data = { ...(firstItem.data || {}), ...body.formData };
+        }
+      }
+    } else if (body.formData) {
+      // If aiResponse is not an array, create one with formData
+      aiResponseData = [
+        {
+          data: body.formData,
+          type: "formData",
+        },
+      ];
+    }
+    
     const newCase: NewCase = {
       id: caseId,
       subjectId: subjectId,
       status: "PROCESSING",
       fileIds: fileIds.length > 0 ? fileIds : undefined,
-      aiResponse: body.analysisResult || null,
+      aiResponse: aiResponseData || null,
       aiDecision: body.legalQualification || null,
       aiJustifications: body.documentDifferences || null,
       workerJustifications: body.opinionData || null,

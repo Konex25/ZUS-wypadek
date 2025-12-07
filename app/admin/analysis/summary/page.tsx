@@ -19,6 +19,7 @@ function SummaryPageContent() {
   const [legalQualification, setLegalQualification] = useState<any>(null);
   const [documentDifferences, setDocumentDifferences] = useState<any>(null);
   const [opinionData, setOpinionData] = useState<any>(null);
+  const [isGeneratingCard, setIsGeneratingCard] = useState(false);
 
   useEffect(() => {
     if (isMounted && !isAuthenticated) {
@@ -67,7 +68,7 @@ function SummaryPageContent() {
         if (opinionDataStr) {
           const opinion = JSON.parse(opinionDataStr);
           setOpinionData(opinion);
-        }     // Check if case already exists
+        } // Check if case already exists
         const existingCaseId = sessionStorage.getItem("currentCaseId");
         if (existingCaseId) {
           setCaseId(existingCaseId);
@@ -84,9 +85,15 @@ function SummaryPageContent() {
           },
           body: JSON.stringify({
             formData: formDataStr ? JSON.parse(formDataStr) : {},
-            analysisResult: analysisResultStr ? JSON.parse(analysisResultStr) : null,
-            legalQualification: qualificationStr ? JSON.parse(qualificationStr) : null,
-            documentDifferences: differencesStr ? JSON.parse(differencesStr) : null,
+            analysisResult: analysisResultStr
+              ? JSON.parse(analysisResultStr)
+              : null,
+            legalQualification: qualificationStr
+              ? JSON.parse(qualificationStr)
+              : null,
+            documentDifferences: differencesStr
+              ? JSON.parse(differencesStr)
+              : null,
             opinionData: opinionDataStr ? JSON.parse(opinionDataStr) : null,
           }),
         });
@@ -103,14 +110,17 @@ function SummaryPageContent() {
         console.error("Error loading/saving case:", error);
         alert(error.message || "Nie udało się zapisać sprawy");
       } finally {
-        setSaving(false);     setLoading(false);
+        setSaving(false);
+        setLoading(false);
       }
     };
 
     loadAndSaveCase();
   }, [isAuthenticated]);
 
-  const handleDecision = async (decision: "ACCEPTED" | "FAILED" | "NEED_MORE_INFO") => {
+  const handleDecision = async (
+    decision: "ACCEPTED" | "FAILED" | "NEED_MORE_INFO"
+  ) => {
     if (!caseId) {
       alert("Brak ID sprawy");
       return;
@@ -131,8 +141,10 @@ function SummaryPageContent() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || "Nie udało się zaktualizować decyzji");
-      }     // Redirect to cases list
+        throw new Error(
+          errorData.error || "Nie udało się zaktualizować decyzji"
+        );
+      } // Redirect to cases list
       router.push("/admin");
     } catch (error: any) {
       console.error("Error updating decision:", error);
@@ -140,6 +152,16 @@ function SummaryPageContent() {
     } finally {
       setUpdating(false);
     }
+  };
+
+  const handleGenerateCard = () => {
+    if (!caseId) {
+      alert("Brak ID sprawy");
+      return;
+    }
+
+    // Redirect to karta-wypadku page with caseId
+    router.push(`/karta-wypadku?caseId=${caseId}`);
   };
 
   if (!isMounted) {
@@ -202,9 +224,13 @@ function SummaryPageContent() {
                 Podsumowanie sprawy
               </h1>
               <p className="text-slate-600">
-                Przejrzyj wszystkie zebrane dane i podejmij decyzję dotyczącą sprawy
+                Przejrzyj wszystkie zebrane dane i podejmij decyzję dotyczącą
+                sprawy
               </p>
-              {caseId && (              <p className="text-sm text-blue-600 mt-2">ID sprawy: {caseId}</p>
+              {caseId && (
+                <p className="text-sm text-blue-600 mt-2">
+                  ID sprawy: {caseId}
+                </p>
               )}
             </div>
           </div>
@@ -216,96 +242,124 @@ function SummaryPageContent() {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <span className="text-sm font-medium text-slate-600">Imię i nazwisko:</span>
+                <span className="text-sm font-medium text-slate-600">
+                  Imię i nazwisko:
+                </span>
                 <p className="text-slate-900 mt-1">
-                  {formData.personalData?.firstName} {formData.personalData?.lastName}
+                  {formData.personalData?.firstName}{" "}
+                  {formData.personalData?.lastName}
                 </p>
               </div>
               <div>
-                <span className="text-sm font-medium text-slate-600">PESEL:</span>
+                <span className="text-sm font-medium text-slate-600">
+                  PESEL:
+                </span>
                 <p className="text-slate-900 mt-1">
                   {formData.personalData?.pesel || "Brak danych"}
                 </p>
               </div>
               <div>
-                <span className="text-sm font-medium text-slate-600">Data urodzenia:</span>
+                <span className="text-sm font-medium text-slate-600">
+                  Data urodzenia:
+                </span>
                 <p className="text-slate-900 mt-1">
                   {formData.personalData?.dateOfBirth || "Brak danych"}
                 </p>
               </div>
               <div>
-                <span className="text-sm font-medium text-slate-600">Telefon:</span>
+                <span className="text-sm font-medium text-slate-600">
+                  Telefon:
+                </span>
                 <p className="text-slate-900 mt-1">
                   {formData.personalData?.phone || "Brak danych"}
                 </p>
               </div>
-            </div>     </div>
+            </div>{" "}
+          </div>
 
-{/* Accident Data Summary */}
-<div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
-  <h2 className="text-lg font-bold text-slate-900 mb-4">
-    Dane o wypadku
-  </h2>
-  <div className="space-y-3">
-    <div>
-      <span className="text-sm font-medium text-slate-600">Data wypadku:</span>
-      <p className="text-slate-900 mt-1">
-        {formData.accidentData?.accidentDate || "Brak danych"}
-      </p>
-    </div>
-    <div>
-      <span className="text-sm font-medium text-slate-600">Miejsce wypadku:</span>
-      <p className="text-slate-900 mt-1">
-        {formData.accidentData?.accidentPlace || "Brak danych"}
-      </p>
-    </div>
-    <div>
-      <span className="text-sm font-medium text-slate-600">Opis okoliczności:</span>
-      <p className="text-slate-900 mt-1">
-        {formData.accidentData?.detailedCircumstancesDescription ||
-          formData.accidentData?.accidentPlace ||
-          "Brak danych"}
-      </p>
-    </div>
-  </div>
-</div>
+          {/* Accident Data Summary */}
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+            <h2 className="text-lg font-bold text-slate-900 mb-4">
+              Dane o wypadku
+            </h2>
+            <div className="space-y-3">
+              <div>
+                <span className="text-sm font-medium text-slate-600">
+                  Data wypadku:
+                </span>
+                <p className="text-slate-900 mt-1">
+                  {formData.accidentData?.accidentDate || "Brak danych"}
+                </p>
+              </div>
+              <div>
+                <span className="text-sm font-medium text-slate-600">
+                  Miejsce wypadku:
+                </span>
+                <p className="text-slate-900 mt-1">
+                  {formData.accidentData?.accidentPlace || "Brak danych"}
+                </p>
+              </div>
+              <div>
+                <span className="text-sm font-medium text-slate-600">
+                  Opis okoliczności:
+                </span>
+                <p className="text-slate-900 mt-1">
+                  {formData.accidentData?.detailedCircumstancesDescription ||
+                    formData.accidentData?.accidentPlace ||
+                    "Brak danych"}
+                </p>
+              </div>
+            </div>
+          </div>
 
-{/* Business Data Summary */}
-{formData.businessData && (
-  <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
-    <h2 className="text-lg font-bold text-slate-900 mb-4">
-      Dane działalności       </h2>
+          {/* Business Data Summary */}
+          {formData.businessData && (
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+              <h2 className="text-lg font-bold text-slate-900 mb-4">
+                Dane działalności{" "}
+              </h2>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {formData.businessData.nip && (
                   <div>
-                    <span className="text-sm font-medium text-slate-600">NIP:</span>
-                    <p className="text-slate-900 mt-1">{formData.businessData.nip}</p>
+                    <span className="text-sm font-medium text-slate-600">
+                      NIP:
+                    </span>
+                    <p className="text-slate-900 mt-1">
+                      {formData.businessData.nip}
+                    </p>
                   </div>
                 )}
                 {formData.businessData.regon && (
                   <div>
-                    <span className="text-sm font-medium text-slate-600">REGON:</span>
-                    <p className="text-slate-900 mt-1">{formData.businessData.regon}</p>
+                    <span className="text-sm font-medium text-slate-600">
+                      REGON:
+                    </span>
+                    <p className="text-slate-900 mt-1">
+                      {formData.businessData.regon}
+                    </p>
                   </div>
                 )}
-                {formData.businessData.pkdCodes && formData.businessData.pkdCodes.length > 0 && (
-                  <div className="md:col-span-2">
-                    <span className="text-sm font-medium text-slate-600">Kody PKD:</span>
-                    <ul className="list-disc list-inside mt-1 space-y-1">
-                      {formData.businessData.pkdCodes.map((pkd, index) => (
-                        <li key={index} className="text-slate-900">
-                          {pkd.code}
-                          {pkd.description ? ` - ${pkd.description}` : ""}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
+                {formData.businessData.pkdCodes &&
+                  formData.businessData.pkdCodes.length > 0 && (
+                    <div className="md:col-span-2">
+                      <span className="text-sm font-medium text-slate-600">
+                        Kody PKD:
+                      </span>
+                      <ul className="list-disc list-inside mt-1 space-y-1">
+                        {formData.businessData.pkdCodes.map((pkd, index) => (
+                          <li key={index} className="text-slate-900">
+                            {pkd.code}
+                            {pkd.description ? ` - ${pkd.description}` : ""}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
               </div>
             </div>
           )}
-   {/* Legal Qualification Summary */}
-   {legalQualification && (
+          {/* Legal Qualification Summary */}
+          {legalQualification && (
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
               <h2 className="text-lg font-bold text-slate-900 mb-4">
                 Kwalifikacja prawna
@@ -338,7 +392,9 @@ function SummaryPageContent() {
                   {legalQualification.shortExplanation}
                 </p>
               </div>
-              <div>              <span className="text-sm font-medium text-slate-600">
+              <div>
+                {" "}
+                <span className="text-sm font-medium text-slate-600">
                   Prawdopodobieństwo zgodności z PKD:
                 </span>
                 <p className="text-slate-900 mt-1">
@@ -347,40 +403,44 @@ function SummaryPageContent() {
                       ? legalQualification.pkdProbability
                       : legalQualification.pkdProbability * 100,
                     100
-                  ).toFixed(1)}%
+                  ).toFixed(1)}
+                  %
                 </p>
               </div>
             </div>
           )}
 
           {/* Document Differences Summary */}
-          {documentDifferences && documentDifferences.differences && documentDifferences.differences.length > 0 && (
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
-              <h2 className="text-lg font-bold text-slate-900 mb-4">
-                Różnice w dokumentach
-              </h2>
-              <div
-                className={`p-4 rounded-lg border-2 mb-4 ${
-                  documentDifferences.isInGeneralConsistent
-                    ? "bg-green-50 border-green-200"
-                    : "bg-amber-50 border-amber-200"
-                }`}
-              >
-                <p
-                  className={`font-semibold ${
+          {documentDifferences &&
+            documentDifferences.differences &&
+            documentDifferences.differences.length > 0 && (
+              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+                <h2 className="text-lg font-bold text-slate-900 mb-4">
+                  Różnice w dokumentach
+                </h2>
+                <div
+                  className={`p-4 rounded-lg border-2 mb-4 ${
                     documentDifferences.isInGeneralConsistent
-                      ? "text-green-900"
-                      : "text-amber-900"
+                      ? "bg-green-50 border-green-200"
+                      : "bg-amber-50 border-amber-200"
                   }`}
                 >
-                  {documentDifferences.isInGeneralConsistent
-                    ? "Dokumenty są spójne"
-                    : "Wykryto niespójności w dokumentach"}
-                </p>
-                <p
-                  className={`text-sm mt-2 ${
-                    documentDifferences.isInGeneralConsistent
-                      ? "text-green-800"           : "text-amber-800"
+                  <p
+                    className={`font-semibold ${
+                      documentDifferences.isInGeneralConsistent
+                        ? "text-green-900"
+                        : "text-amber-900"
+                    }`}
+                  >
+                    {documentDifferences.isInGeneralConsistent
+                      ? "Dokumenty są spójne"
+                      : "Wykryto niespójności w dokumentach"}
+                  </p>
+                  <p
+                    className={`text-sm mt-2 ${
+                      documentDifferences.isInGeneralConsistent
+                        ? "text-green-800"
+                        : "text-amber-800"
                     }`}
                   >
                     {documentDifferences.summary}
@@ -396,23 +456,25 @@ function SummaryPageContent() {
                 </div>
               </div>
             )}
-  
-            {/* Decision Buttons */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
-              <h2 className="text-lg font-bold text-slate-900 mb-4">
-                Podejmij decyzję
-              </h2>
-              <p className="text-slate-600 mb-6">
-                Na podstawie zebranych danych i analizy, podejmij decyzję dotyczącą sprawy.
-              </p>
-  
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <button
-                  onClick={() => handleDecision("ACCEPTED")}
-                  disabled={updating || !caseId}
-                  className="px-6 py-4 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {updating ?       (    <>
+
+          {/* Decision Buttons */}
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+            <h2 className="text-lg font-bold text-slate-900 mb-4">
+              Podejmij decyzję
+            </h2>
+            <p className="text-slate-600 mb-6">
+              Na podstawie zebranych danych i analizy, podejmij decyzję
+              dotyczącą sprawy.
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <button
+                onClick={() => handleDecision("ACCEPTED")}
+                disabled={updating || !caseId}
+                className="px-6 py-4 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {updating ? (
+                  <>
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     Zapisuję...
                   </>
@@ -446,41 +508,43 @@ function SummaryPageContent() {
                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     Zapisuję...
                   </>
-                ) : (               <>
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                  Odrzuć
-                </>
-              )}
-            </button>
+                ) : (
+                  <>
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                    Odrzuć
+                  </>
+                )}
+              </button>
 
-            <button
-              onClick={() => handleDecision("NEED_MORE_INFO")}
-              disabled={updating || !caseId}
-              className="px-6 py-4 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {updating ? (
-                <>
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Zapisuję...
-                </>
-              ) : (
-                <>
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"             viewBox="0 0 24 24"
+              <button
+                onClick={() => handleDecision("NEED_MORE_INFO")}
+                disabled={updating || !caseId}
+                className="px-6 py-4 bg-amber-600 text-white rounded-lg font-medium hover:bg-amber-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {updating ? (
+                  <>
+                    <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Zapisuję...
+                  </>
+                ) : (
+                  <>
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
                     >
                       <path
                         strokeLinecap="round"
@@ -497,7 +561,36 @@ function SummaryPageContent() {
           </div>
 
           {/* Actions */}
-          <div className="flex justify-end gap-4">
+          <div className="flex justify-between items-center gap-4">
+            <button
+              onClick={handleGenerateCard}
+              disabled={!caseId || isGeneratingCard}
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {isGeneratingCard ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  Generowanie...
+                </>
+              ) : (
+                <>
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                    />
+                  </svg>
+                  Generuj kartę wypadku
+                </>
+              )}
+            </button>
             <button
               onClick={() => router.back()}
               className="px-6 py-3 bg-slate-200 text-slate-700 rounded-lg font-medium hover:bg-slate-300 transition-colors"
