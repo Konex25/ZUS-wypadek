@@ -298,7 +298,7 @@ export default function AdminPage() {
                 variant="primary"
                 size="lg"
                 className="bg-green-600 hover:bg-green-700 focus:ring-green-500"
-                onClick={() => router.push("/zus?view=upload")}
+                onClick={() => router.push("/admin/case?view=upload")}
               >
                 <svg
                   className="w-5 h-5 mr-2"
@@ -440,7 +440,7 @@ export default function AdminPage() {
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                             <button
                               onClick={() =>
-                                router.push(`/zus?caseId=${caseItem.id}`)
+                                router.push(`/admin/case?caseId=${caseItem.id}`)
                               }
                               className="text-blue-600 hover:text-blue-900 mr-4"
                             >
