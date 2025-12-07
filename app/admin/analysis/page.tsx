@@ -72,6 +72,181 @@ function AnalysisPageContent() {
     return success;
   };
 
+  // Helper function to fill missing fields in form data
+  const fillMissingFields = (data: Partial<AccidentReport>): Partial<AccidentReport> => {
+    const updated = { ...data };
+
+    // Fill personal data if missing
+    if (!updated.personalData) {
+      updated.personalData = {
+        firstName: "",
+        lastName: "",
+        pesel: "",
+        dateOfBirth: "",
+        placeOfBirth: "",
+        phone: "",
+        idDocument: {
+          type: "dowód osobisty",
+          number: "",
+        },
+      };
+    }
+    if (!updated.personalData.firstName?.trim()) {
+      updated.personalData.firstName = "Jan";
+    }
+    if (!updated.personalData.lastName?.trim()) {
+      updated.personalData.lastName = "Kowalski";
+    }
+    if (!updated.personalData.pesel?.trim()) {
+      updated.personalData.pesel = "85010112345";
+    }
+    if (!updated.personalData.dateOfBirth?.trim()) {
+      updated.personalData.dateOfBirth = "1985-01-01";
+    }
+    if (!updated.personalData.placeOfBirth?.trim()) {
+      updated.personalData.placeOfBirth = "Warszawa";
+    }
+    if (!updated.personalData.phone?.trim()) {
+      updated.personalData.phone = "+48 123 456 789";
+    }
+    if (!updated.personalData.idDocument) {
+      updated.personalData.idDocument = {
+        type: "dowód osobisty",
+        number: "ABC123456",
+        series: "ABC",
+      };
+    } else {
+      if (!updated.personalData.idDocument.type) {
+        updated.personalData.idDocument.type = "dowód osobisty";
+      }
+      if (!updated.personalData.idDocument.number) {
+        updated.personalData.idDocument.number = "ABC123456";
+      }
+      if (!updated.personalData.idDocument.series) {
+        updated.personalData.idDocument.series = "ABC";
+      }
+    }
+
+    // Fill addresses if missing
+    if (!updated.addresses) {
+      updated.addresses = {
+        residentialAddress: {
+          street: "",
+          houseNumber: "",
+          postalCode: "",
+          city: "",
+        },
+        businessAddress: {
+          street: "",
+          houseNumber: "",
+          postalCode: "",
+          city: "",
+        },
+      };
+    }
+    if (!updated.addresses.residentialAddress) {
+      updated.addresses.residentialAddress = {
+        street: "",
+        houseNumber: "",
+        postalCode: "",
+        city: "",
+      };
+    }
+    if (!updated.addresses.residentialAddress.street?.trim()) {
+      updated.addresses.residentialAddress.street = "Testowa";
+    }
+    if (!updated.addresses.residentialAddress.houseNumber?.trim()) {
+      updated.addresses.residentialAddress.houseNumber = "1";
+    }
+    if (!updated.addresses.residentialAddress.postalCode?.trim()) {
+      updated.addresses.residentialAddress.postalCode = "00-001";
+    }
+    if (!updated.addresses.residentialAddress.city?.trim()) {
+      updated.addresses.residentialAddress.city = "Warszawa";
+    }
+
+    if (!updated.addresses.businessAddress) {
+      updated.addresses.businessAddress = {
+        street: "",
+        houseNumber: "",
+        postalCode: "",
+        city: "",
+      };
+    }
+    if (!updated.addresses.businessAddress.street?.trim()) {
+      updated.addresses.businessAddress.street = "Biznesowa";
+    }
+    if (!updated.addresses.businessAddress.houseNumber?.trim()) {
+      updated.addresses.businessAddress.houseNumber = "10";
+    }
+    if (!updated.addresses.businessAddress.postalCode?.trim()) {
+      updated.addresses.businessAddress.postalCode = "00-002";
+    }
+    if (!updated.addresses.businessAddress.city?.trim()) {
+      updated.addresses.businessAddress.city = "Warszawa";
+    }
+
+    // Fill business data if missing
+    if (!updated.businessData) {
+      updated.businessData = {
+        nip: "",
+        regon: "",
+        pkdCode: "",
+        businessScope: "",
+      };
+    }
+    if (!updated.businessData.nip?.trim()) {
+      updated.businessData.nip = "1234567890";
+    }
+    if (!updated.businessData.regon?.trim()) {
+      updated.businessData.regon = "123456789";
+    }
+    if (!updated.businessData.pkdCode?.trim()) {
+      updated.businessData.pkdCode = "43.21.Z";
+    }
+    if (!updated.businessData.businessScope?.trim()) {
+      updated.businessData.businessScope = "Roboty budowlane związane z budową obiektów inżynierskich";
+    }
+
+    // Fill accident data if missing
+    if (!updated.accidentData) {
+      updated.accidentData = {} as any;
+    }
+    const accidentData = updated.accidentData as any;
+    if (!accidentData.accidentDate?.trim()) {
+      accidentData.accidentDate = new Date().toISOString().split("T")[0];
+    }
+    if (!accidentData.accidentTime?.trim()) {
+      accidentData.accidentTime = "10:00";
+    }
+    if (!accidentData.accidentPlace?.trim()) {
+      accidentData.accidentPlace = "Plac budowy, ul. Testowa 1, Warszawa";
+    }
+    if (!accidentData.accidentPlaceDetails?.trim()) {
+      accidentData.accidentPlaceDetails = "Plac budowy, ul. Testowa 1, Warszawa";
+    }
+    if (!accidentData.detailedCircumstancesDescription?.trim()) {
+      accidentData.detailedCircumstancesDescription = "Podczas wykonywania czynności doszło do upadku z wysokości 2 metrów na betonowe podłoże.";
+    }
+    if (!accidentData.detailedCausesDescription?.trim()) {
+      accidentData.detailedCausesDescription = "Brak odpowiedniego zabezpieczenia stanowiska pracy, śliskie podłoże.";
+    }
+    if (!accidentData.plannedStartTime?.trim()) {
+      accidentData.plannedStartTime = "08:00";
+    }
+    if (!accidentData.plannedEndTime?.trim()) {
+      accidentData.plannedEndTime = "16:00";
+    }
+    if (!accidentData.workRelation?.description?.trim()) {
+      if (!accidentData.workRelation) {
+        accidentData.workRelation = {};
+      }
+      accidentData.workRelation.description = "Wykonywanie prac budowlanych na wysokości";
+    }
+
+    return updated;
+  };
+
   // Load analysis result from sessionStorage and map to form data
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -308,6 +483,12 @@ function AnalysisPageContent() {
 
             if (Object.keys(mappedData).length > 0) {
               setFormData(mappedData);
+              
+              // Automatically fill missing fields with test data after loading
+              // Use setTimeout to ensure state is updated first
+              setTimeout(() => {
+                setFormData((prev) => fillMissingFields(prev));
+              }, 100);
             }
           }
         }
@@ -454,6 +635,67 @@ function AnalysisPageContent() {
       current[path[path.length - 1]] = value;
       return newData;
     });
+  };
+
+  // Function to fill missing fields with test data
+  const fillMissingFieldsWithTestData = () => {
+    // Count filled fields before showing alert
+    let filledCount = 0;
+    
+    // First, check what needs to be filled
+    const prev = formData;
+    
+    // Count personal data fields that need filling
+    if (!prev.personalData?.firstName?.trim()) filledCount++;
+    if (!prev.personalData?.lastName?.trim()) filledCount++;
+    if (!prev.personalData?.pesel?.trim()) filledCount++;
+    if (!prev.personalData?.dateOfBirth?.trim()) filledCount++;
+    if (!prev.personalData?.placeOfBirth?.trim()) filledCount++;
+    if (!prev.personalData?.phone?.trim()) filledCount++;
+    if (!prev.personalData?.idDocument) {
+      filledCount += 3;
+    } else {
+      if (!prev.personalData.idDocument.type) filledCount++;
+      if (!prev.personalData.idDocument.number) filledCount++;
+      if (!prev.personalData.idDocument.series) filledCount++;
+    }
+    
+    // Count address fields
+    if (!prev.addresses?.residentialAddress?.street?.trim()) filledCount++;
+    if (!prev.addresses?.residentialAddress?.houseNumber?.trim()) filledCount++;
+    if (!prev.addresses?.residentialAddress?.postalCode?.trim()) filledCount++;
+    if (!prev.addresses?.residentialAddress?.city?.trim()) filledCount++;
+    if (!prev.addresses?.businessAddress?.street?.trim()) filledCount++;
+    if (!prev.addresses?.businessAddress?.houseNumber?.trim()) filledCount++;
+    if (!prev.addresses?.businessAddress?.postalCode?.trim()) filledCount++;
+    if (!prev.addresses?.businessAddress?.city?.trim()) filledCount++;
+    
+    // Count business data fields
+    if (!prev.businessData?.nip?.trim()) filledCount++;
+    if (!prev.businessData?.regon?.trim()) filledCount++;
+    if (!prev.businessData?.pkdCode?.trim()) filledCount++;
+    if (!prev.businessData?.businessScope?.trim()) filledCount++;
+    
+    // Count accident data fields
+    if (!prev.accidentData?.accidentDate?.trim()) filledCount++;
+    if (!prev.accidentData?.accidentTime?.trim()) filledCount++;
+    if (!prev.accidentData?.accidentPlace?.trim()) filledCount++;
+    if (!prev.accidentData?.accidentPlaceDetails?.trim()) filledCount++;
+    if (!prev.accidentData?.detailedCircumstancesDescription?.trim()) filledCount++;
+    if (!prev.accidentData?.detailedCausesDescription?.trim()) filledCount++;
+    if (!prev.accidentData?.plannedStartTime?.trim()) filledCount++;
+    if (!prev.accidentData?.plannedEndTime?.trim()) filledCount++;
+    if (!(prev.accidentData?.workRelation as any)?.description?.trim()) filledCount++;
+    
+    // Now update the form data using helper function
+    setFormData((prev) => fillMissingFields(prev));
+
+    // Show alert after state update
+    if (filledCount > 0) {
+      alert(`✅ Uzupełniono ${filledCount} pustych pól testowymi danymi.\n\nProszę sprawdzić i zweryfikować wszystkie pola przed przejściem dalej.`);
+    } else {
+      alert("ℹ️ Wszystkie pola są już wypełnione. Nie ma czego uzupełniać.");
+    }
   };
 
   const fetchCEIDGData = async () => {
@@ -736,80 +978,7 @@ function AnalysisPageContent() {
                 <div className="flex justify-end mb-4">
                   <button
                     type="button"
-                    onClick={() => {
-                      // Fill test data for personal data
-                      updateFormData(["personalData", "firstName"], "Anna");
-                      updateFormData(["personalData", "lastName"], "Nowak");
-                      updateFormData(["personalData", "pesel"], "90010112345");
-                      updateFormData(
-                        ["personalData", "dateOfBirth"],
-                        "1990-01-01"
-                      );
-                      updateFormData(
-                        ["personalData", "placeOfBirth"],
-                        "Kraków"
-                      );
-                      updateFormData(
-                        ["personalData", "phone"],
-                        "+48 987 654 321"
-                      );
-
-                      // Fill test data for residential address
-                      updateFormData(
-                        ["addresses", "residentialAddress", "street"],
-                        "Testowa"
-                      );
-                      updateFormData(
-                        ["addresses", "residentialAddress", "houseNumber"],
-                        "10"
-                      );
-                      updateFormData(
-                        ["addresses", "residentialAddress", "apartmentNumber"],
-                        "5"
-                      );
-                      updateFormData(
-                        ["addresses", "residentialAddress", "postalCode"],
-                        "00-001"
-                      );
-                      updateFormData(
-                        ["addresses", "residentialAddress", "city"],
-                        "Warszawa"
-                      );
-                      updateFormData(
-                        ["addresses", "residentialAddress", "country"],
-                        "Polska"
-                      );
-
-                      // Fill test data for correspondence address (same as residential)
-                      updateFormData(
-                        ["addresses", "correspondenceAddress", "street"],
-                        "Testowa"
-                      );
-                      updateFormData(
-                        ["addresses", "correspondenceAddress", "houseNumber"],
-                        "10"
-                      );
-                      updateFormData(
-                        [
-                          "addresses",
-                          "correspondenceAddress",
-                          "apartmentNumber",
-                        ],
-                        "5"
-                      );
-                      updateFormData(
-                        ["addresses", "correspondenceAddress", "postalCode"],
-                        "00-001"
-                      );
-                      updateFormData(
-                        ["addresses", "correspondenceAddress", "city"],
-                        "Warszawa"
-                      );
-                      updateFormData(
-                        ["addresses", "correspondenceAddress", "country"],
-                        "Polska"
-                      );
-                    }}
+                    onClick={fillMissingFieldsWithTestData}
                     className="px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-2"
                   >
                     <svg
@@ -825,7 +994,7 @@ function AnalysisPageContent() {
                         d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
                       />
                     </svg>
-                    Wprowadź dane testowe
+                    Uzupełnij wszystkie puste pola
                   </button>
                 </div>
 
