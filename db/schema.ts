@@ -19,12 +19,11 @@ export const addressesTable = pgTable("addresses", {
 });
 
 export const subjectsTable = pgTable("subjects", {
-  id: uuid("id").primaryKey(),
+  id: text("id").primaryKey(), // pesel,
   name: text("name").notNull(),
   surname: text("surname").notNull(),
   nip: text("nip"),
   regon: text("regon"),
-  pesel: text("pesel").notNull(),
   documentId: text("documentId").notNull(),
   documentType: text("documentType").notNull(),
   mainAddressId: uuid("mainAddressId").references(() => addressesTable.id),
@@ -54,7 +53,7 @@ export const caseStatuses = pgEnum("caseStatuses", [
 export const fileTable = pgTable("files", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
-  data: bytea("data").notNull(),
+  data: jsonb("data"),
 
   createdAt: timestamp("createdAt").notNull().defaultNow(),
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),
@@ -65,7 +64,7 @@ export type NewFile = typeof fileTable.$inferInsert;
 
 export const casesTable = pgTable("cases", {
   id: uuid("id").primaryKey(),
-  subjectId: uuid("subjectId").references(() => subjectsTable.id),
+  subjectId: uuid("subjectId"),
   status: caseStatuses("status").notNull().default("PENDING"),
   createdAt: timestamp("createdAt").notNull().defaultNow(),
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),

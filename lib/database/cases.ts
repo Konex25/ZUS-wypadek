@@ -19,7 +19,6 @@ export const getCases = async () => {
       id: row.subjects.id,
       name: row.subjects.name,
       surname: row.subjects.surname,
-      pesel: row.subjects.pesel,
     },
   }));
 };
@@ -58,7 +57,6 @@ export const getCaseById = async (id: string) => {
       id: result.subjects.id,
       name: result.subjects.name,
       surname: result.subjects.surname,
-      pesel: result.subjects.pesel,
     },
   };
 };

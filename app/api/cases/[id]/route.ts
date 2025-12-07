@@ -1,4 +1,4 @@
-import { getCaseById } from "@/lib/db/cases";
+import { getCaseById } from "@/lib/database/cases";
 import { NextResponse } from "next/server";
 
 interface RouteContext {
@@ -7,7 +7,7 @@ interface RouteContext {
   };
 }
 
-export async function GET(request: Request, context: RouteContext) {
+export async function GET(_: Request, context: RouteContext) {
   const { id } = context.params;
 
   const caseData = await getCaseById(id);

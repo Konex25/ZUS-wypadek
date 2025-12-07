@@ -5,22 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1765061332673,
-      "tag": "0000_parallel_dormammu",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1765063225049,
-      "tag": "0001_secret_xavin",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1765063665996,
-      "tag": "0002_misty_landau",
+      "when": 1765069143792,
+      "tag": "0000_brown_xavin",
       "breakpoints": true
     }
   ]
