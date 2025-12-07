@@ -142,11 +142,11 @@ function AnalysisPageContent() {
                   postalCode: "",
                   city: "",
                 };
-            
+
             const correspondenceAddr = mergedData.correspondenceAddress
-              ? (typeof mergedData.correspondenceAddress === "string"
-                  ? parseAddressString(mergedData.correspondenceAddress)
-                  : mergedData.correspondenceAddress)
+              ? typeof mergedData.correspondenceAddress === "string"
+                ? parseAddressString(mergedData.correspondenceAddress)
+                : mergedData.correspondenceAddress
               : residentialAddr; // Use residential address as default for correspondence
 
             if (
@@ -808,6 +808,26 @@ function AnalysisPageContent() {
                       updateFormData(
                         ["addresses", "correspondenceAddress", "country"],
                         "Polska"
+                      );
+                      updateFormData(
+                        ["addresses", "businessAddress", "street"],
+                        "Testowa"
+                      );
+                      updateFormData(
+                        ["addresses", "businessAddress", "city"],
+                        "Warszawa"
+                      );
+                      updateFormData(
+                        ["addresses", "businessAddress", "houseNumber"],
+                        "10"
+                      );
+                      updateFormData(
+                        ["addresses", "businessAddress", "apartmentNumber"],
+                        "5"
+                      );
+                      updateFormData(
+                        ["addresses", "businessAddress", "postalCode"],
+                        "00-001"
                       );
                     }}
                     className="px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-2"
