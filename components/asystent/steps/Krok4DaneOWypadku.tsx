@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { daneWypadkuSchema, DaneWypadkuForm } from "@/lib/validation/schemas";
@@ -38,6 +38,44 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
     currentValue: string;
     fieldType?: "textarea" | "input" | "select";
   } | null>(null);
+  const blurTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const clickedInChatbotRef = useRef<boolean>(false);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (blurTimeoutRef.current) {
+        clearTimeout(blurTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Sprawdź, czy kliknięcie było w chatbocie
+  useEffect(() => {
+    const handleMouseDown = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (target && target.closest('.fixed.bottom-24')) {
+        // Jeśli kliknięto w chatbota, ustaw flagę
+        clickedInChatbotRef.current = true;
+        // Anuluj timeout blur
+        if (blurTimeoutRef.current) {
+          clearTimeout(blurTimeoutRef.current);
+          blurTimeoutRef.current = null;
+        }
+        // Reset flagi po krótkim czasie
+        setTimeout(() => {
+          clickedInChatbotRef.current = false;
+        }, 100);
+      } else {
+        clickedInChatbotRef.current = false;
+      }
+    };
+
+    document.addEventListener('mousedown', handleMouseDown, true);
+    return () => {
+      document.removeEventListener('mousedown', handleMouseDown, true);
+    };
+  }, []);
 
   const {
     register,
@@ -161,7 +199,7 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 relative">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 relative" style={{ zIndex: 1, position: 'relative' }}>
       <Chatbot
         fieldContext={activeField || undefined}
         onSuggestion={handleSuggestion}
@@ -255,16 +293,37 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
                 rows={5}
                 required
                 placeholder="Opisz dokładnie, co się stało i w jakich okolicznościach doszło do wypadku..."
-                onFocus={() =>
+                onFocus={() => {
+                  // Anuluj poprzedni timeout, jeśli istnieje
+                  if (blurTimeoutRef.current) {
+                    clearTimeout(blurTimeoutRef.current);
+                    blurTimeoutRef.current = null;
+                  }
                   setActiveField({
                     fieldName: "szczegolowyOpisOkolicznosci",
                     fieldLabel: "Szczegółowy opis okoliczności wypadku",
                     currentValue: watch("szczegolowyOpisOkolicznosci") || "",
                     fieldType: "textarea",
-                  })
-                }
+                  });
+                }}
                 {...register("szczegolowyOpisOkolicznosci", {
-                  onBlur: () => setActiveField(null)
+                  onBlur: (e) => {
+                    // Sprawdź, czy kliknięcie było w chatbocie
+                    if (clickedInChatbotRef.current) {
+                      // Jeśli kliknięto w chatbota, nie resetuj activeField
+                      if (blurTimeoutRef.current) {
+                        clearTimeout(blurTimeoutRef.current);
+                        blurTimeoutRef.current = null;
+                      }
+                      return;
+                    }
+                    // Opóźnij resetowanie activeField, aby umożliwić kliknięcie w chatbota
+                    blurTimeoutRef.current = setTimeout(() => {
+                      if (!clickedInChatbotRef.current) {
+                        setActiveField(null);
+                      }
+                    }, 500);
+                  }
                 })}
               />
               {errors.szczegolowyOpisOkolicznosci && (
@@ -284,16 +343,37 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
                 rows={5}
                 required
                 placeholder="Opisz przyczyny, które doprowadziły do wypadku..."
-                onFocus={() =>
+                onFocus={() => {
+                  // Anuluj poprzedni timeout, jeśli istnieje
+                  if (blurTimeoutRef.current) {
+                    clearTimeout(blurTimeoutRef.current);
+                    blurTimeoutRef.current = null;
+                  }
                   setActiveField({
                     fieldName: "szczegolowyOpisPrzyczyn",
                     fieldLabel: "Szczegółowy opis przyczyn wypadku",
                     currentValue: watch("szczegolowyOpisPrzyczyn") || "",
                     fieldType: "textarea",
-                  })
-                }
+                  });
+                }}
                 {...register("szczegolowyOpisPrzyczyn", {
-                  onBlur: () => setActiveField(null)
+                  onBlur: (e) => {
+                    // Sprawdź, czy kliknięcie było w chatbocie
+                    if (clickedInChatbotRef.current) {
+                      // Jeśli kliknięto w chatbota, nie resetuj activeField
+                      if (blurTimeoutRef.current) {
+                        clearTimeout(blurTimeoutRef.current);
+                        blurTimeoutRef.current = null;
+                      }
+                      return;
+                    }
+                    // Opóźnij resetowanie activeField, aby umożliwić kliknięcie w chatbota
+                    blurTimeoutRef.current = setTimeout(() => {
+                      if (!clickedInChatbotRef.current) {
+                        setActiveField(null);
+                      }
+                    }, 500);
+                  }
                 })}
               />
               {errors.szczegolowyOpisPrzyczyn && (
@@ -331,16 +411,37 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
                   rows={3}
                   required
                   placeholder="Opisz, czy zdarzenie było nagłe (np. wybuch, upadek, zderzenie)..."
-                  onFocus={() =>
+                  onFocus={() => {
+                    // Anuluj poprzedni timeout, jeśli istnieje
+                    if (blurTimeoutRef.current) {
+                      clearTimeout(blurTimeoutRef.current);
+                      blurTimeoutRef.current = null;
+                    }
                     setActiveField({
                       fieldName: "naglosc.opis",
                       fieldLabel: "Opis nagłości zdarzenia",
                       currentValue: watch("naglosc.opis") || "",
                       fieldType: "textarea",
-                    })
-                  }
+                    });
+                  }}
                   {...register("naglosc.opis", {
-                    onBlur: () => setActiveField(null)
+                    onBlur: (e) => {
+                      // Sprawdź, czy kliknięcie było w chatbocie
+                      if (clickedInChatbotRef.current) {
+                        // Jeśli kliknięto w chatbota, nie resetuj activeField
+                        if (blurTimeoutRef.current) {
+                          clearTimeout(blurTimeoutRef.current);
+                          blurTimeoutRef.current = null;
+                        }
+                        return;
+                      }
+                      // Opóźnij resetowanie activeField, aby umożliwić kliknięcie w chatbota
+                      blurTimeoutRef.current = setTimeout(() => {
+                        if (!clickedInChatbotRef.current) {
+                          setActiveField(null);
+                        }
+                      }, 300);
+                    }
                   })}
                 />
                 {errors.naglosc?.opis && (
@@ -392,16 +493,37 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
                     rows={3}
                     required
                     placeholder="Opisz, jaki czynnik zewnętrzny spowodował uraz..."
-                    onFocus={() =>
+                    onFocus={() => {
+                      // Anuluj poprzedni timeout, jeśli istnieje
+                      if (blurTimeoutRef.current) {
+                        clearTimeout(blurTimeoutRef.current);
+                        blurTimeoutRef.current = null;
+                      }
                       setActiveField({
                         fieldName: "przyczynaZewnetrzna.opis",
                         fieldLabel: "Opis przyczyny zewnętrznej",
                         currentValue: watch("przyczynaZewnetrzna.opis") || "",
                         fieldType: "textarea",
-                      })
-                    }
+                      });
+                    }}
                     {...register("przyczynaZewnetrzna.opis", {
-                      onBlur: () => setActiveField(null)
+                      onBlur: (e) => {
+                        // Sprawdź, czy kliknięcie było w chatbocie
+                        if (clickedInChatbotRef.current) {
+                          // Jeśli kliknięto w chatbota, nie resetuj activeField
+                          if (blurTimeoutRef.current) {
+                            clearTimeout(blurTimeoutRef.current);
+                            blurTimeoutRef.current = null;
+                          }
+                          return;
+                        }
+                        // Opóźnij resetowanie activeField, aby umożliwić kliknięcie w chatbota
+                        blurTimeoutRef.current = setTimeout(() => {
+                          if (!clickedInChatbotRef.current) {
+                            setActiveField(null);
+                          }
+                        }, 300);
+                      }
                     })}
                   />
                   {errors.przyczynaZewnetrzna?.opis && (
@@ -490,16 +612,37 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
                     rows={3}
                     required
                     placeholder="Opisz, jak wypadek wiąże się z wykonywaną pracą..."
-                    onFocus={() =>
+                    onFocus={() => {
+                      // Anuluj poprzedni timeout, jeśli istnieje
+                      if (blurTimeoutRef.current) {
+                        clearTimeout(blurTimeoutRef.current);
+                        blurTimeoutRef.current = null;
+                      }
                       setActiveField({
                         fieldName: "zwiazekZPraca.opis",
                         fieldLabel: "Opis związku z pracą",
                         currentValue: watch("zwiazekZPraca.opis") || "",
                         fieldType: "textarea",
-                      })
-                    }
+                      });
+                    }}
                     {...register("zwiazekZPraca.opis", {
-                      onBlur: () => setActiveField(null)
+                      onBlur: (e) => {
+                        // Sprawdź, czy kliknięcie było w chatbocie
+                        if (clickedInChatbotRef.current) {
+                          // Jeśli kliknięto w chatbota, nie resetuj activeField
+                          if (blurTimeoutRef.current) {
+                            clearTimeout(blurTimeoutRef.current);
+                            blurTimeoutRef.current = null;
+                          }
+                          return;
+                        }
+                        // Opóźnij resetowanie activeField, aby umożliwić kliknięcie w chatbota
+                        blurTimeoutRef.current = setTimeout(() => {
+                          if (!clickedInChatbotRef.current) {
+                            setActiveField(null);
+                          }
+                        }, 300);
+                      }
                     })}
                   />
                   {errors.zwiazekZPraca?.opis && (
