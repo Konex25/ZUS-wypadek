@@ -2,13 +2,13 @@ import { getCaseById } from "@/lib/database/cases";
 import { NextResponse } from "next/server";
 
 interface RouteContext {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export async function GET(_: Request, context: RouteContext) {
-  const { id } = context.params;
+  const { id } = await context.params;
 
   const caseData = await getCaseById(id);
 

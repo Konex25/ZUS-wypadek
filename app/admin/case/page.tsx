@@ -116,6 +116,11 @@ function CasePageContent() {
       // Save analysis result to sessionStorage for the form
       if (result) {
         sessionStorage.setItem("analysisResult", JSON.stringify(result));
+        // Clear previous data when creating a new case
+        sessionStorage.removeItem("documentDifferences");
+        sessionStorage.removeItem("legalQualification");
+        sessionStorage.removeItem("opinionData");
+        sessionStorage.removeItem("currentCaseId");
         // Redirect to analysis page
         router.push("/admin/analysis");
       } else {

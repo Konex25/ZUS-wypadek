@@ -3,10 +3,11 @@ import { database } from "./database";
 import { eq } from "drizzle-orm";
 
 export const getCases = async () => {
+  // Use leftJoin instead of innerJoin to include cases even if subject is missing
   const result = await database
     .select()
     .from(casesTable)
-    .innerJoin(subjectsTable, eq(casesTable.subjectId, subjectsTable.id))
+    .leftJoin(subjectsTable, eq(casesTable.subjectId, subjectsTable.id))
     .execute();
 
   return result.map((row) => ({
@@ -15,11 +16,14 @@ export const getCases = async () => {
     updatedAt: row.cases.updatedAt,
     status: row.cases.status,
     resolvedAt: row.cases.resolvedAt,
-    subject: {
-      id: row.subjects.id,
-      name: row.subjects.name,
-      surname: row.subjects.surname,
-    },
+    fileIds: row.cases.fileIds,
+    subject: row.subjects
+      ? {
+          id: row.subjects.id,
+          name: row.subjects.name,
+          surname: row.subjects.surname,
+        }
+      : null,
   }));
 };
 
@@ -27,7 +31,7 @@ export const getCaseById = async (id: string) => {
   const results = await database
     .select()
     .from(casesTable)
-    .innerJoin(subjectsTable, eq(casesTable.subjectId, subjectsTable.id))
+    .leftJoin(subjectsTable, eq(casesTable.subjectId, subjectsTable.id))
     .where(eq(casesTable.id, id))
     .execute();
 
@@ -36,13 +40,15 @@ export const getCaseById = async (id: string) => {
     return undefined;
   }
 
-  const mainAddress = await getAddressById(result.subjects.mainAddressId);
-  const correspondenceAddress = await getAddressById(
-    result.subjects.correspondenceAddressId
-  );
-  const businessAddress = await getAddressById(
-    result.subjects.businessAddressId
-  );
+  const mainAddress = result.subjects
+    ? await getAddressById(result.subjects.mainAddressId)
+    : undefined;
+  const correspondenceAddress = result.subjects
+    ? await getAddressById(result.subjects.correspondenceAddressId)
+    : undefined;
+  const businessAddress = result.subjects
+    ? await getAddressById(result.subjects.businessAddressId)
+    : undefined;
 
   return {
     id: result.cases.id,
@@ -53,11 +59,19 @@ export const getCaseById = async (id: string) => {
     updatedAt: result.cases.updatedAt,
     status: result.cases.status,
     resolvedAt: result.cases.resolvedAt,
-    subject: {
-      id: result.subjects.id,
-      name: result.subjects.name,
-      surname: result.subjects.surname,
-    },
+    fileIds: result.cases.fileIds,
+    aiResponse: result.cases.aiResponse,
+    aiDecision: result.cases.aiDecision,
+    aiJustifications: result.cases.aiJustifications,
+    workerJustifications: result.cases.workerJustifications,
+    finalDecision: result.cases.finalDecision,
+    subject: result.subjects
+      ? {
+          id: result.subjects.id,
+          name: result.subjects.name,
+          surname: result.subjects.surname,
+        }
+      : null,
   };
 };
 
