@@ -17,9 +17,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pl">
-      <body className="antialiased">
+      <body className="antialiased flex flex-col min-h-screen">
         <TopBar />
-        <main id="main-content" className="min-h-screen">{children}</main>
+        <main id="main-content" className="flex-1">{children}</main>
         <Footer />
         <Analytics />
         <SpeedInsights />

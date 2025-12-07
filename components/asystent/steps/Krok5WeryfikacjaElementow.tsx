@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { AccidentData } from "@/types";
@@ -35,6 +35,8 @@ export const Krok5WeryfikacjaElementow: React.FC<Krok5WeryfikacjaElementowProps>
       injury: ElementStatus;
       workRelation: ElementStatus;
     } | null>(null);
+    const [isVerifying, setIsVerifying] = useState(false);
+    const [hasVerified, setHasVerified] = useState(false);
 
     // Funkcja wywołująca API weryfikacji kompatybilności
     const checkCompatibility = async (
@@ -62,85 +64,84 @@ export const Krok5WeryfikacjaElementow: React.FC<Krok5WeryfikacjaElementowProps>
       }
     };
 
-    // Efekt do weryfikacji kompatybilności przy załadowaniu komponentu
-    useEffect(() => {
+    // Funkcje generujące pytania i odpowiedzi dla każdego elementu
+    const getSuddennessQuestion = () =>
+      "Czy zdarzenie było nagłe (natychmiastowe lub trwające maksymalnie 1 dzień) zgodnie z definicją wypadku przy pracy z art. 3 ustawy o ubezpieczeniu społecznym z tytułu wypadków przy pracy i chorób zawodowych?";
+
+    const getSuddennessAnswer = () => {
+      if (!accidentData?.suddenness) return "";
+      return `Nagłość zdarzenia: ${
+        accidentData.suddenness.confirmed
+          ? "potwierdzona"
+          : "nie potwierdzona"
+      }. ${accidentData.suddenness.description || ""}${
+        accidentData.suddenness.duration
+          ? ` Czas trwania: ${accidentData.suddenness.duration}.`
+          : ""
+      }`;
+    };
+
+    const getExternalCauseQuestion = () =>
+      "Czy uraz został spowodowany przez przyczynę zewnętrzną (maszyny, energia, temperatura, chemikalia, siły natury, warunki pracy) zgodnie z definicją wypadku przy pracy?";
+
+    const getExternalCauseAnswer = () => {
+      if (!accidentData?.externalCause) return "";
+      const typeMap: Record<string, string> = {
+        maszyny: "maszyny",
+        energia: "energia",
+        temperatura: "temperatura",
+        chemikalia: "chemikalia",
+        sily_natury: "siły natury",
+        warunki_pracy: "warunki pracy",
+        inne: "inne",
+      };
+      const typeText =
+        typeMap[accidentData.externalCause.type] ||
+        accidentData.externalCause.type ||
+        "nie określono";
+      return `Przyczyna zewnętrzna: ${
+        accidentData.externalCause.confirmed
+          ? "potwierdzona"
+          : "nie potwierdzona"
+      }. Typ: ${typeText}. ${accidentData.externalCause.description || ""}`;
+    };
+
+    const getInjuryQuestion = () =>
+      "Czy doszło do urazu (uszkodzenia tkanek ciała lub narządów wskutek działania czynnika zewnętrznego) z potwierdzeniem dokumentacji medycznej zgodnie z definicją wypadku przy pracy?";
+
+    const getInjuryAnswer = () => {
+      if (!accidentData?.injury) return "";
+      return `Uraz: ${
+        accidentData.injury.confirmed ? "potwierdzony" : "nie potwierdzony"
+      }. Rodzaj: ${
+        accidentData.injury.type || "nie określono"
+      }. Lokalizacja: ${
+        accidentData.injury.location || "nie określono"
+      }. Dokumentacja medyczna: ${
+        accidentData.injury.medicalDocumentation ? "tak" : "nie"
+      }.`;
+    };
+
+    const getWorkRelationQuestion = () =>
+      "Czy wypadek ma związek z pracą w zakresie: związku przyczynowego, związku czasowego (w okresie ubezpieczenia), związku miejscowego i związku funkcjonalnego (zwykłe czynności związane z działalnością) zgodnie z definicją wypadku przy pracy?";
+
+    const getWorkRelationAnswer = () => {
+      if (!accidentData?.workRelation) return "";
+      return `Związek z pracą: przyczynowy: ${
+        accidentData.workRelation.causal ? "tak" : "nie"
+      }, czasowy (w okresie ubezpieczenia): ${
+        accidentData.workRelation.temporal ? "tak" : "nie"
+      }, miejscowy: ${
+        accidentData.workRelation.spatial ? "tak" : "nie"
+      }, funkcjonalny (zwykłe czynności): ${
+        accidentData.workRelation.functional ? "tak" : "nie"
+      }. ${accidentData.workRelation.description || ""}`;
+    };
+
+    const verifyAllElements = async () => {
       if (!accidentData) return;
-
-      // Funkcje generujące pytania i odpowiedzi dla każdego elementu
-      const getSuddennessQuestion = () =>
-        "Czy zdarzenie było nagłe (natychmiastowe lub trwające maksymalnie 1 dzień) zgodnie z definicją wypadku przy pracy z art. 3 ustawy o ubezpieczeniu społecznym z tytułu wypadków przy pracy i chorób zawodowych?";
-
-      const getSuddennessAnswer = () => {
-        if (!accidentData?.suddenness) return "";
-        return `Nagłość zdarzenia: ${
-          accidentData.suddenness.confirmed
-            ? "potwierdzona"
-            : "nie potwierdzona"
-        }. ${accidentData.suddenness.description || ""}${
-          accidentData.suddenness.duration
-            ? ` Czas trwania: ${accidentData.suddenness.duration}.`
-            : ""
-        }`;
-      };
-
-      const getExternalCauseQuestion = () =>
-        "Czy uraz został spowodowany przez przyczynę zewnętrzną (maszyny, energia, temperatura, chemikalia, siły natury, warunki pracy) zgodnie z definicją wypadku przy pracy?";
-
-      const getExternalCauseAnswer = () => {
-        if (!accidentData?.externalCause) return "";
-        const typeMap: Record<string, string> = {
-          maszyny: "maszyny",
-          energia: "energia",
-          temperatura: "temperatura",
-          chemikalia: "chemikalia",
-          sily_natury: "siły natury",
-          warunki_pracy: "warunki pracy",
-          inne: "inne",
-        };
-        const typeText =
-          typeMap[accidentData.externalCause.type] ||
-          accidentData.externalCause.type ||
-          "nie określono";
-        return `Przyczyna zewnętrzna: ${
-          accidentData.externalCause.confirmed
-            ? "potwierdzona"
-            : "nie potwierdzona"
-        }. Typ: ${typeText}. ${accidentData.externalCause.description || ""}`;
-      };
-
-      const getInjuryQuestion = () =>
-        "Czy doszło do urazu (uszkodzenia tkanek ciała lub narządów wskutek działania czynnika zewnętrznego) z potwierdzeniem dokumentacji medycznej zgodnie z definicją wypadku przy pracy?";
-
-      const getInjuryAnswer = () => {
-        if (!accidentData?.injury) return "";
-        return `Uraz: ${
-          accidentData.injury.confirmed ? "potwierdzony" : "nie potwierdzony"
-        }. Rodzaj: ${
-          accidentData.injury.type || "nie określono"
-        }. Lokalizacja: ${
-          accidentData.injury.location || "nie określono"
-        }. Dokumentacja medyczna: ${
-          accidentData.injury.medicalDocumentation ? "tak" : "nie"
-        }.`;
-      };
-
-      const getWorkRelationQuestion = () =>
-        "Czy wypadek ma związek z pracą w zakresie: związku przyczynowego, związku czasowego (w okresie ubezpieczenia), związku miejscowego i związku funkcjonalnego (zwykłe czynności związane z działalnością) zgodnie z definicją wypadku przy pracy?";
-
-      const getWorkRelationAnswer = () => {
-        if (!accidentData?.workRelation) return "";
-        return `Związek z pracą: przyczynowy: ${
-          accidentData.workRelation.causal ? "tak" : "nie"
-        }, czasowy (w okresie ubezpieczenia): ${
-          accidentData.workRelation.temporal ? "tak" : "nie"
-        }, miejscowy: ${
-          accidentData.workRelation.spatial ? "tak" : "nie"
-        }, funkcjonalny (zwykłe czynności): ${
-          accidentData.workRelation.functional ? "tak" : "nie"
-        }. ${accidentData.workRelation.description || ""}`;
-      };
-
-      const verifyAllElements = async () => {
+      
+      setIsVerifying(true);
         // Inicjalizacja stanu z podstawową weryfikacją
         const initialVerification = {
           suddenness: {
@@ -379,10 +380,10 @@ export const Krok5WeryfikacjaElementow: React.FC<Krok5WeryfikacjaElementowProps>
               : null
           );
         }
+        
+        setIsVerifying(false);
+        setHasVerified(true);
       };
-
-      verifyAllElements();
-    }, [accidentData]);
 
     // Funkcja weryfikująca elementy definicji (z podstawową logiką + wyniki z API)
     const verification = useMemo<{
@@ -573,6 +574,7 @@ export const Krok5WeryfikacjaElementow: React.FC<Krok5WeryfikacjaElementowProps>
           injuryStatus.warnings.length > 0 ||
           workRelationStatus.warnings.length > 0;
 
+        // Po weryfikacji AI można pokazać pełny status
         const overallStatus: "complete" | "incomplete" | "needs_attention" =
           allFulfilled && !hasWarnings
             ? "complete"
@@ -600,7 +602,7 @@ export const Krok5WeryfikacjaElementow: React.FC<Krok5WeryfikacjaElementowProps>
         confidence: suddenness?.confirmed ? 90 : 0,
         warnings: [],
         details: suddenness?.description || "",
-        isLoading: true,
+        isLoading: false, // Nie pokazuj stanu ładowania przed weryfikacją AI
       };
       if (!suddenness?.confirmed) {
         suddennessStatus.warnings.push(
@@ -619,7 +621,7 @@ export const Krok5WeryfikacjaElementow: React.FC<Krok5WeryfikacjaElementowProps>
         confidence: externalCause?.confirmed ? 85 : 0,
         warnings: [],
         details: externalCause?.description || "",
-        isLoading: true,
+        isLoading: false, // Nie pokazuj stanu ładowania przed weryfikacją AI
       };
       if (!externalCause?.confirmed) {
         externalCauseStatus.warnings.push(
@@ -646,7 +648,7 @@ export const Krok5WeryfikacjaElementow: React.FC<Krok5WeryfikacjaElementowProps>
         confidence: injury?.confirmed ? 95 : 0,
         warnings: [],
         details: `${injury?.type || ""} - ${injury?.location || ""}`,
-        isLoading: true,
+        isLoading: false, // Nie pokazuj stanu ładowania przed weryfikacją AI
       };
       if (!injury?.confirmed) {
         injuryStatus.warnings.push("Uraz nie został potwierdzony");
@@ -679,7 +681,7 @@ export const Krok5WeryfikacjaElementow: React.FC<Krok5WeryfikacjaElementowProps>
           (workRelation?.functional ? 25 : 0),
         warnings: [],
         details: workRelation?.description || "",
-        isLoading: true,
+        isLoading: false, // Nie pokazuj stanu ładowania przed weryfikacją AI
       };
       if (!workRelation?.causal) {
         workRelationStatus.warnings.push(
@@ -708,6 +710,7 @@ export const Krok5WeryfikacjaElementow: React.FC<Krok5WeryfikacjaElementowProps>
       }
 
       // Określenie ogólnego statusu
+      // Przed weryfikacją AI zawsze pokazuj "incomplete" lub "needs_attention", nigdy "complete"
       const allFulfilled =
         suddennessStatus.fulfilled &&
         externalCauseStatus.fulfilled &&
@@ -720,8 +723,13 @@ export const Krok5WeryfikacjaElementow: React.FC<Krok5WeryfikacjaElementowProps>
         injuryStatus.warnings.length > 0 ||
         workRelationStatus.warnings.length > 0;
 
+      // Przed weryfikacją AI nie pokazuj statusu "complete"
       const overallStatus: "complete" | "incomplete" | "needs_attention" =
-        allFulfilled && !hasWarnings
+        !hasVerified
+          ? hasWarnings
+            ? "incomplete"
+            : "needs_attention" // Wymaga weryfikacji AI
+          : allFulfilled && !hasWarnings
           ? "complete"
           : allFulfilled && hasWarnings
           ? "needs_attention"
@@ -734,7 +742,7 @@ export const Krok5WeryfikacjaElementow: React.FC<Krok5WeryfikacjaElementowProps>
         workRelation: workRelationStatus,
         overallStatus,
       };
-    }, [accidentData, verificationState]);
+    }, [accidentData, verificationState, hasVerified]);
 
     const StatusIcon = ({ fulfilled }: { fulfilled: boolean }) => (
       <div
@@ -906,16 +914,90 @@ export const Krok5WeryfikacjaElementow: React.FC<Krok5WeryfikacjaElementowProps>
           <h2 className="text-3xl font-bold text-gray-900 mb-2">
             Weryfikacja elementów definicji wypadku
           </h2>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-gray-600 mb-4">
             Sprawdź, czy wszystkie wymagane elementy definicji wypadku przy
             pracy zostały spełnione
           </p>
+          {!hasVerified && (
+            <Button
+              variant="primary"
+              size="lg"
+              onClick={verifyAllElements}
+              disabled={isVerifying || !accidentData}
+              className="mb-4"
+            >
+              {isVerifying ? (
+                <>
+                  <svg
+                    className="animate-spin -ml-1 mr-3 h-5 w-5 inline-block"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    ></circle>
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    ></path>
+                  </svg>
+                  Weryfikacja w toku...
+                </>
+              ) : (
+                <>
+                  <svg
+                    className="w-5 h-5 mr-2 inline-block"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  Uruchom weryfikację AI
+                </>
+              )}
+            </Button>
+          )}
+          {hasVerified && !isVerifying && (
+            <div className="text-sm text-green-700 bg-green-50 rounded-lg p-3 inline-block mb-4">
+              <div className="flex items-center gap-2">
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <span>Weryfikacja AI została wykonana</span>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Ogólny status */}
         <Card
           className={`p-6 border-2 ${
-            verification.overallStatus === "complete"
+            !hasVerified
+              ? "border-blue-500 bg-blue-50"
+              : verification.overallStatus === "complete"
               ? "border-green-500 bg-green-50"
               : verification.overallStatus === "needs_attention"
               ? "border-yellow-500 bg-yellow-50"
@@ -925,14 +1007,30 @@ export const Krok5WeryfikacjaElementow: React.FC<Krok5WeryfikacjaElementowProps>
           <div className="flex items-center gap-4">
             <div
               className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                verification.overallStatus === "complete"
+                !hasVerified
+                  ? "bg-blue-500"
+                  : verification.overallStatus === "complete"
                   ? "bg-green-500"
                   : verification.overallStatus === "needs_attention"
                   ? "bg-yellow-500"
                   : "bg-red-500"
               }`}
             >
-              {verification.overallStatus === "complete" ? (
+              {!hasVerified ? (
+                <svg
+                  className="w-6 h-6 text-white"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M13 10V3L4 14h7v7l9-11h-7z"
+                  />
+                </svg>
+              ) : verification.overallStatus === "complete" ? (
                 <svg
                   className="w-6 h-6 text-white"
                   fill="none"
@@ -964,14 +1062,18 @@ export const Krok5WeryfikacjaElementow: React.FC<Krok5WeryfikacjaElementowProps>
             </div>
             <div>
               <h3 className="text-xl font-bold text-gray-900">
-                {verification.overallStatus === "complete"
+                {!hasVerified
+                  ? "Wymagana weryfikacja AI"
+                  : verification.overallStatus === "complete"
                   ? "Wszystkie elementy spełnione"
                   : verification.overallStatus === "needs_attention"
                   ? "Wymaga uwagi"
                   : "Niektóre elementy nie zostały spełnione"}
               </h3>
               <p className="text-gray-600">
-                {verification.overallStatus === "complete"
+                {!hasVerified
+                  ? "Kliknij przycisk 'Uruchom weryfikację AI', aby przeprowadzić szczegółową analizę zgodności wszystkich elementów definicji wypadku przy pracy."
+                  : verification.overallStatus === "complete"
                   ? "Twoje zgłoszenie zawiera wszystkie wymagane elementy definicji wypadku przy pracy."
                   : verification.overallStatus === "needs_attention"
                   ? "Zgłoszenie zawiera wszystkie elementy, ale niektóre wymagają doprecyzowania."

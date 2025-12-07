@@ -3,7 +3,7 @@ import Link from "next/link";
 export default function Home() {
   return (
     <div className="min-h-screen bg-white">
-      {/* Hero Section - Wirtualny Asystent */}
+      {/* Hero Section - Formularze ZUS */}
       <section className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-16 md:py-24">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
@@ -20,7 +20,7 @@ export default function Home() {
               </p>
             </div>
 
-            {/* Główna karta Wirtualnego Asystenta */}
+            {/* Główna karta Formularzy ZUS */}
             <div className="bg-white rounded-2xl shadow-2xl p-8 md:p-12 mb-12 border-2 border-blue-100">
               <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
                 <div className="flex-shrink-0">
@@ -42,7 +42,7 @@ export default function Home() {
                 </div>
                 <div className="flex-1 text-center md:text-left">
                   <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-                    Wirtualny Asystent
+                    Formularze ZUS
                   </h2>
                   <p className="text-lg text-gray-700 mb-6">
                     Pomoc w zgłoszeniu wypadku przy pracy. Asystent pomoże Ci

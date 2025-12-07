@@ -7,12 +7,12 @@ import { Button } from "@/components/ui/button";
 
 export default function AsystentPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="container mx-auto px-4 py-16">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">
-              Wirtualny Asystent
+              Formularze ZUS
             </h1>
             <p className="text-lg text-gray-600">
               Wybierz typ formularza, który chcesz wypełnić
@@ -21,8 +21,8 @@ export default function AsystentPage() {
 
           <div className="grid md:grid-cols-2 gap-6 mb-8">
             {/* Zawiadomienie o wypadku (EWYP) */}
-            <Card className="p-8 hover:shadow-lg transition-shadow">
-              <div className="flex items-start mb-4">
+            <Card className="p-8 hover:shadow-lg transition-shadow flex flex-col h-full">
+              <div className="flex items-start mb-4 flex-1">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-3">
                     <h2 className="text-2xl font-semibold text-gray-900">
@@ -56,7 +56,7 @@ export default function AsystentPage() {
                   </ul>
                 </div>
               </div>
-              <Link href="/asystent/ewyp" className="block">
+              <Link href="/asystent/ewyp" className="block mt-auto">
                 <Button variant="primary" size="lg" className="w-full">
                   Rozpocznij wypełnianie EWYP →
                 </Button>
@@ -64,8 +64,8 @@ export default function AsystentPage() {
             </Card>
 
             {/* Zapis wyjaśnień poszkodowanego */}
-            <Card className="p-8 hover:shadow-lg transition-shadow">
-              <div className="flex items-start mb-4">
+            <Card className="p-8 hover:shadow-lg transition-shadow flex flex-col h-full">
+              <div className="flex items-start mb-4 flex-1">
                 <div className="flex-1">
                   <h2 className="text-2xl font-semibold text-gray-900 mb-3">
                     Zapis wyjaśnień poszkodowanego
@@ -94,7 +94,7 @@ export default function AsystentPage() {
                   </ul>
                 </div>
               </div>
-              <Link href="/asystent/wyjasnienia" className="block">
+              <Link href="/asystent/wyjasnienia" className="block mt-auto">
                 <Button variant="primary" size="lg" className="w-full">
                   Rozpocznij wypełnianie wyjaśnień →
                 </Button>
