@@ -58,7 +58,7 @@ const analyzeAndCreateFile = async (file: File): Promise<NewFile> => {
     id: v4(),
     createdAt: new Date(),
     updatedAt: new Date(),
-    data: JSON.parse(response.output_text),
+    data: response.output_text,
     name: file.name,
   } satisfies NewFile;
 };

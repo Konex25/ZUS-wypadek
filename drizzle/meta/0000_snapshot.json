@@ -1,5 +1,5 @@
 {
-  "id": "b4fc970a-045b-410f-be7d-0c8e5441fd35",
+  "id": "17f5a4fd-fa5d-4ae6-9577-298f4681d07e",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -71,7 +71,7 @@
         },
         "subjectId": {
           "name": "subjectId",
-          "type": "uuid",
+          "type": "text",
           "primaryKey": false,
           "notNull": false
         },
@@ -141,7 +141,21 @@
         }
       },
       "indexes": {},
-      "foreignKeys": {},
+      "foreignKeys": {
+        "cases_subjectId_subjects_id_fk": {
+          "name": "cases_subjectId_subjects_id_fk",
+          "tableFrom": "cases",
+          "tableTo": "subjects",
+          "columnsFrom": [
+            "subjectId"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "no action",
+          "onUpdate": "no action"
+        }
+      },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {},
       "policies": {},

@@ -11,7 +11,7 @@ CREATE TABLE "addresses" (
 --> statement-breakpoint
 CREATE TABLE "cases" (
 	"id" uuid PRIMARY KEY NOT NULL,
-	"subjectId" uuid,
+	"subjectId" text,
 	"status" "caseStatuses" DEFAULT 'PENDING' NOT NULL,
 	"createdAt" timestamp DEFAULT now() NOT NULL,
 	"updatedAt" timestamp DEFAULT now() NOT NULL,
@@ -45,6 +45,7 @@ CREATE TABLE "subjects" (
 	"businessAddressId" uuid
 );
 --> statement-breakpoint
+ALTER TABLE "cases" ADD CONSTRAINT "cases_subjectId_subjects_id_fk" FOREIGN KEY ("subjectId") REFERENCES "public"."subjects"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "subjects" ADD CONSTRAINT "subjects_mainAddressId_addresses_id_fk" FOREIGN KEY ("mainAddressId") REFERENCES "public"."addresses"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "subjects" ADD CONSTRAINT "subjects_correspondenceAddressId_addresses_id_fk" FOREIGN KEY ("correspondenceAddressId") REFERENCES "public"."addresses"("id") ON DELETE no action ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "subjects" ADD CONSTRAINT "subjects_businessAddressId_addresses_id_fk" FOREIGN KEY ("businessAddressId") REFERENCES "public"."addresses"("id") ON DELETE no action ON UPDATE no action;

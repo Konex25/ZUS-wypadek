@@ -64,7 +64,7 @@ export type NewFile = typeof fileTable.$inferInsert;
 
 export const casesTable = pgTable("cases", {
   id: uuid("id").primaryKey(),
-  subjectId: uuid("subjectId"),
+  subjectId: text("subjectId").references(() => subjectsTable.id),
   status: caseStatuses("status").notNull().default("PENDING"),
   createdAt: timestamp("createdAt").notNull().defaultNow(),
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),
