@@ -31,6 +31,97 @@ export default function AsystentPage() {
     setIsMounted(true);
   }, []);
 
+  // Load analysis result from sessionStorage if available
+  useEffect(() => {
+    if (isMounted && Object.keys(formData).length === 0) {
+      try {
+        const analysisResultStr = sessionStorage.getItem("analysisResult");
+        if (analysisResultStr) {
+          const analysisResult = JSON.parse(analysisResultStr);
+          // analyzeFilesForCase returns an array of files with data field
+          // Each file.data contains extracted information from EXTRACTION_PROMPT
+          if (Array.isArray(analysisResult) && analysisResult.length > 0) {
+            // Take the first file's data (or merge if needed)
+            const extractedData = analysisResult[0]?.data || analysisResult[0];
+            
+            if (extractedData && typeof extractedData === 'object') {
+              // Map extracted data from EXTRACTION_PROMPT format to AccidentReport structure
+              const mappedData: Partial<AccidentReport> = {};
+              
+              // Map accident data
+              if (extractedData.date || extractedData.time || extractedData.place || extractedData.descriptionOfAccident) {
+                mappedData.accidentData = {
+                  ...(mappedData.accidentData || {}),
+                  dataWypadku: extractedData.date || "",
+                  godzinaWypadku: extractedData.time || "",
+                  miejsceWypadku: extractedData.place || "",
+                  miejsceWypadkuSzczegoly: extractedData.descriptionOfAccident || "",
+                  okolicznosciWypadku: extractedData.descriptionOfAccident || "",
+                  przyczynyWypadku: extractedData.causes || "",
+                  czynnosciPodczasWypadku: extractedData.activitiesPerformed || "",
+                } as any;
+              }
+              
+              // Map personal data if available
+              if (extractedData.personalData) {
+                mappedData.personalData = extractedData.personalData;
+              }
+              
+              // Map addresses if available
+              if (extractedData.addresses) {
+                mappedData.addresses = extractedData.addresses;
+              }
+              
+              // Map business data if available
+              if (extractedData.businessData) {
+                mappedData.businessData = extractedData.businessData;
+              }
+              
+              // Map victim statement if available
+              if (extractedData.victimStatement) {
+                mappedData.victimStatement = extractedData.victimStatement;
+              }
+              
+              // Map witnesses if available
+              if (extractedData.witnesses) {
+                mappedData.witnesses = extractedData.witnesses;
+              }
+              
+              // If data is already in AccidentReport format, merge it
+              if (extractedData.personalData || extractedData.addresses || extractedData.businessData) {
+                Object.assign(mappedData, extractedData);
+              }
+              
+              if (Object.keys(mappedData).length > 0) {
+                setFormData(mappedData);
+                // Clear sessionStorage after loading
+                sessionStorage.removeItem("analysisResult");
+              }
+            }
+          } else if (analysisResult && typeof analysisResult === 'object' && !Array.isArray(analysisResult)) {
+            // If result is a single object (not array), use it directly
+            const mappedData: Partial<AccidentReport> = {
+              ...(analysisResult.personalData && { personalData: analysisResult.personalData }),
+              ...(analysisResult.addresses && { addresses: analysisResult.addresses }),
+              ...(analysisResult.businessData && { businessData: analysisResult.businessData }),
+              ...(analysisResult.accidentData && { accidentData: analysisResult.accidentData }),
+              ...(analysisResult.victimStatement && { victimStatement: analysisResult.victimStatement }),
+              ...(analysisResult.witnesses && { witnesses: analysisResult.witnesses }),
+              ...(analysisResult.notificationType && { notificationType: analysisResult.notificationType }),
+            };
+            
+            if (Object.keys(mappedData).length > 0) {
+              setFormData(mappedData);
+              sessionStorage.removeItem("analysisResult");
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error loading analysis result:", error);
+      }
+    }
+  }, [isMounted, formData]);
+
   // Przywróć zapisane dane przy pierwszym załadowaniu (tylko po hydratacji)
   useEffect(() => {
     if (isMounted && hasSavedData && Object.keys(formData).length === 0) {

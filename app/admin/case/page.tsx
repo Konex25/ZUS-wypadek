@@ -100,30 +100,30 @@ function CasePageContent() {
     selectedFiles.forEach((file) => formData.append("files", file));
 
     try {
-      const response = await fetch("/api/cases", {
+      const response = await fetch("/api/documents/analise-for-case", {
         method: "POST",
         body: formData,
       });
 
-      const result = await response.json();
-
-      if (!result.success) {
-        setUploadError(result.error || "Nie udało się utworzyć sprawy");
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        setUploadError(errorData.error || "Nie udało się przeanalizować dokumentów");
         return;
       }
 
-      await fetchCases();
-      if (result.case) {
-        setSelectedCase(result.case);
-        setViewMode("case-detail");
-      }
-      setSelectedFiles([]); // Clear files after successful upload
-      if (fileInputRef.current) {
-        fileInputRef.current.value = "";
+      const result = await response.json();
+
+      // Save analysis result to sessionStorage for the form
+      if (result) {
+        sessionStorage.setItem("analysisResult", JSON.stringify(result));
+        // Redirect to form with analysis data
+        router.push("/asystent");
+      } else {
+        setUploadError("Nie otrzymano danych z analizy");
       }
     } catch (error) {
-      console.error("Error creating case:", error);
-      setUploadError("Nie udało się utworzyć sprawy");
+      console.error("Error analyzing documents:", error);
+      setUploadError("Nie udało się przeanalizować dokumentów");
     } finally {
       setIsUploading(false);
     }
