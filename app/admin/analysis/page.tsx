@@ -132,22 +132,30 @@ function AnalysisPageContent() {
             }
 
             // Map addresses
+            const residentialAddr = mergedData.address
+              ? typeof mergedData.address === "string"
+                ? parseAddressString(mergedData.address)
+                : mergedData.address
+              : {
+                  street: "",
+                  houseNumber: "",
+                  postalCode: "",
+                  city: "",
+                };
+            
+            const correspondenceAddr = mergedData.correspondenceAddress
+              ? (typeof mergedData.correspondenceAddress === "string"
+                  ? parseAddressString(mergedData.correspondenceAddress)
+                  : mergedData.correspondenceAddress)
+              : residentialAddr; // Use residential address as default for correspondence
+
             if (
               mergedData.address ||
               mergedData.businessAddress ||
               mergedData.correspondenceAddress
             ) {
               mappedData.addresses = {
-                residentialAddress: mergedData.address
-                  ? typeof mergedData.address === "string"
-                    ? parseAddressString(mergedData.address)
-                    : mergedData.address
-                  : {
-                      street: "",
-                      houseNumber: "",
-                      postalCode: "",
-                      city: "",
-                    },
+                residentialAddress: residentialAddr,
                 businessAddress: mergedData.businessAddress
                   ? typeof mergedData.businessAddress === "string"
                     ? parseAddressString(mergedData.businessAddress)
@@ -158,15 +166,12 @@ function AnalysisPageContent() {
                       postalCode: "",
                       city: "",
                     },
-                correspondenceAddress: mergedData.correspondenceAddress
-                  ? {
-                      type: "adres",
-                      address:
-                        typeof mergedData.correspondenceAddress === "string"
-                          ? parseAddressString(mergedData.correspondenceAddress)
-                          : mergedData.correspondenceAddress,
-                    }
-                  : undefined,
+                correspondenceAddress: {
+                  type: "adres",
+                  address: correspondenceAddr,
+                  // Also set direct fields for form compatibility
+                  ...correspondenceAddr,
+                },
                 lastResidentialAddressInPoland: mergedData.lastAddress
                   ? typeof mergedData.lastAddress === "string"
                     ? parseAddressString(mergedData.lastAddress)

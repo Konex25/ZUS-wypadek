@@ -22,20 +22,13 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  // if (!caseData.aiOpinion) {
-  //   return NextResponse.json(
-  //     { error: "Brak opinii AI dla tej sprawy. Nie można wygenerować danych do karty wypadku." },
-  //     { status: 400 }
-  //   );
-  // }
-
   try {
-    // const kartaWypadkuData = mapCaseToKartaWypadku({} as as unknown Case);
-    // return NextResponse.json({
-    //   success: true,
-    //   data: kartaWypadkuData,
-    //   caseId: caseId,
-    // });
+    const kartaWypadkuData = mapCaseToKartaWypadku(caseData as any);
+    return NextResponse.json({
+      success: true,
+      data: kartaWypadkuData,
+      caseId: caseId,
+    });
   } catch (error) {
     console.error("Error mapping case to karta wypadku:", error);
     return NextResponse.json(
