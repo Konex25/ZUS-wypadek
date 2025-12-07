@@ -103,19 +103,32 @@ export const Krok8Podsumowanie: React.FC<Krok8PodsumowanieProps> = React.memo(({
     }
   };
 
-  const handleGoToWyjasnienia = () => {
-    // Zapisz dane z EWYP do localStorage, aby można było je wykorzystać w formularzu wyjaśnień
-    const dataToSave = {
-      personalData: formData.personalData,
-      addresses: formData.addresses,
-      accidentData: formData.accidentData,
-      witnesses: formData.witnesses,
-      fromEwyp: true, // Flaga wskazująca, że dane pochodzą z EWYP
-    };
-    localStorage.setItem("ewyp-to-wyjasnienia", JSON.stringify(dataToSave));
-    
-    // Przekieruj do strony wyjaśnień
-    router.push("/asystent/wyjasnienia?fromEwyp=true");
+  const handleGoToWyjasnienia = async () => {
+    setIsGenerating(true);
+    setError(null);
+
+    try {
+      // Najpierw wygeneruj PDF zawiadomienia
+      await handleGeneratePDF("notification");
+      
+      // Zapisz dane z EWYP do localStorage, aby można było je wykorzystać w formularzu wyjaśnień
+      const dataToSave = {
+        personalData: formData.personalData,
+        addresses: formData.addresses,
+        accidentData: formData.accidentData,
+        witnesses: formData.witnesses,
+        fromEwyp: true, // Flaga wskazująca, że dane pochodzą z EWYP
+      };
+      localStorage.setItem("ewyp-to-wyjasnienia", JSON.stringify(dataToSave));
+      
+      // Przekieruj do strony wyjaśnień
+      router.push("/asystent/wyjasnienia?fromEwyp=true");
+    } catch (err: any) {
+      console.error("Błąd podczas generowania PDF przed przejściem do wyjaśnień:", err);
+      setError(err.message || "Nie udało się wygenerować PDF. Spróbuj ponownie.");
+    } finally {
+      setIsGenerating(false);
+    }
   };
   const SummarySection = ({ title, children }: { title: string; children: React.ReactNode }) => (
     <Card className="p-6">

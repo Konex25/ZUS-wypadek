@@ -47,19 +47,25 @@ export const Chatbot: React.FC<ChatbotProps> = ({
   }, [messages]);
 
   useEffect(() => {
-    if (isOpen && inputRef.current) {
+    // Jeśli jest fieldContext, zawsze ustaw isOpen na true
+    if (fieldContext) {
+      setIsOpen(true);
+    }
+  }, [fieldContext]);
+
+  useEffect(() => {
+    if ((isOpen || alwaysOpen) && inputRef.current) {
       inputRef.current.focus();
     }
-  }, [isOpen]);
+  }, [isOpen, alwaysOpen]);
 
   // Automatycznie otwieraj chatbota i czyść wiadomości przy zmianie pola
   useEffect(() => {
     const currentFieldName = fieldContext?.fieldName;
     const previousFieldName = previousFieldNameRef.current;
 
-    // Jeśli jest fieldContext, upewnij się, że chatbot jest otwarty
+    // Jeśli jest fieldContext, zawsze ustaw isOpen na true
     if (fieldContext) {
-      // Zawsze otwieraj chatbota, gdy jest fieldContext
       setIsOpen(true);
       
       // Jeśli zmieniło się pole (nie jest to pierwsze renderowanie)
@@ -220,7 +226,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({
       )}
 
       {/* Chatbot Window - zawsze widoczny gdy jest fieldContext */}
-      {(isOpen || alwaysOpen) && (
+      {alwaysOpen || isOpen ? (
         <div 
           className="fixed bottom-24 right-6 z-50 w-96 h-[600px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden"
           onClick={(e) => e.stopPropagation()}
@@ -413,7 +419,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({
                 onClick={(e) => e.stopPropagation()}
                 onFocus={(e) => e.stopPropagation()}
                 placeholder="Zadaj pytanie..."
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-sm"
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-sm text-gray-900"
                 rows={2}
                 disabled={isLoading}
               />
@@ -444,7 +450,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({
             </div>
           </div>
         </div>
-      )}
+      ) : null}
     </>
   );
 };

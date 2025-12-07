@@ -38,7 +38,7 @@ export default function TopBar() {
       </div>
 
       {/* Top bar - matches ZUS.pl style exactly 1:1 */}
-      <div className="bg-white border-b" style={{ borderBottom: '1px solid #e5e7eb', backgroundColor: '#ffffff' }}>
+      <div className="bg-white border-b relative z-50" style={{ borderBottom: '1px solid #e5e7eb', backgroundColor: '#ffffff' }}>
         <div className="max-w-[1920px] mx-auto px-4">
           <div className="flex items-center justify-between" style={{ height: '64px', fontSize: '14px', lineHeight: '1.5', fontFamily: 'Arial, Helvetica, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             {/* Left side - Logo ZUS + links */}

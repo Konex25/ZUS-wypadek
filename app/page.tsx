@@ -1,15 +1,76 @@
+"use client";
+
 import Link from "next/link";
+import { useEffect, useRef } from "react";
 
 export default function Home() {
+  const canvasRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      if (!canvasRef.current) return;
+      
+      const { clientX, clientY } = e;
+      const { innerWidth, innerHeight } = window;
+      
+      const xPercent = (clientX / innerWidth) * 100;
+      const yPercent = (clientY / innerHeight) * 100;
+      
+      canvasRef.current.style.setProperty('--mouse-x', `${xPercent}%`);
+      canvasRef.current.style.setProperty('--mouse-y', `${yPercent}%`);
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-white relative">
+      {/* Interaktywne tło */}
+      <div 
+        ref={canvasRef}
+        className="fixed inset-0 pointer-events-none z-0 overflow-hidden"
+        style={{
+          background: `
+            radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%), 
+              rgba(59, 130, 246, 0.15) 0%, 
+              transparent 50%),
+            radial-gradient(circle at calc(100% - var(--mouse-x, 50%)) calc(100% - var(--mouse-y, 50%)), 
+              rgba(99, 102, 241, 0.1) 0%, 
+              transparent 50%),
+            linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 50%, #f3e8ff 100%)
+          `,
+          transition: 'background 0.3s ease',
+        }}
+      >
+        {/* Animowane kształty */}
+        <div className="absolute inset-0 overflow-hidden">
+          {/* Kółka animowane */}
+          <div className="absolute top-20 left-10 w-72 h-72 bg-blue-200/20 rounded-full blur-3xl animate-pulse" 
+               style={{ animationDuration: '8s' }} />
+          <div className="absolute top-40 right-20 w-96 h-96 bg-indigo-200/20 rounded-full blur-3xl animate-pulse" 
+               style={{ animationDuration: '10s', animationDelay: '2s' }} />
+          <div className="absolute bottom-20 left-1/4 w-80 h-80 bg-purple-200/20 rounded-full blur-3xl animate-pulse" 
+               style={{ animationDuration: '12s', animationDelay: '4s' }} />
+          
+          {/* Pływające kształty */}
+          <div className="absolute top-1/4 right-1/3 w-64 h-64 bg-gradient-to-br from-blue-300/10 to-indigo-300/10 rounded-full blur-2xl animate-float" />
+          <div className="absolute bottom-1/4 left-1/3 w-56 h-56 bg-gradient-to-br from-purple-300/10 to-pink-300/10 rounded-full blur-2xl animate-float-delayed" />
+        </div>
+      </div>
+
+      {/* Zawartość */}
+      <div className="relative z-10">
       {/* Hero Section - Formularze ZUS */}
-      <section className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 py-16 md:py-24">
+      <section className="py-16 md:py-24 relative">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
             <div className="text-center mb-12">
-              <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6">
-                ZANT
+              <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 relative">
+                <span className="relative z-10 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                  ZANT
+                </span>
+                <div className="absolute inset-0 blur-2xl opacity-20 bg-gradient-to-r from-blue-400 via-indigo-400 to-purple-400 -z-10" />
               </h1>
               <p className="text-2xl md:text-3xl text-gray-700 mb-4 font-semibold">
                 ZUS Accident Notification Tool
@@ -21,7 +82,7 @@ export default function Home() {
             </div>
 
             {/* Główna karta Formularzy ZUS */}
-            <div className="bg-white rounded-2xl shadow-2xl p-8 md:p-12 mb-12 border-2 border-blue-100">
+            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-2xl p-8 md:p-12 mb-12 border-2 border-blue-100/50 hover:border-blue-200 transition-all duration-300 hover:shadow-3xl">
               <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
                 <div className="flex-shrink-0">
                   <div className="bg-blue-100 rounded-full p-6">
@@ -157,7 +218,7 @@ export default function Home() {
       </section>
 
       {/* Sekcja: W jakich przypadkach wypełnia się dokumenty */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-white/60 backdrop-blur-sm relative">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-4">
@@ -330,7 +391,7 @@ export default function Home() {
       </section>
 
       {/* Sekcja informacyjna z linkami do ustaw i ZUS */}
-      <section className="py-16 bg-gradient-to-br from-gray-50 to-blue-50">
+      <section className="py-16 bg-gradient-to-br from-gray-50/80 to-blue-50/80 backdrop-blur-sm relative">
         <div className="container mx-auto px-4">
           <div className="max-w-6xl mx-auto">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 text-center mb-4">
@@ -341,7 +402,7 @@ export default function Home() {
               zgłoszenia wypadków przy pracy
             </p>
 
-            <div className="bg-white rounded-2xl shadow-xl p-8 md:p-12 border-2 border-gray-200">
+            <div className="bg-white/90 backdrop-blur-sm rounded-2xl shadow-xl p-8 md:p-12 border-2 border-gray-200/50 hover:border-gray-300 transition-all duration-300">
               <div className="prose prose-lg max-w-none">
                 <p className="text-gray-700 leading-relaxed mb-6">
                   Zakład Ubezpieczeń Społecznych (ZUS) jest instytucją, która
@@ -517,12 +578,12 @@ export default function Home() {
       </section>
 
       {/* Sekcja z Modułem ZUS */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-white/60 backdrop-blur-sm relative">
         <div className="container mx-auto px-4">
           <div className="max-w-4xl mx-auto">
             <Link
               href="/admin/case"
-              className="block bg-white rounded-xl shadow-lg p-8 hover:shadow-xl transition-shadow duration-300 border-2 border-transparent hover:border-indigo-500"
+              className="block bg-white/90 backdrop-blur-sm rounded-xl shadow-lg p-8 hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-indigo-500 hover:scale-[1.02]"
             >
               <div className="flex items-center mb-4">
                 <div className="bg-indigo-100 rounded-full p-3 mr-4">
@@ -557,6 +618,7 @@ export default function Home() {
           </div>
         </div>
       </section>
+      </div>
     </div>
   );
 }
