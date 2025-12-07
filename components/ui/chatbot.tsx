@@ -26,7 +26,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({
   onSuggestion,
   onQuestion,
 }) => {
-  // Chatbot jest domyślnie otwarty, jeśli jest fieldContext
+  // Chatbot jest zawsze otwarty, jeśli jest fieldContext
   const [isOpen, setIsOpen] = useState(!!fieldContext);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -34,6 +34,9 @@ export const Chatbot: React.FC<ChatbotProps> = ({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const previousFieldNameRef = useRef<string | undefined>(undefined);
+
+  // Gdy jest fieldContext, chatbot jest zawsze otwarty
+  const alwaysOpen = !!fieldContext;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -171,51 +174,53 @@ export const Chatbot: React.FC<ChatbotProps> = ({
 
   return (
     <>
-      {/* Chatbot Button */}
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center group"
-        aria-label="Otwórz chatbota"
-      >
-        {isOpen ? (
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
-        ) : (
-          <svg
-            className="w-6 h-6"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-            />
-          </svg>
-        )}
-        {!isOpen && messages.length > 0 && (
-          <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-xs font-bold">
-            {messages.length}
-          </span>
-        )}
-      </button>
+      {/* Chatbot Button - pokazuj tylko gdy nie ma fieldContext (chatbot nie jest zawsze otwarty) */}
+      {!alwaysOpen && (
+        <button
+          type="button"
+          onClick={() => setIsOpen(!isOpen)}
+          className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center group"
+          aria-label="Otwórz chatbota"
+        >
+          {isOpen ? (
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
+            </svg>
+          ) : (
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+              />
+            </svg>
+          )}
+          {!isOpen && messages.length > 0 && (
+            <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-xs font-bold">
+              {messages.length}
+            </span>
+          )}
+        </button>
+      )}
 
-      {/* Chatbot Window */}
-      {isOpen && (
+      {/* Chatbot Window - zawsze widoczny gdy jest fieldContext */}
+      {(isOpen || alwaysOpen) && (
         <div 
           className="fixed bottom-24 right-6 z-50 w-96 h-[600px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden"
           onClick={(e) => e.stopPropagation()}
@@ -248,26 +253,29 @@ export const Chatbot: React.FC<ChatbotProps> = ({
                 )}
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setIsOpen(false)}
-              className="text-white/80 hover:text-white transition-colors"
-              aria-label="Zamknij"
-            >
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+            {/* Przycisk zamykania - ukryj gdy chatbot jest zawsze otwarty */}
+            {!alwaysOpen && (
+              <button
+                type="button"
+                onClick={() => setIsOpen(false)}
+                className="text-white/80 hover:text-white transition-colors"
+                aria-label="Zamknij"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            )}
           </div>
 
           {/* Quick Actions */}
@@ -385,12 +393,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({
           </div>
 
           {/* Input */}
-          <form 
-            onSubmit={(e) => {
-              e.preventDefault();
-              e.stopPropagation();
-              handleSubmit(e);
-            }} 
+          <div 
             className="p-4 bg-white border-t border-gray-200"
             onClick={(e) => e.stopPropagation()}
             onMouseDown={(e) => e.stopPropagation()}
@@ -415,9 +418,13 @@ export const Chatbot: React.FC<ChatbotProps> = ({
                 disabled={isLoading}
               />
               <button
-                type="submit"
+                type="button"
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleSubmit(e);
+                }}
                 disabled={!input.trim() || isLoading}
-                onClick={(e) => e.stopPropagation()}
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 <svg
@@ -435,7 +442,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({
                 </svg>
               </button>
             </div>
-          </form>
+          </div>
         </div>
       )}
     </>
