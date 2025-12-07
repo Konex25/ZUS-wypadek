@@ -77,7 +77,7 @@ export const Krok1DaneOsobowe: React.FC<Krok1DaneOsoboweProps> = React.memo(({
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 relative">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 relative" style={{ zIndex: 1, position: 'relative' }}>
       <ExampleDataButton onFill={fillExampleData} />
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">

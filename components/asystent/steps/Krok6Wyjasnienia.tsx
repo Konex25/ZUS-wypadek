@@ -123,7 +123,7 @@ export const Krok6Wyjasnienia: React.FC<Krok6WyjasnieniaProps> = React.memo(({
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 relative">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 relative" style={{ zIndex: 1, position: 'relative' }}>
       <Chatbot
         fieldContext={activeField || undefined}
         onSuggestion={handleSuggestion}

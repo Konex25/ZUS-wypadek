@@ -50,14 +50,12 @@ export const Chatbot: React.FC<ChatbotProps> = ({
     // Jeśli jest fieldContext, zawsze ustaw isOpen na true
     if (fieldContext) {
       setIsOpen(true);
+    } else if (!alwaysOpen) {
+      // Jeśli nie ma fieldContext i chatbot nie jest zawsze otwarty, można go zamknąć
+      // Ale nie zamykaj, jeśli użytkownik ma otwarte wiadomości
+      // setIsOpen(false); // Wykomentowane - nie zamykaj automatycznie
     }
-  }, [fieldContext]);
-
-  useEffect(() => {
-    if ((isOpen || alwaysOpen) && inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, [isOpen, alwaysOpen]);
+  }, [fieldContext, alwaysOpen]);
 
   // Automatycznie otwieraj chatbota i czyść wiadomości przy zmianie pola
   useEffect(() => {
@@ -155,26 +153,39 @@ export const Chatbot: React.FC<ChatbotProps> = ({
   };
 
   const handleQuickAction = (action: "help" | "improve" | "questions") => {
+    console.log("handleQuickAction called:", action, "fieldContext:", fieldContext);
+    
+    // Jeśli nie ma fieldContext, ale jest alwaysOpen, użyj ostatniego fieldContext
+    const currentFieldContext = fieldContext;
+    
+    if (!currentFieldContext && alwaysOpen) {
+      console.warn("No fieldContext available, but chatbot is always open");
+      // Możemy spróbować użyć poprzedniego kontekstu lub po prostu wysłać ogólne pytanie
+    }
+    
     let message = "";
     switch (action) {
       case "help":
-        message = fieldContext
-          ? `Pomóż mi wypełnić pole "${fieldContext.fieldLabel}". Co powinienem tutaj wpisać?`
+        message = currentFieldContext
+          ? `Pomóż mi wypełnić pole "${currentFieldContext.fieldLabel}". Co powinienem tutaj wpisać?`
           : "Jak mogę wypełnić ten formularz?";
         break;
       case "improve":
-        message = fieldContext?.currentValue
-          ? `Popraw błędy ortograficzne i ulepsz moją odpowiedź w polu "${fieldContext.fieldLabel}": "${fieldContext.currentValue}"`
+        message = currentFieldContext?.currentValue
+          ? `Popraw błędy ortograficzne i ulepsz moją odpowiedź w polu "${currentFieldContext.fieldLabel}": "${currentFieldContext.currentValue}"`
           : "Nie mam jeszcze tekstu do poprawienia.";
         break;
       case "questions":
-        message = fieldContext
-          ? `Jakie pytania pomocnicze powinienem sobie zadać, aby dobrze wypełnić pole "${fieldContext.fieldLabel}"?`
+        message = currentFieldContext
+          ? `Jakie pytania pomocnicze powinienem sobie zadać, aby dobrze wypełnić pole "${currentFieldContext.fieldLabel}"?`
           : "Jakie pytania pomocnicze mogą mi pomóc w wypełnieniu formularza?";
         break;
     }
+    console.log("Sending message:", message);
     if (message) {
       sendMessage(message);
+    } else {
+      console.error("No message to send");
     }
   };
 
@@ -185,8 +196,9 @@ export const Chatbot: React.FC<ChatbotProps> = ({
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center group"
+          className="fixed bottom-6 right-6 z-40 w-14 h-14 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center group"
           aria-label="Otwórz chatbota"
+          style={{ pointerEvents: 'auto' }}
         >
           {isOpen ? (
             <svg
@@ -228,9 +240,21 @@ export const Chatbot: React.FC<ChatbotProps> = ({
       {/* Chatbot Window - zawsze widoczny gdy jest fieldContext */}
       {alwaysOpen || isOpen ? (
         <div 
-          className="fixed bottom-24 right-6 z-50 w-96 h-[600px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden"
-          onClick={(e) => e.stopPropagation()}
-          onMouseDown={(e) => e.stopPropagation()}
+          className="fixed bottom-24 right-6 z-40 w-96 h-[600px] bg-white rounded-2xl shadow-2xl border border-gray-200 flex flex-col overflow-hidden"
+          onClick={(e) => {
+            e.stopPropagation();
+          }}
+          onMouseDown={(e) => {
+            e.stopPropagation();
+          }}
+          onTouchStart={(e) => {
+            e.stopPropagation();
+          }}
+          style={{ 
+            pointerEvents: 'auto',
+            touchAction: 'auto',
+            isolation: 'isolate'
+          }}
         >
           {/* Header */}
           <div className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white p-4 flex items-center justify-between">
@@ -263,7 +287,10 @@ export const Chatbot: React.FC<ChatbotProps> = ({
             {!alwaysOpen && (
               <button
                 type="button"
-                onClick={() => setIsOpen(false)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsOpen(false);
+                }}
                 className="text-white/80 hover:text-white transition-colors"
                 aria-label="Zamknij"
               >
@@ -288,40 +315,54 @@ export const Chatbot: React.FC<ChatbotProps> = ({
           {fieldContext && (
             <div 
               className="p-3 bg-gray-50 border-b border-gray-200 flex gap-2 flex-wrap"
-              onClick={(e) => e.stopPropagation()}
-              onMouseDown={(e) => e.stopPropagation()}
+              onClick={(e) => {
+                // Tylko stopPropagation, bez preventDefault - pozwól przyciskom działać
+                e.stopPropagation();
+              }}
+              onMouseDown={(e) => {
+                e.stopPropagation();
+              }}
             >
               <button
                 type="button"
-                onClick={(e) => {
-                  e.preventDefault();
+                onMouseDown={(e) => {
                   e.stopPropagation();
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  console.log("Quick action button clicked: help");
                   handleQuickAction("help");
                 }}
-                className="px-3 py-1.5 text-xs bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors font-medium"
+                className="px-3 py-1.5 text-xs bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition-colors font-medium cursor-pointer"
               >
                 💡 Pomoc
               </button>
               <button
                 type="button"
-                onClick={(e) => {
-                  e.preventDefault();
+                onMouseDown={(e) => {
                   e.stopPropagation();
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  console.log("Quick action button clicked: questions");
                   handleQuickAction("questions");
                 }}
-                className="px-3 py-1.5 text-xs bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors font-medium"
+                className="px-3 py-1.5 text-xs bg-green-100 text-green-700 rounded-lg hover:bg-green-200 transition-colors font-medium cursor-pointer"
               >
                 ❓ Pytania
               </button>
               {fieldContext.currentValue && (
                 <button
                   type="button"
-                  onClick={(e) => {
-                    e.preventDefault();
+                  onMouseDown={(e) => {
                     e.stopPropagation();
+                  }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    console.log("Quick action button clicked: improve");
                     handleQuickAction("improve");
                   }}
-                  className="px-3 py-1.5 text-xs bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors font-medium"
+                  className="px-3 py-1.5 text-xs bg-purple-100 text-purple-700 rounded-lg hover:bg-purple-200 transition-colors font-medium cursor-pointer"
                 >
                   ✏️ Popraw tekst
                 </button>
@@ -362,7 +403,11 @@ export const Chatbot: React.FC<ChatbotProps> = ({
                     message.content.includes("SUGEROWANA_ODPOWIEDŹ:") && (
                       <button
                         type="button"
-                        onClick={() => {
+                        onMouseDown={(e) => {
+                          e.stopPropagation();
+                        }}
+                        onClick={(e) => {
+                          e.stopPropagation();
                           const suggestion = message.content
                             .split("SUGEROWANA_ODPOWIEDŹ:")[1]
                             .trim();
@@ -370,7 +415,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({
                             onSuggestion(suggestion);
                           }
                         }}
-                        className="mt-2 px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 transition-colors"
+                        className="mt-2 px-3 py-1.5 bg-blue-600 text-white text-xs rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
                       >
                         Użyj tej odpowiedzi
                       </button>
@@ -401,8 +446,15 @@ export const Chatbot: React.FC<ChatbotProps> = ({
           {/* Input */}
           <div 
             className="p-4 bg-white border-t border-gray-200"
-            onClick={(e) => e.stopPropagation()}
-            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+            }}
+            onMouseDown={(e) => {
+              e.stopPropagation();
+            }}
+            onTouchStart={(e) => {
+              e.stopPropagation();
+            }}
           >
             <div className="flex gap-2">
               <textarea
@@ -416,8 +468,18 @@ export const Chatbot: React.FC<ChatbotProps> = ({
                     handleSubmit(e);
                   }
                 }}
-                onClick={(e) => e.stopPropagation()}
-                onFocus={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                }}
+                onFocus={(e) => {
+                  e.stopPropagation();
+                }}
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                }}
+                onTouchStart={(e) => {
+                  e.stopPropagation();
+                }}
                 placeholder="Zadaj pytanie..."
                 className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none text-sm text-gray-900"
                 rows={2}
@@ -425,13 +487,15 @@ export const Chatbot: React.FC<ChatbotProps> = ({
               />
               <button
                 type="button"
+                onMouseDown={(e) => {
+                  e.stopPropagation();
+                }}
                 onClick={(e) => {
-                  e.preventDefault();
                   e.stopPropagation();
                   handleSubmit(e);
                 }}
                 disabled={!input.trim() || isLoading}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
               >
                 <svg
                   className="w-5 h-5"
