@@ -439,6 +439,16 @@ function AnalysisPageContent() {
     return expandedSections.has(sectionId);
   };
 
+  // Helper function to get section number based on whether representativeData exists
+  const getSectionNumber = (baseNumber: number): number => {
+    const hasRepresentative = !!formData.representativeData;
+    if (baseNumber === 1) return 1; // Section 1 is always 1
+    if (baseNumber === 2) return hasRepresentative ? 2 : -1; // Section 2 only if representative exists
+    if (baseNumber === 3) return hasRepresentative ? 3 : 2; // Section 3 becomes 2 if no representative
+    if (baseNumber === 4) return hasRepresentative ? 4 : 3; // Section 4 becomes 3 if no representative
+    return baseNumber;
+  };
+
   const updateFormData = (path: string[], value: any) => {
     setFormData((prev) => {
       const newData = { ...prev };
@@ -1345,7 +1355,7 @@ function AnalysisPageContent() {
                     />
                   </svg>
                   <span className="font-semibold text-slate-900">
-                    Sekcja 3: Dane wypadku
+                    Sekcja {getSectionNumber(3)}: Dane wypadku
                   </span>
                 </div>
                 <svg
@@ -1509,7 +1519,7 @@ function AnalysisPageContent() {
                   />
                 </svg>
                 <span className="font-semibold text-slate-900">
-                  Sekcja 4: Dane działalności gospodarczej
+                  Sekcja {getSectionNumber(4)}: Dane działalności gospodarczej
                 </span>
               </div>
               <svg
