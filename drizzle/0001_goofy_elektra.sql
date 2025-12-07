@@ -1,0 +1,1 @@
+ALTER TYPE "public"."caseStatuses" ADD VALUE 'PROCESSING' BEFORE 'ACCEPTED';
