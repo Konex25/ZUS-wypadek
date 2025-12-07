@@ -19,12 +19,11 @@ export const addressesTable = pgTable("addresses", {
 });
 
 export const subjectsTable = pgTable("subjects", {
-  id: uuid("id").primaryKey(),
+  id: text("id").primaryKey(), // pesel,
   name: text("name").notNull(),
   surname: text("surname").notNull(),
   nip: text("nip"),
   regon: text("regon"),
-  pesel: text("pesel").notNull(),
   documentId: text("documentId").notNull(),
   documentType: text("documentType").notNull(),
   mainAddressId: uuid("mainAddressId").references(() => addressesTable.id),
@@ -35,6 +34,9 @@ export const subjectsTable = pgTable("subjects", {
     () => addressesTable.id
   ),
 });
+
+export type Subject = typeof subjectsTable.$inferSelect;
+export type NewSubject = typeof subjectsTable.$inferInsert;
 
 export const bytea = customType<{ data: Buffer }>({
   dataType() {
@@ -51,18 +53,22 @@ export const caseStatuses = pgEnum("caseStatuses", [
 export const fileTable = pgTable("files", {
   id: text("id").primaryKey(),
   name: text("name").notNull(),
-  data: bytea("data").notNull(),
+  data: jsonb("data"),
 
   createdAt: timestamp("createdAt").notNull().defaultNow(),
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),
 });
 
+export type File = typeof fileTable.$inferSelect;
+export type NewFile = typeof fileTable.$inferInsert;
+
 export const casesTable = pgTable("cases", {
   id: uuid("id").primaryKey(),
-  subjectId: uuid("subjectId").references(() => subjectsTable.id),
+  subjectId: text("subjectId").references(() => subjectsTable.id),
   status: caseStatuses("status").notNull().default("PENDING"),
   createdAt: timestamp("createdAt").notNull().defaultNow(),
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),
+  resolvedAt: timestamp("resolvedAt"),
   fileIds: text("fileIds").array(),
 
   aiResponse: jsonb("aiResponse"),
@@ -73,3 +79,6 @@ export const casesTable = pgTable("cases", {
 
   finalDecision: jsonb("finalDecision"),
 });
+
+export type Case = typeof casesTable.$inferSelect;
+export type NewCase = typeof casesTable.$inferInsert;

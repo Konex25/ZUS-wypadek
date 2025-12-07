@@ -12,9 +12,9 @@ export default function AsystentPage() {
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
             <h1 className="text-4xl font-bold text-gray-900 mb-4">
-                  Wirtualny Asystent
-                </h1>
-                <p className="text-lg text-gray-600">
+              Wirtualny Asystent
+            </h1>
+            <p className="text-lg text-gray-600">
               Wybierz typ formularza, który chcesz wypełnić
             </p>
           </div>
@@ -35,7 +35,7 @@ export default function AsystentPage() {
                   <p className="text-gray-600 mb-6">
                     Podstawowe zgłoszenie wypadku przy pracy. Zawiera dane osobowe, 
                     informacje o wypadku oraz okolicznościach zdarzenia.
-                </p>
+                  </p>
                   <ul className="text-sm text-gray-500 space-y-2 mb-6">
                     <li className="flex items-center gap-2">
                       <span className="text-green-600">✓</span>
@@ -100,7 +100,7 @@ export default function AsystentPage() {
                 </Button>
               </Link>
             </Card>
-            </div>
+          </div>
         </div>
       </div>
     </div>

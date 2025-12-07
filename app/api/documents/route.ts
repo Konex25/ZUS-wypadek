@@ -1,12 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import {
-  getCases,
-  getCaseById,
-  addCase,
-  updateCase,
-  generateCaseId,
-  generateDocumentId,
-} from "@/lib/db/cases";
+import { getCases, getCaseById } from "@/lib/database/cases";
 import {
   Case,
   UploadedDocument,
@@ -24,6 +17,7 @@ import openai from "@/lib/openai/openai";
 import { DECISION_PROMPT } from "./prompt";
 import { EXTRACTION_PROMPT } from "./extraction-prompt";
 import { getCompanyDetailsByNip } from "@/backend";
+import { v4 } from "uuid";
 
 // List of EU member states (excluding Poland)
 const EU_MEMBER_STATES = [
@@ -545,7 +539,7 @@ export async function POST(request: NextRequest) {
 
     // Create document entries for all files
     const documents: UploadedDocument[] = files.map((file) => ({
-      id: generateDocumentId(),
+      id: v4(),
       fileName: file.name,
       fileSize: file.size,
       mimeType: file.type,
@@ -554,14 +548,14 @@ export async function POST(request: NextRequest) {
 
     // Create case with documents
     const newCase: Case = {
-      id: generateCaseId(),
+      id: v4(),
       createdAt: new Date().toISOString(),
       status: "processing",
       documents,
       fileIds: [],
     };
 
-    await addCase(newCase);
+    // await addCase(newCase);
 
     // Process case with AI in background
     processCaseWithAI(newCase.id, files, nip);
@@ -618,7 +612,7 @@ async function processCaseWithAI(caseId: string, files: File[], nip: string) {
     );
 
     const fileIds = uploadedFiles.map((f) => f.id);
-    await updateCase(caseId, { fileIds });
+    // await updateCase(caseId, { fileIds });
 
     const extractionData = await openai.responses.create({
       model: "gpt-5.1",
@@ -1066,15 +1060,15 @@ async function processCaseWithAI(caseId: string, files: File[], nip: string) {
     console.log("Final AI Opinion with verifications:", aiOpinion);
 
     // Update case with AI opinion
-    await updateCase(caseId, {
-      status: "completed",
-      aiOpinion,
-    });
+    // await updateCase(caseId, {
+    //   status: "completed",
+    //   aiOpinion,
+    // });
   } catch (error) {
     console.error("Error processing case with AI:", error);
-    await updateCase(caseId, {
-      status: "error",
-      error: error instanceof Error ? error.message : "AI processing failed",
-    });
+    // await updateCase(caseId, {
+    //   status: "error",
+    //   error: error instanceof Error ? error.message : "AI processing failed",
+    // });
   }
 }

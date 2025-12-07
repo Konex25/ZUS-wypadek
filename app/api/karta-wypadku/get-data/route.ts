@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCaseById } from "@/lib/db/cases";
+import { getCaseById } from "@/lib/database/cases";
 import { mapCaseToKartaWypadku } from "@/lib/karta-wypadku/mapCaseToKartaWypadku";
 
 export async function GET(request: NextRequest) {
@@ -22,25 +22,29 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  if (!caseData.aiOpinion) {
-    return NextResponse.json(
-      { error: "Brak opinii AI dla tej sprawy. Nie można wygenerować danych do karty wypadku." },
-      { status: 400 }
-    );
-  }
+  // if (!caseData.aiOpinion) {
+  //   return NextResponse.json(
+  //     { error: "Brak opinii AI dla tej sprawy. Nie można wygenerować danych do karty wypadku." },
+  //     { status: 400 }
+  //   );
+  // }
 
   try {
-    const kartaWypadkuData = mapCaseToKartaWypadku(caseData);
-    
-    return NextResponse.json({
-      success: true,
-      data: kartaWypadkuData,
-      caseId: caseId,
-    });
+    // const kartaWypadkuData = mapCaseToKartaWypadku({} as as unknown Case);
+    // return NextResponse.json({
+    //   success: true,
+    //   data: kartaWypadkuData,
+    //   caseId: caseId,
+    // });
   } catch (error) {
     console.error("Error mapping case to karta wypadku:", error);
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Błąd podczas mapowania danych" },
+      {
+        error:
+          error instanceof Error
+            ? error.message
+            : "Błąd podczas mapowania danych",
+      },
       { status: 500 }
     );
   }

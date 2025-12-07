@@ -1,4 +1,4 @@
-import { getCaseById, updateCase } from "@/lib/db/cases";
+import { getCaseById } from "@/lib/database/cases";
 import { NextResponse } from "next/server";
 import { DIFFERENCES_PROMPT, SYSTEM_JSON_PROMPT } from "./prompt";
 import openai from "@/lib/openai/openai";
@@ -40,7 +40,7 @@ export async function POST(request: Request) {
 
   const differences = differencesResponse.output_text || "";
   const parsedDifferences = JSON.parse(differences);
-  await updateCase(caseId, { differences: parsedDifferences });
+  // await updateCase(caseId, { differences: parsedDifferences });
 
   return NextResponse.json({ differences: parsedDifferences });
 }
