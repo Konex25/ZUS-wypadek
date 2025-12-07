@@ -117,7 +117,6 @@ function AnalysisPageContent() {
                 dateOfBirth: mergedData.birthDate || "",
                 placeOfBirth: mergedData.birthPlace || "",
                 phone: mergedData.phoneNumber || "",
-                email: mergedData.email || "",
                 idDocument:
                   mergedData.documentType && mergedData.documentId
                     ? {
@@ -728,6 +727,103 @@ function AnalysisPageContent() {
             </button>
             {isSectionExpanded("section1") && (
               <div className="p-6 space-y-6">
+                {/* Test Data Button */}
+                <div className="flex justify-end mb-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      // Fill test data for personal data
+                      updateFormData(["personalData", "firstName"], "Anna");
+                      updateFormData(["personalData", "lastName"], "Nowak");
+                      updateFormData(["personalData", "pesel"], "90010112345");
+                      updateFormData(
+                        ["personalData", "dateOfBirth"],
+                        "1990-01-01"
+                      );
+                      updateFormData(
+                        ["personalData", "placeOfBirth"],
+                        "Kraków"
+                      );
+                      updateFormData(
+                        ["personalData", "phone"],
+                        "+48 987 654 321"
+                      );
+
+                      // Fill test data for residential address
+                      updateFormData(
+                        ["addresses", "residentialAddress", "street"],
+                        "Testowa"
+                      );
+                      updateFormData(
+                        ["addresses", "residentialAddress", "houseNumber"],
+                        "10"
+                      );
+                      updateFormData(
+                        ["addresses", "residentialAddress", "apartmentNumber"],
+                        "5"
+                      );
+                      updateFormData(
+                        ["addresses", "residentialAddress", "postalCode"],
+                        "00-001"
+                      );
+                      updateFormData(
+                        ["addresses", "residentialAddress", "city"],
+                        "Warszawa"
+                      );
+                      updateFormData(
+                        ["addresses", "residentialAddress", "country"],
+                        "Polska"
+                      );
+
+                      // Fill test data for correspondence address (same as residential)
+                      updateFormData(
+                        ["addresses", "correspondenceAddress", "street"],
+                        "Testowa"
+                      );
+                      updateFormData(
+                        ["addresses", "correspondenceAddress", "houseNumber"],
+                        "10"
+                      );
+                      updateFormData(
+                        [
+                          "addresses",
+                          "correspondenceAddress",
+                          "apartmentNumber",
+                        ],
+                        "5"
+                      );
+                      updateFormData(
+                        ["addresses", "correspondenceAddress", "postalCode"],
+                        "00-001"
+                      );
+                      updateFormData(
+                        ["addresses", "correspondenceAddress", "city"],
+                        "Warszawa"
+                      );
+                      updateFormData(
+                        ["addresses", "correspondenceAddress", "country"],
+                        "Polska"
+                      );
+                    }}
+                    className="px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-2"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                      />
+                    </svg>
+                    Wprowadź dane testowe
+                  </button>
+                </div>
+
                 {/* Personal Data */}
                 <div>
                   <h3 className="text-sm font-semibold text-slate-700 mb-4">
@@ -829,22 +925,6 @@ function AnalysisPageContent() {
                         onChange={(e) =>
                           updateFormData(
                             ["personalData", "phone"],
-                            e.target.value
-                          )
-                        }
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-slate-900 placeholder:text-slate-400"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1">
-                        Email
-                      </label>
-                      <input
-                        type="email"
-                        value={formData.personalData?.email || ""}
-                        onChange={(e) =>
-                          updateFormData(
-                            ["personalData", "email"],
                             e.target.value
                           )
                         }

@@ -20,12 +20,13 @@ export const addressesTable = pgTable("addresses", {
 
 export const subjectsTable = pgTable("subjects", {
   id: text("id").primaryKey(), // pesel,
-  name: text("name").notNull(),
-  surname: text("surname").notNull(),
-  nip: text("nip"),
+  name: text("name"),
+  surname: text("surname"),
+  nip: text("nip").notNull(),
+  pkd: text("pkd").array(),
   regon: text("regon"),
-  documentId: text("documentId").notNull(),
-  documentType: text("documentType").notNull(),
+  documentId: text("documentId"),
+  documentType: text("documentType"),
   mainAddressId: uuid("mainAddressId").references(() => addressesTable.id),
   correspondenceAddressId: uuid("correspondenceAddressId").references(
     () => addressesTable.id
@@ -46,6 +47,7 @@ export const bytea = customType<{ data: Buffer }>({
 
 export const caseStatuses = pgEnum("caseStatuses", [
   "PENDING",
+  "PROCESSING",
   "ACCEPTED",
   "FAILED",
 ]);
@@ -70,6 +72,7 @@ export const casesTable = pgTable("cases", {
   updatedAt: timestamp("updatedAt").notNull().defaultNow(),
   resolvedAt: timestamp("resolvedAt"),
   fileIds: text("fileIds").array(),
+  filesDiff: text("filesDiff"),
 
   aiResponse: jsonb("aiResponse"),
   aiDecision: jsonb("aiDecision"),

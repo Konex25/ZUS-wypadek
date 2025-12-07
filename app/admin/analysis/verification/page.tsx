@@ -106,9 +106,9 @@ function VerificationPageContent() {
     setIsVerifyingLegislation(false);
   };
 
-  const handleContinueToForm = () => {
-    // Redirect to form
-    router.push("/asystent");
+  const handleContinueToOpinion = () => {
+    // Redirect to opinion page
+    router.push("/admin/analysis/opinion");
   };
 
   const isEUMemberState = (country: string): boolean => {
@@ -437,11 +437,11 @@ function VerificationPageContent() {
               Wróć
             </button>
             <button
-              onClick={handleContinueToForm}
+              onClick={handleContinueToOpinion}
               disabled={!insuranceVerified || (isOtherEUCountry && !legislationVerified)}
               className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
-              Przejdź do formularza
+              Przejdź dalej
               <svg
                 className="w-5 h-5"
                 fill="none"

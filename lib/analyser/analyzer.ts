@@ -52,7 +52,7 @@ const analyzeAndCreateFile = async (file: File): Promise<NewFile> => {
   });
 
   return {
-    id: v4(),
+    id: uploadedFile.id,
     createdAt: new Date(),
     updatedAt: new Date(),
     data: JSON.parse(response.output_text),
