@@ -287,6 +287,8 @@ function AnalysisPageContent() {
                       facilityAddress: "",
                     }
                   : undefined,
+                // Store country for verification page
+                country: mergedData.country || "Polska",
               } as any;
             }
 
@@ -385,7 +387,7 @@ function AnalysisPageContent() {
     return null;
   };
 
-  const handleContinueToForm = () => {
+  const handleContinueToVerification = () => {
     const validationError = validateForm();
     if (validationError) {
       alert(validationError);
@@ -407,14 +409,14 @@ function AnalysisPageContent() {
       notificationType: formData.notificationType,
     };
 
-    // Save mapped form data to sessionStorage for the form
+    // Save mapped form data to sessionStorage
     if (Object.keys(finalData).length > 0) {
       sessionStorage.setItem("formDataFromAnalysis", JSON.stringify(finalData));
     }
-    // Clear analysis result
-    sessionStorage.removeItem("analysisResult");
-    // Redirect to form
-    router.push("/asystent");
+    // Save analysis result for verification page
+    sessionStorage.setItem("analysisResult", JSON.stringify(analysisResult));
+    // Redirect to verification page
+    router.push("/admin/analysis/verification");
   };
 
   const toggleSection = (sectionId: string) => {
@@ -1612,10 +1614,10 @@ function AnalysisPageContent() {
               Anuluj
             </button>
             <button
-              onClick={handleContinueToForm}
+              onClick={handleContinueToVerification}
               className="px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center gap-2"
             >
-              Przejdź do formularza
+              Zweryfikuj ubezpieczenie
               <svg
                 className="w-5 h-5"
                 fill="none"
