@@ -434,7 +434,7 @@ export default function AdminPage() {
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <div className="text-sm text-gray-500">
-                              {caseItem.documents?.length || 0} plików
+                              {caseItem.fileIds?.length || 0} plików
                             </div>
                           </td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -460,4 +460,3 @@ export default function AdminPage() {
     </div>
   );
 }
-
