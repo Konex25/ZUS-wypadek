@@ -83,7 +83,6 @@ function WyjasnieniaPageContent() {
         dateOfBirth: data.dataUrodzenia,
         placeOfBirth: data.miejsceUrodzenia,
         phone: data.telefon,
-        email: data.email,
       },
       representativeData: data.innaOsobaZawiadamia && data.osobaZawiadamiajaca ? {
         pesel: data.osobaZawiadamiajaca.pesel,
@@ -356,7 +355,7 @@ function WyjasnieniaPageContent() {
       pesel: formData.personalData.pesel,
       dokumentTozsamosci: {
         rodzaj: formData.personalData.idDocument.type as "dowód osobisty" | "paszport" | "inny",
-        seria: formData.personalData.idDocument.series,
+        seria: formData.personalData.idDocument.series || "",
         numer: formData.personalData.idDocument.number,
       },
       imie: formData.personalData.firstName,
@@ -364,13 +363,12 @@ function WyjasnieniaPageContent() {
       dataUrodzenia: formData.personalData.dateOfBirth,
       miejsceUrodzenia: formData.personalData.placeOfBirth,
       telefon: formData.personalData.phone,
-      email: formData.personalData.email,
       innaOsobaZawiadamia: !!formData.representativeData,
       osobaZawiadamiajaca: formData.representativeData ? {
         pesel: formData.representativeData.pesel,
         dokumentTozsamosci: formData.representativeData.idDocument ? {
           rodzaj: formData.representativeData.idDocument.type as "dowód osobisty" | "paszport" | "inny",
-          seria: formData.representativeData.idDocument.series,
+          seria: formData.representativeData.idDocument.series || "",
           numer: formData.representativeData.idDocument.number,
         } : undefined,
         imie: formData.representativeData.firstName,

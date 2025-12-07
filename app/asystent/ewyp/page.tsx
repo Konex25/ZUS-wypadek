@@ -82,13 +82,18 @@ export default function EWYPPage() {
           mieszkaZaGranica: osoba.mieszkaZaGranica || false,
           addresses: {
             residentialAddress: osoba.adresZamieszkania ? {
-              street: osoba.adresZamieszkania.ulica,
-              houseNumber: osoba.adresZamieszkania.numerDomu,
+              street: osoba.adresZamieszkania.ulica || "",
+              houseNumber: osoba.adresZamieszkania.numerDomu || "",
               apartmentNumber: osoba.adresZamieszkania.numerLokalu,
-              postalCode: osoba.adresZamieszkania.kodPocztowy,
-              city: osoba.adresZamieszkania.miejscowosc,
+              postalCode: osoba.adresZamieszkania.kodPocztowy || "",
+              city: osoba.adresZamieszkania.miejscowosc || "",
               country: osoba.adresZamieszkania.panstwo,
-            } : undefined,
+            } : {
+              street: "",
+              houseNumber: "",
+              postalCode: "",
+              city: "",
+            },
             lastResidentialAddressInPoland: osoba.adresOstatniegoZamieszkaniaWPolsce ? {
               street: osoba.adresOstatniegoZamieszkaniaWPolsce.ulica,
               houseNumber: osoba.adresOstatniegoZamieszkaniaWPolsce.numerDomu,
@@ -308,7 +313,7 @@ export default function EWYPPage() {
       pesel: formData.personalData.pesel,
       dokumentTozsamosci: {
         rodzaj: formData.personalData.idDocument.type as "dowód osobisty" | "paszport" | "inny",
-        seria: formData.personalData.idDocument.series,
+        seria: formData.personalData.idDocument.series || "",
         numer: formData.personalData.idDocument.number,
       },
       imie: formData.personalData.firstName,
@@ -321,7 +326,7 @@ export default function EWYPPage() {
         pesel: formData.representativeData.pesel,
         dokumentTozsamosci: formData.representativeData.idDocument ? {
           rodzaj: formData.representativeData.idDocument.type as "dowód osobisty" | "paszport" | "inny",
-          seria: formData.representativeData.idDocument.series,
+          seria: formData.representativeData.idDocument.series || "",
           numer: formData.representativeData.idDocument.number,
         } : undefined,
         imie: formData.representativeData.firstName,

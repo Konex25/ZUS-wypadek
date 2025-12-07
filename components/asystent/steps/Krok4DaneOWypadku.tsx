@@ -263,8 +263,9 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
                     fieldType: "textarea",
                   })
                 }
-                onBlur={() => setActiveField(null)}
-                {...register("szczegolowyOpisOkolicznosci")}
+                {...register("szczegolowyOpisOkolicznosci", {
+                  onBlur: () => setActiveField(null)
+                })}
               />
               {errors.szczegolowyOpisOkolicznosci && (
                 <p className="mt-1 text-sm text-red-600">{errors.szczegolowyOpisOkolicznosci.message}</p>
@@ -291,8 +292,9 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
                     fieldType: "textarea",
                   })
                 }
-                onBlur={() => setActiveField(null)}
-                {...register("szczegolowyOpisPrzyczyn")}
+                {...register("szczegolowyOpisPrzyczyn", {
+                  onBlur: () => setActiveField(null)
+                })}
               />
               {errors.szczegolowyOpisPrzyczyn && (
                 <p className="mt-1 text-sm text-red-600">{errors.szczegolowyOpisPrzyczyn.message}</p>
@@ -337,8 +339,9 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
                       fieldType: "textarea",
                     })
                   }
-                  onBlur={() => setActiveField(null)}
-                  {...register("naglosc.opis")}
+                  {...register("naglosc.opis", {
+                    onBlur: () => setActiveField(null)
+                  })}
                 />
                 {errors.naglosc?.opis && (
                   <p className="mt-1 text-sm text-red-600">{errors.naglosc.opis.message}</p>
@@ -397,8 +400,9 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
                         fieldType: "textarea",
                       })
                     }
-                    onBlur={() => setActiveField(null)}
-                    {...register("przyczynaZewnetrzna.opis")}
+                    {...register("przyczynaZewnetrzna.opis", {
+                      onBlur: () => setActiveField(null)
+                    })}
                   />
                   {errors.przyczynaZewnetrzna?.opis && (
                     <p className="mt-1 text-sm text-red-600">{errors.przyczynaZewnetrzna.opis.message}</p>
@@ -494,8 +498,9 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
                         fieldType: "textarea",
                       })
                     }
-                    onBlur={() => setActiveField(null)}
-                    {...register("zwiazekZPraca.opis")}
+                    {...register("zwiazekZPraca.opis", {
+                      onBlur: () => setActiveField(null)
+                    })}
                   />
                   {errors.zwiazekZPraca?.opis && (
                     <p className="mt-1 text-sm text-red-600">{errors.zwiazekZPraca.opis.message}</p>

@@ -162,13 +162,14 @@ export const Krok6Wyjasnienia: React.FC<Krok6WyjasnieniaProps> = React.memo(({
                     fieldType: "textarea",
                   });
                 }}
-                onBlur={() => {
-                  // Opóźnij resetowanie activeField, aby umożliwić kliknięcie w chatbota
-                  blurTimeoutRef.current = setTimeout(() => {
-                    setActiveField(null);
-                  }, 200);
-                }}
-                {...register("rodzajCzynnosciPrzedWypadkiem")}
+                {...register("rodzajCzynnosciPrzedWypadkiem", {
+                  onBlur: () => {
+                    // Opóźnij resetowanie activeField, aby umożliwić kliknięcie w chatbota
+                    blurTimeoutRef.current = setTimeout(() => {
+                      setActiveField(null);
+                    }, 200);
+                  }
+                })}
               />
               {errors.rodzajCzynnosciPrzedWypadkiem && (
                 <p className="mt-1 text-sm text-red-600">{errors.rodzajCzynnosciPrzedWypadkiem.message}</p>
@@ -196,23 +197,24 @@ export const Krok6Wyjasnienia: React.FC<Krok6WyjasnieniaProps> = React.memo(({
                     fieldType: "textarea",
                   });
                 }}
-                onBlur={(e) => {
-                  // Sprawdź, czy kliknięcie było w chatbocie
-                  const relatedTarget = e.relatedTarget as HTMLElement;
-                  if (relatedTarget && relatedTarget.closest('.fixed.bottom-24')) {
-                    // Jeśli kliknięto w chatbota, nie resetuj activeField
-                    if (blurTimeoutRef.current) {
-                      clearTimeout(blurTimeoutRef.current);
-                      blurTimeoutRef.current = null;
+                {...register("okolicznosciWypadku", {
+                  onBlur: (e) => {
+                    // Sprawdź, czy kliknięcie było w chatbocie
+                    const relatedTarget = e.relatedTarget as HTMLElement;
+                    if (relatedTarget && relatedTarget.closest('.fixed.bottom-24')) {
+                      // Jeśli kliknięto w chatbota, nie resetuj activeField
+                      if (blurTimeoutRef.current) {
+                        clearTimeout(blurTimeoutRef.current);
+                        blurTimeoutRef.current = null;
+                      }
+                      return;
                     }
-                    return;
+                    // Opóźnij resetowanie activeField, aby umożliwić kliknięcie w chatbota
+                    blurTimeoutRef.current = setTimeout(() => {
+                      setActiveField(null);
+                    }, 300);
                   }
-                  // Opóźnij resetowanie activeField, aby umożliwić kliknięcie w chatbota
-                  blurTimeoutRef.current = setTimeout(() => {
-                    setActiveField(null);
-                  }, 300);
-                }}
-                {...register("okolicznosciWypadku")}
+                })}
               />
               {errors.okolicznosciWypadku && (
                 <p className="mt-1 text-sm text-red-600">{errors.okolicznosciWypadku.message}</p>
@@ -240,23 +242,24 @@ export const Krok6Wyjasnienia: React.FC<Krok6WyjasnieniaProps> = React.memo(({
                     fieldType: "textarea",
                   });
                 }}
-                onBlur={(e) => {
-                  // Sprawdź, czy kliknięcie było w chatbocie
-                  const relatedTarget = e.relatedTarget as HTMLElement;
-                  if (relatedTarget && relatedTarget.closest('.fixed.bottom-24')) {
-                    // Jeśli kliknięto w chatbota, nie resetuj activeField
-                    if (blurTimeoutRef.current) {
-                      clearTimeout(blurTimeoutRef.current);
-                      blurTimeoutRef.current = null;
+                {...register("przyczynyWypadku", {
+                  onBlur: (e) => {
+                    // Sprawdź, czy kliknięcie było w chatbocie
+                    const relatedTarget = e.relatedTarget as HTMLElement;
+                    if (relatedTarget && relatedTarget.closest('.fixed.bottom-24')) {
+                      // Jeśli kliknięto w chatbota, nie resetuj activeField
+                      if (blurTimeoutRef.current) {
+                        clearTimeout(blurTimeoutRef.current);
+                        blurTimeoutRef.current = null;
+                      }
+                      return;
                     }
-                    return;
+                    // Opóźnij resetowanie activeField, aby umożliwić kliknięcie w chatbota
+                    blurTimeoutRef.current = setTimeout(() => {
+                      setActiveField(null);
+                    }, 300);
                   }
-                  // Opóźnij resetowanie activeField, aby umożliwić kliknięcie w chatbota
-                  blurTimeoutRef.current = setTimeout(() => {
-                    setActiveField(null);
-                  }, 300);
-                }}
-                {...register("przyczynyWypadku")}
+                })}
               />
               {errors.przyczynyWypadku && (
                 <p className="mt-1 text-sm text-red-600">{errors.przyczynyWypadku.message}</p>

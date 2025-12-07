@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getCaseById } from "@/lib/database/cases";
 import { generateAccidentCard } from "@/lib/pdf/generateAccidentCard";
+import { AIOpinion, Case, Justification } from "@/types";
 
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
@@ -22,16 +23,16 @@ export async function GET(request: NextRequest) {
     );
   }
 
-  if (caseData.status !== "completed") {
+  if (caseData.status !== "ACCEPTED") {
     return NextResponse.json(
       { error: "Sprawa nie została jeszcze przetworzona. Poczekaj na zakończenie analizy." },
       { status: 400 }
     );
   }
 
-  if (!caseData.aiOpinion) {
+  if (!caseData.aiDecision && !caseData.aiResponse) {
     return NextResponse.json(
-      { error: "Brak opinii AI dla tej sprawy. Nie można wygenerować karty wypadku." },
+      { error: "Brak danych AI dla tej sprawy. Nie można wygenerować karty wypadku." },
       { status: 400 }
     );
   }
@@ -39,7 +40,47 @@ export async function GET(request: NextRequest) {
   try {
     console.log(`Generating accident card for case: ${caseId}`);
     
-    const pdfBytes = await generateAccidentCard(caseData);
+    // Build aiOpinion from database data
+    const aiResponse = caseData.aiResponse as any;
+    const formData = aiResponse?.[0]?.data 
+      ? (typeof aiResponse[0].data === 'string' ? JSON.parse(aiResponse[0].data) : aiResponse[0].data)
+      : {};
+    
+    const accidentData = formData.accidentData || {};
+    const aiJustifications = caseData.aiJustifications as Justification[] || [];
+    
+    const aiOpinion: AIOpinion = {
+      date: accidentData.accidentDate || formData.date || "",
+      place: accidentData.accidentPlace || formData.place || "",
+      country: formData.country,
+      description: accidentData.detailedCircumstancesDescription || formData.description || "",
+      causes: accidentData.detailedCausesDescription || formData.causes || "",
+      decision: (caseData.aiDecision as any) || "NEED_MORE_INFORMATION",
+      justifications: aiJustifications,
+      hasInjury: accidentData.injury?.confirmed || formData.hasInjury || false,
+      injuryDescription: accidentData.injury?.type || formData.injuryDescription,
+    };
+
+    // Build documents array from fileIds
+    const documents = (caseData.fileIds || []).map((fileId: string) => ({
+      id: fileId,
+      fileName: fileId, // Use fileId as fileName if we don't have the actual name
+      fileSize: 0,
+      mimeType: "application/pdf",
+      uploadedAt: caseData.createdAt?.toISOString() || new Date().toISOString(),
+    }));
+
+    // Create Case object compatible with generateAccidentCard
+    const caseForPdf: Case = {
+      id: caseData.id,
+      createdAt: caseData.createdAt?.toISOString() || new Date().toISOString(),
+      status: "completed", // Frontend status
+      fileIds: caseData.fileIds || [],
+      documents,
+      aiOpinion,
+    };
+    
+    const pdfBytes = await generateAccidentCard(caseForPdf);
     
     console.log(`Accident card generated successfully, size: ${pdfBytes.length} bytes`);
 

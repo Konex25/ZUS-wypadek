@@ -185,7 +185,6 @@ export const Krok8Podsumowanie: React.FC<Krok8PodsumowanieProps> = React.memo(({
           <SummaryRow label="Data urodzenia" value={formData.personalData.dateOfBirth} />
           <SummaryRow label="Miejsce urodzenia" value={formData.personalData.placeOfBirth} />
           <SummaryRow label="Telefon" value={formData.personalData.phone} />
-          <SummaryRow label="Email" value={formData.personalData.email} />
           <SummaryRow 
             label="Dokument tożsamości" 
             value={`${formData.personalData.idDocument.type} ${formData.personalData.idDocument.series || ""} ${formData.personalData.idDocument.number}`.trim()} 

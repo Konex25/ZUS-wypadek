@@ -29,7 +29,7 @@ export async function POST(request: Request) {
         role: "user",
         content: [
           { type: "input_text", text: DIFFERENCES_PROMPT },
-          ...caseData.fileIds.map((fileId) => ({
+          ...(caseData.fileIds || []).map((fileId) => ({
             type: "input_file" as const,
             file_id: fileId,
           })),
