@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCaseById } from "@/lib/db/cases";
+import { getCaseById } from "@/lib/database/cases";
 import { generateAccidentCard } from "@/lib/pdf/generateAccidentCard";
 
 export async function GET(request: NextRequest) {

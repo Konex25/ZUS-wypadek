@@ -1,5 +1,5 @@
 import { NewCase } from "@/db/schema";
-import { getCases } from "@/lib/db/cases";
+import { getCases } from "@/lib/database/cases";
 import { createFile } from "@/lib/services";
 import { NextResponse } from "next/server";
 import { v4 } from "uuid";

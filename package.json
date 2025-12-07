@@ -35,7 +35,6 @@
     "pdf-parse": "^2.4.5",
     "pdfjs-dist": "^5.4.449",
     "pg": "^8.16.3",
-    "prisma": "^7.1.0",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
     "react-hook-form": "^7.68.0",
