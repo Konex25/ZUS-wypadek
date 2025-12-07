@@ -16,13 +16,13 @@ export const Checkbox = React.forwardRef<
 >(({ label, checked, onCheckedChange, error, required }, ref) => {
   return (
     <div className="w-full">
-      <div className="flex items-center space-x-2">
+      <div className="flex items-start space-x-2 w-full">
         <CheckboxPrimitive.Root
           ref={ref}
           checked={checked}
           onCheckedChange={onCheckedChange}
           className={cn(
-            "flex h-5 w-5 items-center justify-center rounded border-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2",
+            "flex h-5 w-5 items-center justify-center rounded border-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 flex-shrink-0 mt-0.5",
             error ? "border-red-500" : "border-gray-300",
             checked && "bg-blue-600 border-blue-600"
           )}
@@ -40,7 +40,7 @@ export const Checkbox = React.forwardRef<
           </CheckboxPrimitive.Indicator>
         </CheckboxPrimitive.Root>
         {label && (
-          <label className="text-sm font-medium text-gray-700 cursor-pointer">
+          <label className="text-sm font-medium text-gray-700 cursor-pointer flex-1 min-w-0">
             {label}
             {required && <span className="text-red-500 ml-1">*</span>}
           </label>
@@ -54,4 +54,5 @@ export const Checkbox = React.forwardRef<
 });
 
 Checkbox.displayName = "Checkbox";
+
 

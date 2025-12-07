@@ -103,7 +103,16 @@ export const Krok8Podsumowanie: React.FC<Krok8PodsumowanieProps> = React.memo(({
       {/* Rodzaj zgłoszenia */}
       {formData.notificationType && (
         <SummarySection title="Rodzaj zgłoszenia">
-          <SummaryRow label="Typ" value={formData.notificationType} />
+          <SummaryRow 
+            label="Typ" 
+            value={
+              formData.notificationType === "zawiadomienie" 
+                ? "Zawiadomienie o wypadku" 
+                : formData.notificationType === "wyjasnienia"
+                ? "Zapis wyjaśnień poszkodowanego"
+                : "Oba dokumenty"
+            } 
+          />
         </SummarySection>
       )}
 

@@ -21,7 +21,8 @@ export interface AccidentReport {
     | "poczta"
     | "osoba_upowazniona"; // Sposób odbioru odpowiedzi
   signatureDate?: string; // Data podpisu
-  documentCommitments?: boolean[]; // Zobowiązanie do dostarczenia dokumentów (8 pozycji)
+  documentCommitments?: string[]; // Zobowiązanie do dostarczenia dokumentów (8 pozycji)
+  documentCommitmentDate?: string; // Data zobowiązania dostarczenia dokumentów
 }
 
 export interface VictimPersonalData {
@@ -36,7 +37,6 @@ export interface VictimPersonalData {
   dateOfBirth: string;
   placeOfBirth: string;
   phone: string;
-  email?: string;
 }
 
 export interface RepresentativeData {
@@ -103,7 +103,6 @@ export interface BusinessData {
   regon?: string;
   pkdCode?: string; // automatycznie z CEIDG
   businessScope?: string; // automatycznie z CEIDG
-  address?: Address; // automatycznie z CEIDG
 }
 
 export interface AccidentData {

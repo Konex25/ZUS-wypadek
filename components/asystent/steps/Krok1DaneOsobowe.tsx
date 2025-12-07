@@ -70,7 +70,6 @@ export const Krok1DaneOsobowe: React.FC<Krok1DaneOsoboweProps> = React.memo(({
     setValue("dataUrodzenia", "1985-01-01");
     setValue("miejsceUrodzenia", "Warszawa");
     setValue("telefon", "+48 123 456 789");
-    setValue("email", "jan.kowalski@example.com");
     
     // Opcjonalnie: dane osoby zawiadamiającej (nie wypełniaj domyślnie)
     setInnaOsobaZawiadamia(false);
@@ -117,20 +116,19 @@ export const Krok1DaneOsobowe: React.FC<Krok1DaneOsoboweProps> = React.memo(({
             }}
           />
 
-          {watch("dokumentTozsamosci.rodzaj") === "dowód osobisty" && (
-            <Input
-              label="Seria dokumentu"
-              type="text"
-              maxLength={3}
-              error={errors.dokumentTozsamosci?.seria?.message}
-              helperText="3 litery (np. ABC)"
-              {...register("dokumentTozsamosci.seria")}
-              onChange={(e) => {
-                const value = e.target.value.toUpperCase().replace(/[^A-Z]/g, "");
-                setValue("dokumentTozsamosci.seria", value);
-              }}
-            />
-          )}
+          <Input
+            label="Seria dokumentu"
+            type="text"
+            maxLength={3}
+            required
+            error={errors.dokumentTozsamosci?.seria?.message}
+            helperText="3 litery (np. ABC) - wymagane"
+            {...register("dokumentTozsamosci.seria")}
+            onChange={(e) => {
+              const value = e.target.value.toUpperCase().replace(/[^A-Z]/g, "");
+              setValue("dokumentTozsamosci.seria", value);
+            }}
+          />
 
           <Input
             label="Numer dokumentu"
@@ -177,23 +175,15 @@ export const Krok1DaneOsobowe: React.FC<Krok1DaneOsoboweProps> = React.memo(({
           />
         </div>
 
-        {/* Telefon i email */}
-        <div className="grid md:grid-cols-2 gap-4">
-          <Input
-            label="Numer telefonu"
-            type="tel"
-            required
-            error={errors.telefon?.message}
-            helperText="Format: +48 123 456 789 lub 123-456-789"
-            {...register("telefon")}
-          />
-          <Input
-            label="Adres email (opcjonalnie)"
-            type="email"
-            error={errors.email?.message}
-            {...register("email")}
-          />
-        </div>
+        {/* Telefon */}
+        <Input
+          label="Numer telefonu"
+          type="tel"
+          required
+          error={errors.telefon?.message}
+          helperText="Format: +48 123 456 789 lub 123-456-789"
+          {...register("telefon")}
+        />
       </div>
 
       {/* Opcjonalne: Dane osoby zawiadamiającej */}
@@ -214,7 +204,7 @@ export const Krok1DaneOsobowe: React.FC<Krok1DaneOsoboweProps> = React.memo(({
 
           {innaOsobaZawiadamia && (
             <div className="ml-7 space-y-4 pt-4 border-t border-gray-200">
-              <h4 className="font-medium text-gray-900">Dane osoby zawiadamiającej</h4>
+              <h4 className="font-bold text-gray-900">Dane osoby zawiadamiającej</h4>
               
               {/* PESEL (opcjonalny) */}
               <Input
@@ -309,7 +299,7 @@ export const Krok1DaneOsobowe: React.FC<Krok1DaneOsoboweProps> = React.memo(({
 
               {/* Adres zamieszkania osoby zawiadamiającej */}
               <div className="pt-4 border-t border-gray-200">
-                <h5 className="text-sm font-medium text-gray-900 mb-4">Adres zamieszkania osoby zawiadamiającej</h5>
+                <h5 className="text-sm font-bold text-gray-900 mb-4">Adres zamieszkania osoby zawiadamiającej</h5>
                 <div className="space-y-4">
                   <Checkbox
                     label="Osoba zawiadamiająca mieszka obecnie za granicą"
@@ -378,7 +368,7 @@ export const Krok1DaneOsobowe: React.FC<Krok1DaneOsoboweProps> = React.memo(({
                   {/* Adres ostatniego zamieszkania w Polsce dla osoby zawiadamiającej */}
                   {mieszkaZaGranicaOsobaZawiadamiajaca && (
                     <div className="pt-4 border-t border-gray-200">
-                      <h6 className="text-sm font-medium text-gray-900 mb-4">Adres ostatniego miejsca zamieszkania w Polsce / adres miejsca pobytu</h6>
+                      <h6 className="text-sm font-bold text-gray-900 mb-4">Adres ostatniego miejsca zamieszkania w Polsce / adres miejsca pobytu</h6>
                       <div className="grid md:grid-cols-2 gap-4">
                         <Input
                           label="Ulica"
@@ -443,7 +433,7 @@ export const Krok1DaneOsobowe: React.FC<Krok1DaneOsoboweProps> = React.memo(({
                 />
                 {adresDoKorespondencjiInny && (
                   <div className="mt-4 space-y-4">
-                    <h5 className="text-sm font-medium text-gray-900 mb-4">Adres do korespondencji osoby zawiadamiającej</h5>
+                    <h5 className="text-sm font-bold text-gray-900 mb-4">Adres do korespondencji osoby zawiadamiającej</h5>
                     <div className="grid md:grid-cols-2 gap-4">
                       <Input
                         label="Ulica"
@@ -527,7 +517,6 @@ export const Krok1DaneOsobowe: React.FC<Krok1DaneOsoboweProps> = React.memo(({
               <li>Miejsce urodzenia: {errors.miejsceUrodzenia.message}</li>
             )}
             {errors.telefon && <li>Telefon: {errors.telefon.message}</li>}
-            {errors.email && <li>Email: {errors.email.message}</li>}
           </ul>
         </div>
       )}

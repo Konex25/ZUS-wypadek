@@ -446,7 +446,7 @@ export const Krok2Adresy: React.FC<Krok2AdresyProps> = React.memo(({
     required = true
   ) => (
     <div className="space-y-4">
-      <h4 className="font-medium text-gray-900">{label}</h4>
+      <h4 className="font-bold text-gray-900">{label}</h4>
       <div className="grid md:grid-cols-2 gap-4">
         <Input
           label="Ulica"
@@ -524,7 +524,7 @@ export const Krok2Adresy: React.FC<Krok2AdresyProps> = React.memo(({
         {/* Adres działalności z integracją CEIDG */}
         <Card>
           <div className="space-y-4">
-            <h4 className="font-medium text-gray-900">Adres działalności gospodarczej</h4>
+            <h4 className="font-bold text-gray-900">Adres działalności gospodarczej</h4>
             
             {/* Sekcja CEIDG */}
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 space-y-3">
@@ -611,7 +611,7 @@ export const Krok2Adresy: React.FC<Krok2AdresyProps> = React.memo(({
         {adresDoKorespondencjiInny && (
           <Card>
             <div className="space-y-4">
-              <h4 className="font-medium text-gray-900">Adres do korespondencji</h4>
+              <h4 className="font-bold text-gray-900">Adres do korespondencji</h4>
               <Select
                 label="Typ adresu do korespondencji"
                 options={[

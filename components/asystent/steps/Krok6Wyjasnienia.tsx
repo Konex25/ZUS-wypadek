@@ -110,7 +110,7 @@ export const Krok6Wyjasnienia: React.FC<Krok6WyjasnieniaProps> = React.memo(({
 
         {/* Podstawowe informacje */}
         <Card className="p-6">
-          <h4 className="text-md font-semibold text-gray-900 mb-4 text-center">Podstawowe informacje</h4>
+          <h4 className="text-md font-bold text-gray-900 mb-4 text-center">Podstawowe informacje</h4>
           
           <div className="space-y-4">
             <div>
@@ -175,7 +175,7 @@ export const Krok6Wyjasnienia: React.FC<Krok6WyjasnieniaProps> = React.memo(({
                 }}
               />
             </div>
-            <h4 className="text-md font-semibold text-gray-900 flex-1">
+            <h4 className="text-md font-bold text-gray-900 flex-1">
               Maszyny i narzędzia
             </h4>
           </div>
@@ -233,7 +233,7 @@ export const Krok6Wyjasnienia: React.FC<Krok6WyjasnieniaProps> = React.memo(({
                 }}
               />
             </div>
-            <h4 className="text-md font-semibold text-gray-900 flex-1">
+            <h4 className="text-md font-bold text-gray-900 flex-1">
               Środki ochrony
             </h4>
           </div>
@@ -275,7 +275,7 @@ export const Krok6Wyjasnienia: React.FC<Krok6WyjasnieniaProps> = React.memo(({
                 }}
               />
             </div>
-            <h4 className="text-md font-semibold text-gray-900 flex-1">
+            <h4 className="text-md font-bold text-gray-900 flex-1">
               Przestrzeganie zasad BHP
             </h4>
           </div>
@@ -324,7 +324,7 @@ export const Krok6Wyjasnienia: React.FC<Krok6WyjasnieniaProps> = React.memo(({
                 }}
               />
             </div>
-            <h4 className="text-md font-semibold text-gray-900 flex-1">
+            <h4 className="text-md font-bold text-gray-900 flex-1">
               Pierwsza pomoc
             </h4>
           </div>

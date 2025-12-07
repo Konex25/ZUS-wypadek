@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 import { AttachmentInfo } from "@/types";
 
 interface Krok9ZalacznikiProps {
@@ -12,13 +13,15 @@ interface Krok9ZalacznikiProps {
     attachments: AttachmentInfo[], 
     responseDeliveryMethod: "zus_office" | "pue_zus" | "poczta" | "osoba_upowazniona", 
     signatureDate: string,
-    documentCommitments?: boolean[]
+    documentCommitments?: string[],
+    documentCommitmentDate?: string
   ) => void;
   onPrevious: () => void;
   initialAttachments?: AttachmentInfo[];
   initialResponseDeliveryMethod?: "zus_office" | "pue_zus" | "poczta" | "osoba_upowazniona";
   initialSignatureDate?: string;
-  initialDocumentCommitments?: boolean[];
+  initialDocumentCommitments?: string[];
+  initialDocumentCommitmentDate?: string;
 }
 
 export const Krok9Zalaczniki: React.FC<Krok9ZalacznikiProps> = React.memo(({
@@ -28,6 +31,7 @@ export const Krok9Zalaczniki: React.FC<Krok9ZalacznikiProps> = React.memo(({
   initialResponseDeliveryMethod,
   initialSignatureDate,
   initialDocumentCommitments,
+  initialDocumentCommitmentDate,
 }) => {
   const [attachments, setAttachments] = useState<AttachmentInfo[]>(initialAttachments);
   const [responseDeliveryMethod, setResponseDeliveryMethod] = useState<"zus_office" | "pue_zus" | "poczta" | "osoba_upowazniona" | undefined>(
@@ -39,9 +43,12 @@ export const Krok9Zalaczniki: React.FC<Krok9ZalacznikiProps> = React.memo(({
   const [otherDescription, setOtherDescription] = useState(
     initialAttachments.find(a => a.type === "other")?.description || ""
   );
-  // Zobowiązanie do dostarczenia dokumentów - 8 pozycji
-  const [documentCommitments, setDocumentCommitments] = useState<boolean[]>(
-    initialDocumentCommitments || [false, false, false, false, false, false, false, false]
+  // Zobowiązanie do dostarczenia dokumentów - dynamiczne pola tekstowe (max 8)
+  const [documentCommitments, setDocumentCommitments] = useState<string[]>(
+    initialDocumentCommitments || []
+  );
+  const [documentCommitmentDate, setDocumentCommitmentDate] = useState(
+    initialDocumentCommitmentDate || ""
   );
 
   const handleAttachmentChange = (type: AttachmentInfo["type"], checked: boolean) => {
@@ -69,7 +76,17 @@ export const Krok9Zalaczniki: React.FC<Krok9ZalacznikiProps> = React.memo(({
       return;
     }
     
-    onNext(updatedAttachments, responseDeliveryMethod, signatureDate, documentCommitments);
+    // Przekaż pełną tablicę (max 8 elementów), zachowując indeksy dla mapowania do PDF
+    // Wypełnij do 8 elementów pustymi stringami jeśli potrzeba
+    const fullCommitments = [...documentCommitments];
+    while (fullCommitments.length < 8) {
+      fullCommitments.push("");
+    }
+    // Obetnij do 8 elementów jeśli jest więcej
+    const finalCommitments = fullCommitments.slice(0, 8);
+    
+    console.log("Przekazywane documentCommitments:", finalCommitments);
+    onNext(updatedAttachments, responseDeliveryMethod, signatureDate, finalCommitments, documentCommitmentDate);
   };
 
   return (
@@ -82,7 +99,7 @@ export const Krok9Zalaczniki: React.FC<Krok9ZalacznikiProps> = React.memo(({
         {/* Załączniki */}
         <Card>
           <div className="space-y-4">
-            <h4 className="font-medium text-gray-900">Załączniki do zawiadomienia</h4>
+            <h4 className="font-bold text-gray-900">Załączniki do zawiadomienia</h4>
             <p className="text-sm text-gray-600">
               Zaznacz, które dokumenty dołączasz do zawiadomienia o wypadku
             </p>
@@ -120,7 +137,7 @@ export const Krok9Zalaczniki: React.FC<Krok9ZalacznikiProps> = React.memo(({
                 />
               </div>
               
-              <div className="space-y-2">
+              <div className="w-full space-y-2">
                 <Checkbox
                   label="Inne dokumenty"
                   checked={attachments.some(a => a.type === "other")}
@@ -156,84 +173,68 @@ export const Krok9Zalaczniki: React.FC<Krok9ZalacznikiProps> = React.memo(({
         {/* Zobowiązanie do dostarczenia dokumentów */}
         <Card>
           <div className="space-y-4">
-            <h4 className="font-medium text-gray-900">Zobowiązanie do dostarczenia dokumentów</h4>
-            <p className="text-sm text-gray-600">
-              Zaznacz dokumenty, które zobowiązujesz się dostarczyć
-            </p>
+            <h4 className="font-bold text-gray-900">Zobowiązanie do dostarczenia dokumentów</h4>
+            <div className="flex items-center gap-3 mb-4">
+              <span className="text-sm text-gray-600 whitespace-nowrap">Do</span>
+              <div className="flex-1 max-w-xs">
+                <Input
+                  type="date"
+                  value={documentCommitmentDate}
+                  onChange={(e) => setDocumentCommitmentDate(e.target.value)}
+                />
+              </div>
+              <span className="text-sm text-gray-600">
+                zobowiązuję się dostarczyć następujące dokumenty:
+              </span>
+            </div>
 
+            {documentCommitments.length === 0 && (
+              <p className="text-sm text-gray-500 italic">
+                Kliknij "Dodaj pozycję", aby dodać dokumenty, które zobowiązujesz się dostarczyć
+              </p>
+            )}
             <div className="space-y-3">
-              <Checkbox
-                label="Pozycja 1: Kserokopia karty informacyjnej ze szpitala / dokumentów pierwszej pomocy"
-                checked={documentCommitments[0]}
-                onCheckedChange={(checked) => {
-                  const updated = [...documentCommitments];
-                  updated[0] = checked || false;
-                  setDocumentCommitments(updated);
-                }}
-              />
-              <Checkbox
-                label="Pozycja 2: Dokumenty z prokuratury"
-                checked={documentCommitments[1]}
-                onCheckedChange={(checked) => {
-                  const updated = [...documentCommitments];
-                  updated[1] = checked || false;
-                  setDocumentCommitments(updated);
-                }}
-              />
-              <Checkbox
-                label="Pozycja 3: Dokumenty dotyczące zgonu (jeśli dotyczy)"
-                checked={documentCommitments[2]}
-                onCheckedChange={(checked) => {
-                  const updated = [...documentCommitments];
-                  updated[2] = checked || false;
-                  setDocumentCommitments(updated);
-                }}
-              />
-              <Checkbox
-                label="Pozycja 4: Dokumenty potwierdzające prawo do wydania karty wypadku innej osobie"
-                checked={documentCommitments[3]}
-                onCheckedChange={(checked) => {
-                  const updated = [...documentCommitments];
-                  updated[3] = checked || false;
-                  setDocumentCommitments(updated);
-                }}
-              />
-              <Checkbox
-                label="Pozycja 5: Inne dokumenty"
-                checked={documentCommitments[4]}
-                onCheckedChange={(checked) => {
-                  const updated = [...documentCommitments];
-                  updated[4] = checked || false;
-                  setDocumentCommitments(updated);
-                }}
-              />
-              <Checkbox
-                label="Pozycja 6: Dokumenty potwierdzające wykonywanie czynności związanych z działalnością"
-                checked={documentCommitments[5]}
-                onCheckedChange={(checked) => {
-                  const updated = [...documentCommitments];
-                  updated[5] = checked || false;
-                  setDocumentCommitments(updated);
-                }}
-              />
-              <Checkbox
-                label="Pozycja 7: Kopia licencji lub koncesji (jeśli wymagana)"
-                checked={documentCommitments[6]}
-                onCheckedChange={(checked) => {
-                  const updated = [...documentCommitments];
-                  updated[6] = checked || false;
-                  setDocumentCommitments(updated);
-                }}
-              />
-              <Checkbox
-                label="Pozycja 8: Notatka służbowa policji drogowej (w przypadku wypadku komunikacyjnego)"
-                checked={documentCommitments[7]}
-                onCheckedChange={(checked) => {
-                  const updated = [...documentCommitments];
-                  updated[7] = checked || false;
-                  setDocumentCommitments(updated);
-                }}
-              />
+              {documentCommitments.map((text, index) => (
+                <div key={index} className="flex items-start gap-3">
+                  <div className="flex-1">
+                    <Input
+                      label={`Pozycja ${index + 1}`}
+                      value={text}
+                      onChange={(e) => {
+                        const updated = [...documentCommitments];
+                        updated[index] = e.target.value;
+                        setDocumentCommitments(updated);
+                      }}
+                      placeholder="Wpisz nazwę dokumentu, który zobowiązujesz się dostarczyć"
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const updated = documentCommitments.filter((_, i) => i !== index);
+                      setDocumentCommitments(updated);
+                    }}
+                    className="flex-shrink-0 mt-7"
+                  >
+                    Usuń
+                  </Button>
+                </div>
+              ))}
+
+              {documentCommitments.length < 8 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setDocumentCommitments([...documentCommitments, ""]);
+                  }}
+                  className="w-full"
+                >
+                  + Dodaj pozycję
+                </Button>
+              )}
             </div>
           </div>
         </Card>
@@ -241,7 +242,7 @@ export const Krok9Zalaczniki: React.FC<Krok9ZalacznikiProps> = React.memo(({
         {/* Sposób odbioru odpowiedzi */}
         <Card>
           <div className="space-y-4">
-            <h4 className="font-medium text-gray-900">Sposób odbioru odpowiedzi</h4>
+            <h4 className="font-bold text-gray-900">Sposób odbioru odpowiedzi</h4>
             <p className="text-sm text-gray-600">
               Wybierz, w jaki sposób chcesz otrzymać odpowiedź od ZUS
             </p>
@@ -257,7 +258,7 @@ export const Krok9Zalaczniki: React.FC<Krok9ZalacznikiProps> = React.memo(({
                   className="w-4 h-4 text-blue-600 focus:ring-blue-500"
                 />
                 <span className="text-sm text-gray-900">
-                  W placówce ZUS
+                  w placówce ZUS (osobiście lub przez osobę upoważnioną)
                 </span>
               </label>
               
@@ -271,7 +272,7 @@ export const Krok9Zalaczniki: React.FC<Krok9ZalacznikiProps> = React.memo(({
                   className="w-4 h-4 text-blue-600 focus:ring-blue-500"
                 />
                 <span className="text-sm text-gray-900">
-                  Pocztą
+                  pocztą na adres wskazany we wniosku
                 </span>
               </label>
               
@@ -285,21 +286,7 @@ export const Krok9Zalaczniki: React.FC<Krok9ZalacznikiProps> = React.memo(({
                   className="w-4 h-4 text-blue-600 focus:ring-blue-500"
                 />
                 <span className="text-sm text-gray-900">
-                  Na adres z PUE
-                </span>
-              </label>
-              
-              <label className="flex items-center space-x-3 cursor-pointer">
-                <input
-                  type="radio"
-                  name="responseDeliveryMethod"
-                  value="osoba_upowazniona"
-                  checked={responseDeliveryMethod === "osoba_upowazniona"}
-                  onChange={(e) => setResponseDeliveryMethod(e.target.value as "osoba_upowazniona")}
-                  className="w-4 h-4 text-blue-600 focus:ring-blue-500"
-                />
-                <span className="text-sm text-gray-900">
-                  Przez osobę upoważnioną
+                  na moim koncie na Platformie Usług Elektronicznych (PUE ZUS)
                 </span>
               </label>
             </div>
@@ -309,7 +296,7 @@ export const Krok9Zalaczniki: React.FC<Krok9ZalacznikiProps> = React.memo(({
         {/* Data podpisu */}
         <Card>
           <div className="space-y-4">
-            <h4 className="font-medium text-gray-900">Data podpisu</h4>
+            <h4 className="font-bold text-gray-900">Data podpisu</h4>
             <p className="text-sm text-gray-600">
               Data złożenia zawiadomienia (domyślnie dzisiejsza data)
             </p>

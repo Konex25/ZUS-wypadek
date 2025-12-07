@@ -16,7 +16,7 @@ export const daneOsoboweSchema = z.object({
     .regex(/^\d{11}$/, "PESEL musi składać się tylko z cyfr"),
   dokumentTozsamosci: z.object({
     rodzaj: z.enum(["dowód osobisty", "paszport", "inny"]),
-    seria: z.string().optional(),
+    seria: z.string().min(1, "Seria dokumentu jest wymagana"),
     numer: z.string().min(1, "Numer dokumentu jest wymagany"),
   }),
   imie: z.string().min(2, "Imię musi mieć co najmniej 2 znaki"),
@@ -24,14 +24,13 @@ export const daneOsoboweSchema = z.object({
   dataUrodzenia: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Data musi być w formacie YYYY-MM-DD"),
   miejsceUrodzenia: z.string().min(2, "Miejsce urodzenia jest wymagane"),
   telefon: z.string().regex(/^[0-9+\-\s()]+$/, "Nieprawidłowy format numeru telefonu"),
-  email: z.string().email("Nieprawidłowy adres email").optional().or(z.literal("")),
   // Opcjonalne: dane osoby zawiadamiającej
   innaOsobaZawiadamia: z.boolean().optional(),
   osobaZawiadamiajaca: z.object({
     pesel: z.string().optional(),
     dokumentTozsamosci: z.object({
       rodzaj: z.enum(["dowód osobisty", "paszport", "inny"]),
-      seria: z.string().optional(),
+      seria: z.string().min(1, "Seria dokumentu jest wymagana"),
       numer: z.string().min(1, "Numer dokumentu jest wymagany"),
     }).optional(),
     imie: z.string().min(2, "Imię musi mieć co najmniej 2 znaki"),

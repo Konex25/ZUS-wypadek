@@ -4,20 +4,23 @@ import { useEffect, useRef } from "react";
 import { useLocalStorage } from "./useLocalStorage";
 import { AccidentReport } from "@/types";
 
-const STORAGE_KEY = "zus-wypadek-form-data";
+const DEFAULT_STORAGE_KEY = "zus-wypadek-form-data";
 const AUTO_SAVE_DELAY = 500; // ms
 
 /**
  * Hook do automatycznego zapisywania danych formularza do localStorage
  * @param formData - Dane formularza do zapisania
  * @param enabled - Czy auto-save jest włączony (domyślnie true)
+ * @param storageKey - Klucz w localStorage (opcjonalny, domyślnie "zus-wypadek-form-data")
  */
 export function useAutoSave(
   formData: Partial<AccidentReport>,
-  enabled: boolean = true
+  enabled: boolean = true,
+  storageKey?: string
 ) {
+  const key = storageKey || DEFAULT_STORAGE_KEY;
   const [savedData, setSavedData, clearSavedData] = useLocalStorage<Partial<AccidentReport>>(
-    STORAGE_KEY,
+    key,
     {}
   );
   const timeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -75,4 +78,5 @@ export function useAutoSave(
     hasSavedData: Object.keys(savedData).length > 0,
   };
 }
+
 

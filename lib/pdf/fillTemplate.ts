@@ -1,4 +1,4 @@
-import { PDFDocument, StandardFonts } from "pdf-lib";
+import { PDFDocument } from "pdf-lib";
 import { AccidentReport } from "@/types";
 import fs from "fs";
 import path from "path";
@@ -77,8 +77,9 @@ export async function fillPDFTemplate(
   // Mapowanie nazw pól z formularza do nazw pól w PDF ZUS
   // Nazwy pól w PDF mają format: topmostSubform[0].PageX[0].NazwaPola[0]
   const fieldMapping: Record<string, (data: Partial<AccidentReport>) => string> = {
+
     // ========== STRONA 1 - DANE OSOBOWE ==========
-    // Dane osobowe poszkodowanego
+    // Dane osoby poszkodowanej 
     "topmostSubform[0].Page1[0].PESEL[0]": (d) => d.personalData?.pesel || "",
     "topmostSubform[0].Page1[0].Imię[0]": (d) => transliteratePolish(d.personalData?.firstName || ""),
     "topmostSubform[0].Page1[0].Nazwisko[0]": (d) => transliteratePolish(d.personalData?.lastName || ""),
@@ -98,15 +99,18 @@ export async function fillPDFTemplate(
       return transliteratePolish(`${type}${series ? ` ${series}` : ""}${number ? ` ${number}` : ""}`.trim());
     },
     
-    // Adres zamieszkania (Strona 1)
+    // Adres zamieszkania osoby poszkodowanej
     "topmostSubform[0].Page1[0].Ulica[0]": (d) => transliteratePolish(d.addresses?.residentialAddress?.street || ""),
     "topmostSubform[0].Page1[0].Numerdomu[0]": (d) => d.addresses?.residentialAddress?.houseNumber || "",
     "topmostSubform[0].Page1[0].Numerlokalu[0]": (d) => d.addresses?.residentialAddress?.apartmentNumber || "",
     "topmostSubform[0].Page1[0].Kodpocztowy[0]": (d) => d.addresses?.residentialAddress?.postalCode || "",
     "topmostSubform[0].Page1[0].Poczta[0]": (d) => transliteratePolish(d.addresses?.residentialAddress?.city || ""),
-    "topmostSubform[0].Page1[0].Nazwapaństwa[0]": (d) => transliteratePolish(d.addresses?.residentialAddress?.country || "Polska"),
+    "topmostSubform[0].Page1[0].Nazwapaństwa[0]": (d) => {
+      const country = d.addresses?.residentialAddress?.country;
+      return country ? transliteratePolish(country) : "";
+    },
     
-    // Adres ostatniego zamieszkania w Polsce (jeśli za granicą) - Strona 1
+    // Adres ostatniego miejsca zamieszkania w Polsce / adres miejsca pobytu - Strona 1
     "topmostSubform[0].Page1[0].Ulica2A[0]": (d) => transliteratePolish(d.addresses?.lastResidentialAddressInPoland?.street || ""),
     "topmostSubform[0].Page1[0].Numerdomu2A[0]": (d) => d.addresses?.lastResidentialAddressInPoland?.houseNumber || "",
     "topmostSubform[0].Page1[0].Numerlokalu2A[0]": (d) => d.addresses?.lastResidentialAddressInPoland?.apartmentNumber || "",
@@ -114,12 +118,23 @@ export async function fillPDFTemplate(
     "topmostSubform[0].Page1[0].Poczta2A[0]": (d) => transliteratePolish(d.addresses?.lastResidentialAddressInPoland?.city || ""),
     
     // ========== STRONA 2 - ADRES DO KORESPONDENCJI ==========
-    "topmostSubform[0].Page2[0].Imię[0]": (d) => transliteratePolish(d.personalData?.firstName || ""),
-    "topmostSubform[0].Page2[0].Nazwisko[0]": (d) => transliteratePolish(d.personalData?.lastName || ""),
-    "topmostSubform[0].Page2[0].PESEL[0]": (d) => d.personalData?.pesel || "",
+    // Dane osoby zawiadamiającej (Strona 2 - dół)
+    "topmostSubform[0].Page2[0].PESEL[0]": (d) => {
+      if (!d.representativeData || (!d.representativeData.firstName?.trim() && !d.representativeData.lastName?.trim())) return "";
+      return d.representativeData.pesel || "";
+    },
+    "topmostSubform[0].Page2[0].Imię[0]": (d) => {
+      if (!d.representativeData || !d.representativeData.firstName?.trim()) return "";
+      return transliteratePolish(d.representativeData.firstName);
+    },
+    "topmostSubform[0].Page2[0].Nazwisko[0]": (d) => {
+      if (!d.representativeData || !d.representativeData.lastName?.trim()) return "";
+      return transliteratePolish(d.representativeData.lastName);
+    },
     "topmostSubform[0].Page2[0].Rodzajseriainumerdokumentu[0]": (d) => {
-      const doc = d.personalData?.idDocument;
-      if (!doc) return "";
+      if (!d.representativeData || (!d.representativeData.firstName?.trim() && !d.representativeData.lastName?.trim())) return "";
+      const doc = d.representativeData.idDocument;
+      if (!doc || !doc.number?.trim()) return "";
       const type = doc.type === "dowód osobisty" ? "Dowod osobisty" : 
                    doc.type === "paszport" ? "Paszport" : 
                    doc.type === "inny" ? "Inny" : transliteratePolish(doc.type);
@@ -128,22 +143,58 @@ export async function fillPDFTemplate(
       return transliteratePolish(`${type}${series ? ` ${series}` : ""}${number ? ` ${number}` : ""}`.trim());
     },
     
-    // Adres do korespondencji - adres
-    "topmostSubform[0].Page2[0].Ulica[0]": (d) => transliteratePolish(d.addresses?.correspondenceAddress?.address?.street || ""),
-    "topmostSubform[0].Page2[0].Numerdomu[0]": (d) => d.addresses?.correspondenceAddress?.address?.houseNumber || "",
-    "topmostSubform[0].Page2[0].Numerlokalu[0]": (d) => d.addresses?.correspondenceAddress?.address?.apartmentNumber || "",
-    "topmostSubform[0].Page2[0].Kodpocztowy[0]": (d) => d.addresses?.correspondenceAddress?.address?.postalCode || "",
-    "topmostSubform[0].Page2[0].Poczta[0]": (d) => transliteratePolish(d.addresses?.correspondenceAddress?.address?.city || ""),
-    "topmostSubform[0].Page2[0].Numertelefonu[0]": (d) => d.addresses?.correspondenceAddress?.address?.phone || d.personalData?.phone || "",
-    "topmostSubform[0].Page2[0].Nazwapaństwa2[0]": (d) => transliteratePolish(d.addresses?.correspondenceAddress?.address?.country || "Polska"),
+    // Adres do korespondencji - adres (tylko jeśli użytkownik wypełnił)
+    "topmostSubform[0].Page2[0].Ulica[0]": (d) => {
+      const corrAddr = d.addresses?.correspondenceAddress;
+      return (corrAddr?.type === "adres" && corrAddr?.address?.street) 
+        ? transliteratePolish(corrAddr.address.street) 
+        : "";
+    },
+    "topmostSubform[0].Page2[0].Numerdomu[0]": (d) => {
+      const corrAddr = d.addresses?.correspondenceAddress;
+      return (corrAddr?.type === "adres" && corrAddr?.address?.houseNumber) 
+        ? corrAddr.address.houseNumber 
+        : "";
+    },
+    "topmostSubform[0].Page2[0].Numerlokalu[0]": (d) => {
+      const corrAddr = d.addresses?.correspondenceAddress;
+      return (corrAddr?.type === "adres" && corrAddr?.address?.apartmentNumber) 
+        ? corrAddr.address.apartmentNumber 
+        : "";
+    },
+    "topmostSubform[0].Page2[0].Kodpocztowy[0]": (d) => {
+      const corrAddr = d.addresses?.correspondenceAddress;
+      return (corrAddr?.type === "adres" && corrAddr?.address?.postalCode) 
+        ? corrAddr.address.postalCode 
+        : "";
+    },
+    "topmostSubform[0].Page2[0].Poczta[0]": (d) => {
+      const corrAddr = d.addresses?.correspondenceAddress;
+      return (corrAddr?.type === "adres" && corrAddr?.address?.city) 
+        ? transliteratePolish(corrAddr.address.city) 
+        : "";
+    },
+    "topmostSubform[0].Page2[0].Numertelefonu[0]": (d) => {
+      const corrAddr = d.addresses?.correspondenceAddress;
+      return (corrAddr?.type === "adres" && corrAddr?.address?.phone) 
+        ? corrAddr.address.phone 
+        : "";
+    },
+    "topmostSubform[0].Page2[0].Nazwapaństwa2[0]": (d) => {
+      const corrAddr = d.addresses?.correspondenceAddress;
+      return (corrAddr?.type === "adres" && corrAddr?.address?.country) 
+        ? transliteratePolish(corrAddr.address.country) 
+        : "";
+    },
     
     // Adres do korespondencji - alternatywny (jeśli inny niż zamieszkania)
-    "topmostSubform[0].Page2[0].Ulica2[0]": (d) => transliteratePolish(d.addresses?.correspondenceAddress?.address?.street || ""),
-    "topmostSubform[0].Page2[0].Numerdomu2[0]": (d) => d.addresses?.correspondenceAddress?.address?.houseNumber || "",
-    "topmostSubform[0].Page2[0].Numerlokalu2[0]": (d) => d.addresses?.correspondenceAddress?.address?.apartmentNumber || "",
-    "topmostSubform[0].Page2[0].Kodpocztowy2[0]": (d) => d.addresses?.correspondenceAddress?.address?.postalCode || "",
-    "topmostSubform[0].Page2[0].Poczta2[0]": (d) => transliteratePolish(d.addresses?.correspondenceAddress?.address?.city || ""),
-    "topmostSubform[0].Page2[0].Numertelefonu2[0]": (d) => d.addresses?.correspondenceAddress?.address?.phone || d.personalData?.phone || "",
+    // To pole w szablonie "Ulica2" na Stronie 2 oznacza "Adres miejsca prowadzenia pozarolniczej działalności"
+    "topmostSubform[0].Page2[0].Ulica2[0]": (d) => transliteratePolish(d.addresses?.businessAddress?.street || ""),
+    "topmostSubform[0].Page2[0].Numerdomu2[0]": (d) => d.addresses?.businessAddress?.houseNumber || "",
+    "topmostSubform[0].Page2[0].Numerlokalu2[0]": (d) => d.addresses?.businessAddress?.apartmentNumber || "",
+    "topmostSubform[0].Page2[0].Kodpocztowy2[0]": (d) => d.addresses?.businessAddress?.postalCode || "",
+    "topmostSubform[0].Page2[0].Poczta2[0]": (d) => transliteratePolish(d.addresses?.businessAddress?.city || ""),
+    "topmostSubform[0].Page2[0].Numertelefonu2[0]": (d) => d.addresses?.businessAddress?.phone || "",
     
     // Checkboxy dla adresu do korespondencji
     "topmostSubform[0].Page2[0].adres[0]": (d) => {
@@ -167,18 +218,62 @@ export async function fillPDFTemplate(
     "topmostSubform[0].Page3[0].Datawyp[0]": (d) => formatDateForPDF(d.accidentData?.accidentDate || ""),
     "topmostSubform[0].Page3[0].Godzina[0]": (d) => d.accidentData?.accidentTime || "",
     "topmostSubform[0].Page3[0].Miejscewyp[0]": (d) => transliteratePolish(d.accidentData?.accidentPlace || ""),
-    "topmostSubform[0].Page3[0].Dataurodzenia[0]": (d) => formatDateForPDF(d.personalData?.dateOfBirth || ""),
+    // Pole na stronie 3 jest w szablonie opisane dla osoby zawiadamiającej (bez sufiksu 2)
+    // Wypełniamy tylko, gdy istnieje representativeData z datą urodzenia.
+    "topmostSubform[0].Page3[0].Dataurodzenia[0]": (d) => {
+      if (!d.representativeData || !d.representativeData.dateOfBirth?.trim()) return "";
+      return formatDateForPDF(d.representativeData.dateOfBirth);
+    },
     "topmostSubform[0].Page3[0].Godzina3A[0]": (d) => d.accidentData?.plannedStartTime || "",
     "topmostSubform[0].Page3[0].Godzina3B[0]": (d) => d.accidentData?.plannedEndTime || "",
     
-    // Adres działalności gospodarczej (Strona 3)
-    "topmostSubform[0].Page3[0].Ulica3[0]": (d) => transliteratePolish(d.addresses?.businessAddress?.street || ""),
-    "topmostSubform[0].Page3[0].Numerdomu3[0]": (d) => d.addresses?.businessAddress?.houseNumber || "",
-    "topmostSubform[0].Page3[0].Numerlokalu3[0]": (d) => d.addresses?.businessAddress?.apartmentNumber || "",
-    "topmostSubform[0].Page3[0].Kodpocztowy3[0]": (d) => d.addresses?.businessAddress?.postalCode || "",
-    "topmostSubform[0].Page3[0].Poczta3[0]": (d) => transliteratePolish(d.addresses?.businessAddress?.city || ""),
-    "topmostSubform[0].Page3[0].Numertelefonu3[0]": (d) => d.addresses?.businessAddress?.phone || "",
-    "topmostSubform[0].Page3[0].Nazwapaństwa3[0]": (d) => transliteratePolish(d.addresses?.businessAddress?.country || "Polska"),
+    // Adres do korespondencji osoby zawiadamiającej - Strona 3
+    "topmostSubform[0].Page3[0].Ulica3[0]": (d) => {
+      if (!d.representativeData) return "";
+      const addr = d.representativeData.addresses?.correspondenceAddress;
+      if (addr?.type !== "adres" || !addr.address || (!addr.address.street?.trim() && !addr.address.city?.trim())) return "";
+      return transliteratePolish(addr.address.street || "");
+    },
+    "topmostSubform[0].Page3[0].Numerdomu3[0]": (d) => {
+      if (!d.representativeData) return "";
+      const addr = d.representativeData.addresses?.correspondenceAddress;
+      if (addr?.type !== "adres" || !addr.address || (!addr.address.street?.trim() && !addr.address.city?.trim())) return "";
+      return addr.address.houseNumber || "";
+    },
+    "topmostSubform[0].Page3[0].Numerlokalu3[0]": (d) => {
+      if (!d.representativeData) return "";
+      const addr = d.representativeData.addresses?.correspondenceAddress;
+      if (addr?.type !== "adres" || !addr.address || (!addr.address.street?.trim() && !addr.address.city?.trim())) return "";
+      return addr.address.apartmentNumber || "";
+    },
+    "topmostSubform[0].Page3[0].Kodpocztowy3[0]": (d) => {
+      if (!d.representativeData) return "";
+      const addr = d.representativeData.addresses?.correspondenceAddress;
+      if (addr?.type !== "adres" || !addr.address || (!addr.address.street?.trim() && !addr.address.city?.trim())) return "";
+      return addr.address.postalCode || "";
+    },
+    "topmostSubform[0].Page3[0].Poczta3[0]": (d) => {
+      if (!d.representativeData) return "";
+      const addr = d.representativeData.addresses?.correspondenceAddress;
+      if (addr?.type !== "adres" || !addr.address || (!addr.address.street?.trim() && !addr.address.city?.trim())) return "";
+      return transliteratePolish(addr.address.city || "");
+    },
+    // Numer telefonu — traktujemy jako pole osoby zawiadamiającej
+    "topmostSubform[0].Page3[0].Numertelefonu3[0]": (d) => {
+      if (!d.representativeData || !d.representativeData.phone?.trim()) return "";
+      return d.representativeData.phone;
+    },
+    "topmostSubform[0].Page3[0].Nazwapaństwa3[0]": (d) => {
+      const country = d.addresses?.businessAddress?.country;
+      return country ? transliteratePolish(country) : "";
+    },
+    
+    // Dane działalności gospodarczej (NIP, REGON, PKD) - Strona 3
+    // Uwaga: Nazwy pól mogą się różnić - sprawdź używając /api/pdf/debug-fields
+    "topmostSubform[0].Page3[0].NIP[0]": (d) => d.businessData?.nip || "",
+    "topmostSubform[0].Page3[0].REGON[0]": (d) => d.businessData?.regon || "",
+    "topmostSubform[0].Page3[0].PKD[0]": (d) => d.businessData?.pkdCode || "",
+    "topmostSubform[0].Page3[0].ZakresDzialalnosci[0]": (d) => transliteratePolish(d.businessData?.businessScope || ""),
     
     // Adres sprawowania opieki nad dzieckiem (dla niań) - Strona 2
     // Uwaga: Nazwy pól mogą się różnić w rzeczywistym PDF - sprawdź używając /api/pdf/debug-fields
@@ -189,13 +284,25 @@ export async function fillPDFTemplate(
     "topmostSubform[0].Page2[0].Poczta4[0]": (d) => transliteratePolish(d.addresses?.childcareAddress?.city || ""),
     "topmostSubform[0].Page2[0].Numertelefonu4[0]": (d) => d.addresses?.childcareAddress?.phone || "",
     
-    // Dane osoby zawiadamiającej (jeśli to nie poszkodowany) - Strona 2-3
-    "topmostSubform[0].Page2[0].PESEL2[0]": (d) => d.representativeData?.pesel || "",
-    "topmostSubform[0].Page2[0].Imię2[0]": (d) => transliteratePolish(d.representativeData?.firstName || ""),
-    "topmostSubform[0].Page2[0].Nazwisko2[0]": (d) => transliteratePolish(d.representativeData?.lastName || ""),
+    // Dane osoby zawiadamiającej (tylko jeśli zawiadamia inna osoba niż poszkodowany) - Strona 2-3
+    "topmostSubform[0].Page2[0].PESEL2[0]": (d) => {
+      // Wypełnij tylko jeśli istnieje osoba zawiadamiająca I ma wypełnione dane
+      if (!d.representativeData || (!d.representativeData.firstName?.trim() && !d.representativeData.lastName?.trim())) return "";
+      return d.representativeData.pesel || "";
+    },
+    "topmostSubform[0].Page2[0].Imię2[0]": (d) => {
+      if (!d.representativeData || !d.representativeData.firstName?.trim()) return "";
+      return transliteratePolish(d.representativeData.firstName);
+    },
+    "topmostSubform[0].Page2[0].Nazwisko2[0]": (d) => {
+      if (!d.representativeData || !d.representativeData.lastName?.trim()) return "";
+      return transliteratePolish(d.representativeData.lastName);
+    },
     "topmostSubform[0].Page2[0].Rodzajseriainumerdokumentu2[0]": (d) => {
-      const doc = d.representativeData?.idDocument;
-      if (!doc) return "";
+      // Wypełnij tylko jeśli istnieje osoba zawiadamiająca I ma wypełnione dane
+      if (!d.representativeData || (!d.representativeData.firstName?.trim() && !d.representativeData.lastName?.trim())) return "";
+      const doc = d.representativeData.idDocument;
+      if (!doc || !doc.number?.trim()) return "";
       const type = doc.type === "dowód osobisty" ? "Dowod osobisty" : 
                    doc.type === "paszport" ? "Paszport" : 
                    doc.type === "inny" ? "Inny" : transliteratePolish(doc.type);
@@ -203,43 +310,180 @@ export async function fillPDFTemplate(
       const number = doc.number || "";
       return transliteratePolish(`${type}${series ? ` ${series}` : ""}${number ? ` ${number}` : ""}`.trim());
     },
-    "topmostSubform[0].Page3[0].Dataurodzenia2[0]": (d) => formatDateForPDF(d.representativeData?.dateOfBirth || ""),
-    "topmostSubform[0].Page3[0].Numertelefonu2[0]": (d) => d.representativeData?.phone || "",
+    "topmostSubform[0].Page3[0].Dataurodzenia2[0]": (d) => {
+      // Wypełnij tylko jeśli istnieje osoba zawiadamiająca I ma wypełnione podstawowe dane (imię lub nazwisko) I data jest wypełniona
+      if (!d.representativeData || 
+          (!d.representativeData.firstName?.trim() && !d.representativeData.lastName?.trim()) ||
+          !d.representativeData.dateOfBirth || 
+          !d.representativeData.dateOfBirth.trim()) return "";
+      return formatDateForPDF(d.representativeData.dateOfBirth);
+    },
+    "topmostSubform[0].Page3[0].Numertelefonu2[0]": (d) => {
+      // Wypełnij tylko jeśli istnieje osoba zawiadamiająca I ma wypełnione podstawowe dane (imię lub nazwisko) I telefon jest wypełniony
+      if (!d.representativeData || 
+          (!d.representativeData.firstName?.trim() && !d.representativeData.lastName?.trim()) ||
+          !d.representativeData.phone || 
+          !d.representativeData.phone.trim()) return "";
+      return d.representativeData.phone;
+    },
     
-    // Adres zamieszkania osoby zawiadamiającej - Strona 3
-    "topmostSubform[0].Page3[0].Ulica4[0]": (d) => transliteratePolish(d.representativeData?.addresses?.residentialAddress?.street || ""),
-    "topmostSubform[0].Page3[0].Numerdomu4[0]": (d) => d.representativeData?.addresses?.residentialAddress?.houseNumber || "",
-    "topmostSubform[0].Page3[0].Numerlokalu4[0]": (d) => d.representativeData?.addresses?.residentialAddress?.apartmentNumber || "",
-    "topmostSubform[0].Page3[0].Kodpocztowy4[0]": (d) => d.representativeData?.addresses?.residentialAddress?.postalCode || "",
-    "topmostSubform[0].Page3[0].Poczta4[0]": (d) => transliteratePolish(d.representativeData?.addresses?.residentialAddress?.city || ""),
-    "topmostSubform[0].Page3[0].Nazwapaństwa4[0]": (d) => transliteratePolish(d.representativeData?.addresses?.residentialAddress?.country || "Polska"),
+    // Adres zamieszkania osoby zawiadamiającej - Strona 3 (tylko jeśli zawiadamia inna osoba I adres jest wypełniony)
+    "topmostSubform[0].Page3[0].Ulica4[0]": (d) => {
+      // Sprawdź czy istnieje osoba zawiadamiająca I ma wypełnione podstawowe dane
+      if (!d.representativeData || (!d.representativeData.firstName?.trim() && !d.representativeData.lastName?.trim())) return "";
+      const addr = d.representativeData.addresses?.residentialAddress;
+      // Sprawdź czy adres jest faktycznie wypełniony (ma przynajmniej ulicę lub miasto) - sprawdź czy nie są to puste stringi
+      if (!addr || (!addr.street?.trim() && !addr.city?.trim())) return "";
+      return transliteratePolish(addr.street || "");
+    },
+    "topmostSubform[0].Page3[0].Numerdomu4[0]": (d) => {
+      if (!d.representativeData || (!d.representativeData.firstName?.trim() && !d.representativeData.lastName?.trim())) return "";
+      const addr = d.representativeData.addresses?.residentialAddress;
+      if (!addr || (!addr.street?.trim() && !addr.city?.trim())) return "";
+      return addr.houseNumber || "";
+    },
+    "topmostSubform[0].Page3[0].Numerlokalu4[0]": (d) => {
+      if (!d.representativeData || (!d.representativeData.firstName?.trim() && !d.representativeData.lastName?.trim())) return "";
+      const addr = d.representativeData.addresses?.residentialAddress;
+      if (!addr || (!addr.street?.trim() && !addr.city?.trim())) return "";
+      return addr.apartmentNumber || "";
+    },
+    "topmostSubform[0].Page3[0].Kodpocztowy4[0]": (d) => {
+      if (!d.representativeData || (!d.representativeData.firstName?.trim() && !d.representativeData.lastName?.trim())) return "";
+      const addr = d.representativeData.addresses?.residentialAddress;
+      if (!addr || (!addr.street?.trim() && !addr.city?.trim())) return "";
+      return addr.postalCode || "";
+    },
+    "topmostSubform[0].Page3[0].Poczta4[0]": (d) => {
+      if (!d.representativeData || (!d.representativeData.firstName?.trim() && !d.representativeData.lastName?.trim())) return "";
+      const addr = d.representativeData.addresses?.residentialAddress;
+      if (!addr || (!addr.street?.trim() && !addr.city?.trim())) return "";
+      return transliteratePolish(addr.city || "");
+    },
+    "topmostSubform[0].Page3[0].Nazwapaństwa4[0]": (d) => {
+      if (!d.representativeData || (!d.representativeData.firstName?.trim() && !d.representativeData.lastName?.trim())) return "";
+      const addr = d.representativeData.addresses?.residentialAddress;
+      if (!addr || (!addr.street?.trim() && !addr.city?.trim())) return "";
+      return transliteratePolish(addr.country || "Polska");
+    },
     
-    // Adres ostatniego zamieszkania w Polsce osoby zawiadamiającej - Strona 3
-    "topmostSubform[0].Page3[0].Ulica5[0]": (d) => transliteratePolish(d.representativeData?.addresses?.lastResidentialAddressInPoland?.street || ""),
-    "topmostSubform[0].Page3[0].Numerdomu5[0]": (d) => d.representativeData?.addresses?.lastResidentialAddressInPoland?.houseNumber || "",
-    "topmostSubform[0].Page3[0].Numerlokalu5[0]": (d) => d.representativeData?.addresses?.lastResidentialAddressInPoland?.apartmentNumber || "",
-    "topmostSubform[0].Page3[0].Kodpocztowy5[0]": (d) => d.representativeData?.addresses?.lastResidentialAddressInPoland?.postalCode || "",
-    "topmostSubform[0].Page3[0].Poczta5[0]": (d) => transliteratePolish(d.representativeData?.addresses?.lastResidentialAddressInPoland?.city || ""),
+    // Adres ostatniego zamieszkania w Polsce osoby zawiadamiającej - Strona 3 (tylko jeśli zawiadamia inna osoba I adres jest wypełniony)
+    "topmostSubform[0].Page3[0].Ulica5[0]": (d) => {
+      if (!d.representativeData || (!d.representativeData.firstName?.trim() && !d.representativeData.lastName?.trim())) return "";
+      const addr = d.representativeData.addresses?.lastResidentialAddressInPoland;
+      if (!addr || (!addr.street?.trim() && !addr.city?.trim())) return "";
+      return transliteratePolish(addr.street || "");
+    },
+    "topmostSubform[0].Page3[0].Numerdomu5[0]": (d) => {
+      if (!d.representativeData || (!d.representativeData.firstName?.trim() && !d.representativeData.lastName?.trim())) return "";
+      const addr = d.representativeData.addresses?.lastResidentialAddressInPoland;
+      if (!addr || (!addr.street?.trim() && !addr.city?.trim())) return "";
+      return addr.houseNumber || "";
+    },
+    "topmostSubform[0].Page3[0].Numerlokalu5[0]": (d) => {
+      if (!d.representativeData || (!d.representativeData.firstName?.trim() && !d.representativeData.lastName?.trim())) return "";
+      const addr = d.representativeData.addresses?.lastResidentialAddressInPoland;
+      if (!addr || (!addr.street?.trim() && !addr.city?.trim())) return "";
+      return addr.apartmentNumber || "";
+    },
+    "topmostSubform[0].Page3[0].Kodpocztowy5[0]": (d) => {
+      if (!d.representativeData || (!d.representativeData.firstName?.trim() && !d.representativeData.lastName?.trim())) return "";
+      const addr = d.representativeData.addresses?.lastResidentialAddressInPoland;
+      if (!addr || (!addr.street?.trim() && !addr.city?.trim())) return "";
+      return addr.postalCode || "";
+    },
+    "topmostSubform[0].Page3[0].Poczta5[0]": (d) => {
+      if (!d.representativeData || (!d.representativeData.firstName?.trim() && !d.representativeData.lastName?.trim())) return "";
+      const addr = d.representativeData.addresses?.lastResidentialAddressInPoland;
+      if (!addr || (!addr.street?.trim() && !addr.city?.trim())) return "";
+      return transliteratePolish(addr.city || "");
+    },
     
     // Adres działalności - alternatywny (Strona 3)
-    "topmostSubform[0].Page3[0].Ulica2[0]": (d) => transliteratePolish(d.addresses?.businessAddress?.street || ""),
-    "topmostSubform[0].Page3[0].Numerdomu2[0]": (d) => d.addresses?.businessAddress?.houseNumber || "",
-    "topmostSubform[0].Page3[0].Numerlokalu2[0]": (d) => d.addresses?.businessAddress?.apartmentNumber || "",
-    "topmostSubform[0].Page3[0].Kodpocztowy2[0]": (d) => d.addresses?.businessAddress?.postalCode || "",
-    "topmostSubform[0].Page3[0].Poczta2[0]": (d) => transliteratePolish(d.addresses?.businessAddress?.city || ""),
-    "topmostSubform[0].Page3[0].Nazwapaństwa2[0]": (d) => transliteratePolish(d.addresses?.businessAddress?.country || "Polska"),
+    // Ulica2/Numery/Kod/Poczta na stronie 3 — realnie używane w PDF dla osoby zawiadamiającej (bez sufiksu 2 w nazwie)
+    "topmostSubform[0].Page3[0].Ulica2[0]": (d) => {
+      if (!d.representativeData) return "";
+      const addr = d.representativeData.addresses?.residentialAddress;
+      if (!addr || (!addr.street?.trim() && !addr.city?.trim())) return "";
+      return transliteratePolish(addr.street || "");
+    },
+    "topmostSubform[0].Page3[0].Numerdomu2[0]": (d) => {
+      if (!d.representativeData) return "";
+      const addr = d.representativeData.addresses?.residentialAddress;
+      if (!addr || (!addr.street?.trim() && !addr.city?.trim())) return "";
+      return addr.houseNumber || "";
+    },
+    "topmostSubform[0].Page3[0].Numerlokalu2[0]": (d) => {
+      if (!d.representativeData) return "";
+      const addr = d.representativeData.addresses?.residentialAddress;
+      if (!addr || (!addr.street?.trim() && !addr.city?.trim())) return "";
+      return addr.apartmentNumber || "";
+    },
+    "topmostSubform[0].Page3[0].Kodpocztowy2[0]": (d) => {
+      if (!d.representativeData) return "";
+      const addr = d.representativeData.addresses?.residentialAddress;
+      if (!addr || (!addr.street?.trim() && !addr.city?.trim())) return "";
+      return addr.postalCode || "";
+    },
+    "topmostSubform[0].Page3[0].Poczta2[0]": (d) => {
+      if (!d.representativeData) return "";
+      const addr = d.representativeData.addresses?.residentialAddress;
+      if (!addr || (!addr.street?.trim() && !addr.city?.trim())) return "";
+      return transliteratePolish(addr.city || "");
+    },
+    "topmostSubform[0].Page3[0].Nazwapaństwa2[0]": (d) => {
+      if (!d.representativeData) return "";
+      const addr = d.representativeData.addresses?.residentialAddress;
+      if (!addr || (!addr.street?.trim() && !addr.city?.trim())) return "";
+      return addr.country ? transliteratePolish(addr.country) : "";
+    },
     
     // Adres działalności - dodatkowy (Strona 3)
-    "topmostSubform[0].Page3[0].Ulica2A[0]": (d) => transliteratePolish(d.addresses?.businessAddress?.street || ""),
-    "topmostSubform[0].Page3[0].Numerdomu2A[0]": (d) => d.addresses?.businessAddress?.houseNumber || "",
-    "topmostSubform[0].Page3[0].Numerlokalu2A[0]": (d) => d.addresses?.businessAddress?.apartmentNumber || "",
-    "topmostSubform[0].Page3[0].Kodpocztowy2A[0]": (d) => d.addresses?.businessAddress?.postalCode || "",
-    "topmostSubform[0].Page3[0].Poczta2A[0]": (d) => transliteratePolish(d.addresses?.businessAddress?.city || ""),
+    // Ulica2A/Numery2A/Kod2A/Poczta2A — w PDF to kolejne pola adresowe osoby zawiadamiającej
+    "topmostSubform[0].Page3[0].Ulica2A[0]": (d) => {
+      if (!d.representativeData) return "";
+      const addr = d.representativeData.addresses?.lastResidentialAddressInPoland;
+      if (!addr || (!addr.street?.trim() && !addr.city?.trim())) return "";
+      return transliteratePolish(addr.street || "");
+    },
+    "topmostSubform[0].Page3[0].Numerdomu2A[0]": (d) => {
+      if (!d.representativeData) return "";
+      const addr = d.representativeData.addresses?.lastResidentialAddressInPoland;
+      if (!addr || (!addr.street?.trim() && !addr.city?.trim())) return "";
+      return addr.houseNumber || "";
+    },
+    "topmostSubform[0].Page3[0].Numerlokalu2A[0]": (d) => {
+      if (!d.representativeData) return "";
+      const addr = d.representativeData.addresses?.lastResidentialAddressInPoland;
+      if (!addr || (!addr.street?.trim() && !addr.city?.trim())) return "";
+      return addr.apartmentNumber || "";
+    },
+    "topmostSubform[0].Page3[0].Kodpocztowy2A[0]": (d) => {
+      if (!d.representativeData) return "";
+      const addr = d.representativeData.addresses?.lastResidentialAddressInPoland;
+      if (!addr || (!addr.street?.trim() && !addr.city?.trim())) return "";
+      return addr.postalCode || "";
+    },
+    "topmostSubform[0].Page3[0].Poczta2A[0]": (d) => {
+      if (!d.representativeData) return "";
+      const addr = d.representativeData.addresses?.lastResidentialAddressInPoland;
+      if (!addr || (!addr.street?.trim() && !addr.city?.trim())) return "";
+      return transliteratePolish(addr.city || "");
+    },
     
     // ========== STRONA 4 - OPISY I ELEMENTY DEFINICJI ==========
     "topmostSubform[0].Page4[0].Tekst4[0]": (d) => transliteratePolish(d.accidentData?.detailedCircumstancesDescription || ""),
     "topmostSubform[0].Page4[0].Tekst5[0]": (d) => transliteratePolish(d.accidentData?.detailedCausesDescription || ""),
-    "topmostSubform[0].Page4[0].Tekst6[0]": (d) => transliteratePolish(d.accidentData?.workRelation?.description || ""),
+    // Pierwsza pomoc – nazwa i adres placówki (główne pole opisu)
+    "topmostSubform[0].Page4[0].Tekst6[0]": (d) => {
+      const fa = d.accidentData?.firstAid;
+      if (fa?.provided && (fa.facilityName || fa.facilityAddress)) {
+        return transliteratePolish(
+          [fa.facilityName, fa.facilityAddress].filter(Boolean).join(", ")
+        );
+      }
+      return "";
+    },
     "topmostSubform[0].Page4[0].Tekst7[0]": (d) => transliteratePolish(d.accidentData?.injuryType || ""),
     "topmostSubform[0].Page4[0].Tekst8[0]": (d) => transliteratePolish(d.accidentData?.accidentPlaceDetails || ""),
     
@@ -303,7 +547,10 @@ export async function fillPDFTemplate(
     "topmostSubform[0].Page5[0].Numerlokalu[0]": (d) => d.witnesses?.[0]?.apartmentNumber || "",
     "topmostSubform[0].Page5[0].Kodpocztowy[0]": (d) => d.witnesses?.[0]?.postalCode || "",
     "topmostSubform[0].Page5[0].Poczta[0]": (d) => transliteratePolish(d.witnesses?.[0]?.city || ""),
-    "topmostSubform[0].Page5[0].Nazwapaństwa[0]": (d) => transliteratePolish(d.witnesses?.[0]?.country || "Polska"),
+    "topmostSubform[0].Page5[0].Nazwapaństwa[0]": (d) => {
+      const country = d.witnesses?.[0]?.country;
+      return country ? transliteratePolish(country) : "";
+    },
     
     // Świadek 2
     "topmostSubform[0].Page5[0].Imię[1]": (d) => transliteratePolish(d.witnesses?.[1]?.firstName || ""),
@@ -313,7 +560,10 @@ export async function fillPDFTemplate(
     "topmostSubform[0].Page5[0].Numerlokalu[1]": (d) => d.witnesses?.[1]?.apartmentNumber || "",
     "topmostSubform[0].Page5[0].Kodpocztowy[1]": (d) => d.witnesses?.[1]?.postalCode || "",
     "topmostSubform[0].Page5[0].Poczta[1]": (d) => transliteratePolish(d.witnesses?.[1]?.city || ""),
-    "topmostSubform[0].Page5[0].Nazwapaństwa[1]": (d) => transliteratePolish(d.witnesses?.[1]?.country || "Polska"),
+    "topmostSubform[0].Page5[0].Nazwapaństwa[1]": (d) => {
+      const country = d.witnesses?.[1]?.country;
+      return country ? transliteratePolish(country) : "";
+    },
     
     // Świadek 3 (jeśli jest)
     "topmostSubform[0].Page5[0].Imię2[0]": (d) => transliteratePolish(d.witnesses?.[2]?.firstName || ""),
@@ -323,7 +573,10 @@ export async function fillPDFTemplate(
     "topmostSubform[0].Page5[0].Numerlokalu2[0]": (d) => d.witnesses?.[2]?.apartmentNumber || "",
     "topmostSubform[0].Page5[0].Kodpocztowy2[0]": (d) => d.witnesses?.[2]?.postalCode || "",
     "topmostSubform[0].Page5[0].Poczta2[0]": (d) => transliteratePolish(d.witnesses?.[2]?.city || ""),
-    "topmostSubform[0].Page5[0].Nazwapaństwa2[0]": (d) => transliteratePolish(d.witnesses?.[2]?.country || "Polska"),
+    "topmostSubform[0].Page5[0].Nazwapaństwa2[0]": (d) => {
+      const country = d.witnesses?.[2]?.country;
+      return country ? transliteratePolish(country) : "";
+    },
     
     // ========== STRONA 6 - ZAŁĄCZNIKI I PODPIS ==========
     // Załączniki (checkboxy)
@@ -356,23 +609,26 @@ export async function fillPDFTemplate(
     },
     
     // Sposób odbioru odpowiedzi
-    "topmostSubform[0].Page6[0].OdbiorZUS[0]": (d) => d.responseDeliveryMethod === "zus_office" ? "true" : "",
-    "topmostSubform[0].Page6[0].OdbiorPoczta[0]": (d) => d.responseDeliveryMethod === "poczta" ? "true" : "",
-    "topmostSubform[0].Page6[0].OdbiorPUE[0]": (d) => d.responseDeliveryMethod === "pue_zus" ? "true" : "",
-    "topmostSubform[0].Page6[0].OdbiorOsobaUpowazniona[0]": (d) => d.responseDeliveryMethod === "osoba_upowazniona" ? "true" : "",
-    
-    // Zobowiązanie do dostarczenia dokumentów (8 pozycji)
-    "topmostSubform[0].Page6[0].Zobowiazanie1[0]": (d) => d.documentCommitments?.[0] ? "true" : "",
-    "topmostSubform[0].Page6[0].Zobowiazanie2[0]": (d) => d.documentCommitments?.[1] ? "true" : "",
-    "topmostSubform[0].Page6[0].Zobowiazanie3[0]": (d) => d.documentCommitments?.[2] ? "true" : "",
-    "topmostSubform[0].Page6[0].Zobowiazanie4[0]": (d) => d.documentCommitments?.[3] ? "true" : "",
-    "topmostSubform[0].Page6[0].Zobowiazanie5[0]": (d) => d.documentCommitments?.[4] ? "true" : "",
-    "topmostSubform[0].Page6[0].Zobowiazanie6[0]": (d) => d.documentCommitments?.[5] ? "true" : "",
-    "topmostSubform[0].Page6[0].Zobowiazanie7[0]": (d) => d.documentCommitments?.[6] ? "true" : "",
-    "topmostSubform[0].Page6[0].Zobowiazanie8[0]": (d) => d.documentCommitments?.[7] ? "true" : "",
+    "topmostSubform[0].Page6[0].wplacowce[0]": (d) => d.responseDeliveryMethod === "zus_office" ? "true" : "",
+    "topmostSubform[0].Page6[0].poczta[0]": (d) => d.responseDeliveryMethod === "poczta" ? "true" : "",
+    "topmostSubform[0].Page6[0].PUE[0]": (d) => d.responseDeliveryMethod === "pue_zus" ? "true" : "",
+    "topmostSubform[0].Page6[0].osobaUpowazniona[0]": (d) => d.responseDeliveryMethod === "osoba_upowazniona" ? "true" : "",
+
+    // Data zobowiązania dostarczenia dokumentów (sekcja "Do ... zobowiązuję się dostarczyć ...")
+    "topmostSubform[0].Page6[0].Data[1]": (d) => formatDateForPDF(d.documentCommitmentDate || ""),
     
     // Data podpisu
-    "topmostSubform[0].Page6[0].DataPodpisu[0]": (d) => formatDateForPDF(d.signatureDate || new Date().toISOString().split('T')[0]),
+    "topmostSubform[0].Page6[0].Data[0]": (d) => formatDateForPDF(d.signatureDate || new Date().toISOString().split('T')[0]),
+
+    // Zobowiązanie do dostarczenia dokumentów (8 pozycji)
+    "topmostSubform[0].Page6[0].Inne1[0]": (d) => transliteratePolish(d.documentCommitments?.[0] || ""),
+    "topmostSubform[0].Page6[0].Inne2[0]": (d) => transliteratePolish(d.documentCommitments?.[1] || ""),
+    "topmostSubform[0].Page6[0].Inne3[0]": (d) => transliteratePolish(d.documentCommitments?.[2] || ""),
+    "topmostSubform[0].Page6[0].Inne4[0]": (d) => transliteratePolish(d.documentCommitments?.[3] || ""),
+    "topmostSubform[0].Page6[0].Inne5[0]": (d) => transliteratePolish(d.documentCommitments?.[4] || ""),
+    "topmostSubform[0].Page6[0].Inne6[0]": (d) => transliteratePolish(d.documentCommitments?.[5] || ""),
+    "topmostSubform[0].Page6[0].Inne7[0]": (d) => transliteratePolish(d.documentCommitments?.[6] || ""),
+    "topmostSubform[0].Page6[0].Inne8[0]": (d) => transliteratePolish(d.documentCommitments?.[7] || ""),
   };
   
   // Wypełnij pola formularza
@@ -380,10 +636,47 @@ export async function fillPDFTemplate(
   console.log("Liczba pól w formularzu:", fields.length);
   console.log("Liczba mapowań:", Object.keys(fieldMapping).length);
   console.log("Dane formularza:", JSON.stringify(formData, null, 2));
+  console.log("documentCommitments:", formData.documentCommitments);
+  console.log("documentCommitments length:", formData.documentCommitments?.length);
+  
+  // Wypisz wszystkie pola zawierające "Inne" (dla zobowiązań)
+  const commitmentFields = fields.filter(f => {
+    const name = f.getName().toLowerCase();
+    return name.includes("inne") && /inne\d/.test(name);
+  });
+  if (commitmentFields.length > 0) {
+    console.log("Znalezione pola związane z zobowiązaniami (Inne1-8):", commitmentFields.map(f => f.getName()));
+  }
   
   let filledCount = 0;
   let skippedCount = 0;
   let errorCount = 0;
+  
+  // Utwórz mapę wszystkich nazw pól dla szybkiego wyszukiwania
+  const allFieldNames = fields.map(f => f.getName());
+  
+  // Funkcja pomocnicza do znajdowania pól pasujących do wzorca
+  const findMatchingField = (pattern: string): string | null => {
+    const patternLower = pattern.toLowerCase();
+    // Najpierw spróbuj dokładnego dopasowania
+    if (allFieldNames.includes(pattern)) {
+      return pattern;
+    }
+    // Spróbuj znaleźć pole zawierające wzorzec
+    const matching = allFieldNames.find(name => 
+      name.toLowerCase().includes(patternLower) || 
+      patternLower.includes(name.toLowerCase())
+    );
+    return matching || null;
+  };
+  
+  // Sprawdź, czy pola Inne1-8 istnieją w PDF
+  for (let i = 1; i <= 8; i++) {
+    const expectedName = `topmostSubform[0].Page6[0].Inne${i}[0]`;
+    if (!allFieldNames.includes(expectedName)) {
+      console.warn(`[WARN] Pole "${expectedName}" nie zostało znalezione w PDF. Sprawdź nazwę pola w szablonie.`);
+    }
+  }
   
   for (const field of fields) {
     const fieldName = field.getName();
@@ -392,6 +685,11 @@ export async function fillPDFTemplate(
     // Sprawdź czy pole jest w mapowaniu
     if (fieldMapping[fieldName]) {
       const value = fieldMapping[fieldName](formData);
+      
+      // Szczegółowe logowanie dla pól zobowiązań (Inne1-8)
+      if (fieldName.toLowerCase().match(/inne\d/)) {
+        console.log(`[DEBUG ZOBOWIAZANIE] Wypełnianie pola: "${fieldName}" (typ: ${fieldType}) = "${value}"`);
+      }
       
       console.log(`Wypełnianie pola: "${fieldName}" (typ: ${fieldType}) = "${value}"`);
       
@@ -467,6 +765,11 @@ export async function fillPDFTemplate(
       }
     } else {
       skippedCount++;
+      // Loguj wszystkie pola zawierające "Inne" (dla zobowiązań), nawet jeśli nie są w mapowaniu
+      const fieldNameLower = fieldName.toLowerCase();
+      if (fieldNameLower.match(/inne\d/)) {
+        console.log(`[DEBUG] Pole związane z zobowiązaniami (nie w mapowaniu): "${fieldName}" (typ: ${fieldType})`);
+      }
       // Loguj tylko pierwsze 10 nieznalezionych pól, żeby nie zaśmiecać konsoli
       if (skippedCount <= 10) {
         console.log(`[SKIP] Pominięto pole (brak w mapowaniu): "${fieldName}" (typ: ${fieldType})`);

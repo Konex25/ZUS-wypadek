@@ -42,16 +42,16 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
     resolver: zodResolver(daneWypadkuSchema),
     defaultValues: initialData || {
       naglosc: {
-        potwierdzona: false,
+        potwierdzona: true,
         opis: "",
       },
       przyczynaZewnetrzna: {
-        potwierdzona: false,
+        potwierdzona: true,
         typ: "inne",
         opis: "",
       },
       uraz: {
-        potwierdzony: false,
+        potwierdzony: true,
         rodzaj: "",
         lokalizacja: "",
       },
@@ -146,14 +146,10 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 relative">
       <ExampleDataButton onFill={fillExampleData} />
       <div className="space-y-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">
-          Dane o wypadku
-        </h3>
-
         {/* Podstawowe informacje o wypadku */}
         <Card>
           <div className="space-y-4">
-            <h4 className="font-medium text-gray-900">Podstawowe informacje</h4>
+            <h4 className="font-bold text-gray-900">Podstawowe informacje</h4>
             
             <div className="grid md:grid-cols-2 gap-4">
               <Input
@@ -226,7 +222,7 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
         {/* Szczegółowe opisy */}
         <Card>
           <div className="space-y-4">
-            <h4 className="font-medium text-gray-900">Szczegółowe opisy</h4>
+            <h4 className="font-bold text-gray-900">Szczegółowe opisy</h4>
             
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -268,7 +264,7 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
         {/* Weryfikacja elementów definicji wypadku przy pracy */}
         <Card>
           <div className="space-y-6">
-            <h4 className="font-medium text-gray-900">
+            <h4 className="font-bold text-gray-900">
               Weryfikacja elementów definicji wypadku przy pracy
             </h4>
             <p className="text-sm text-gray-600">
@@ -277,22 +273,14 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
 
             {/* Nagłość */}
             <div className="space-y-3 p-4 bg-blue-50 rounded-lg">
-              <div className="flex items-center justify-center space-x-2">
-                <Checkbox
-                  checked={watch("naglosc.potwierdzona")}
-                  onCheckedChange={(checked) => {
-                    setValue("naglosc.potwierdzona", checked || false);
-                  }}
-                />
-                <label className="font-medium text-gray-900">
+              <h5 className="font-bold text-gray-900">
                   Nagłość zdarzenia
-                </label>
-              </div>
-              <p className="text-xs text-gray-600 ml-7">
+              </h5>
+              <p className="text-xs text-gray-600">
                 Zdarzenie nagłe to natychmiastowe ujawnienie się przyczyny zewnętrznej lub działanie tej przyczyny 
                 przez pewien okres, ale nie dłużej niż przez jedną dniówkę roboczą.
               </p>
-              <div className="ml-7">
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Opis nagłości <span className="text-red-500">*</span>
                 </label>
@@ -318,21 +306,13 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
 
             {/* Przyczyna zewnętrzna */}
             <div className="space-y-3 p-4 bg-blue-50 rounded-lg">
-              <div className="flex items-center justify-center space-x-2">
-                <Checkbox
-                  checked={watch("przyczynaZewnetrzna.potwierdzona")}
-                  onCheckedChange={(checked) => {
-                    setValue("przyczynaZewnetrzna.potwierdzona", checked || false);
-                  }}
-                />
-                <label className="font-medium text-gray-900">
+              <h5 className="font-bold text-gray-900">
                   Przyczyna zewnętrzna
-                </label>
-              </div>
-              <p className="text-xs text-gray-600 ml-7">
+              </h5>
+              <p className="text-xs text-gray-600">
                 Przyczyna zewnętrzna to czynnik występujący poza organizmem człowieka, który spowodował uraz.
               </p>
-              <div className="ml-7 space-y-3">
+              <div className="space-y-3">
                 <Select
                   label="Typ przyczyny zewnętrznej"
                   required
@@ -371,21 +351,13 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
 
             {/* Uraz */}
             <div className="space-y-3 p-4 bg-blue-50 rounded-lg">
-              <div className="flex items-center justify-center space-x-2">
-                <Checkbox
-                  checked={watch("uraz.potwierdzony")}
-                  onCheckedChange={(checked) => {
-                    setValue("uraz.potwierdzony", checked || false);
-                  }}
-                />
-                <label className="font-medium text-gray-900">
+              <h5 className="font-bold text-gray-900">
                   Uraz
-                </label>
-              </div>
-              <p className="text-xs text-gray-600 ml-7">
+              </h5>
+              <p className="text-xs text-gray-600">
                 Uraz to uszkodzenie tkanek ciała lub narządów człowieka wskutek działania czynnika zewnętrznego.
               </p>
-              <div className="ml-7 space-y-3">
+              <div className="space-y-3">
                 <Input
                   label="Rodzaj urazu"
                   required
@@ -412,11 +384,9 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
 
             {/* Związek z pracą */}
             <div className="space-y-3 p-4 bg-blue-50 rounded-lg">
-              <div className="flex items-center space-x-2">
-                <label className="font-medium text-gray-900">
+              <h5 className="font-bold text-gray-900">
                   Związek z pracą
-                </label>
-              </div>
+              </h5>
               <p className="text-xs text-gray-600">
                 Między wypadkiem a pracą musi zachodzić ścisły związek: przyczynowy, czasowy, miejscowy i funkcjonalny.
               </p>
@@ -472,7 +442,7 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
         {/* Dodatkowe informacje */}
         <Card>
           <div className="space-y-4">
-            <h4 className="font-medium text-gray-900">Dodatkowe informacje</h4>
+            <h4 className="font-bold text-gray-900">Dodatkowe informacje</h4>
 
             {/* Pierwsza pomoc */}
             <div className="space-y-3">

@@ -60,10 +60,7 @@ export const Krok0RodzajZgloszenia: React.FC<Krok0RodzajZgloszeniaProps> = React
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 relative">
       <ExampleDataButton onFill={fillExampleData} />
-      <div className="text-center mb-8">
-        <h2 className="text-3xl font-bold text-gray-900 mb-2">
-          Wybór rodzaju zgłoszenia
-        </h2>
+      <div className="text-center mb-6">
         <p className="text-gray-600">
           Wybierz, co chcesz złożyć. Możesz wybrać jedno lub oba zgłoszenia.
         </p>
@@ -106,9 +103,14 @@ export const Krok0RodzajZgloszenia: React.FC<Krok0RodzajZgloszeniaProps> = React
                 />
               </div>
               <div className="flex-1 ml-3">
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">
+                <div className="flex items-center gap-2 mb-2">
+                  <h3 className="text-xl font-semibold text-gray-900">
                   Zawiadomienie o wypadku
                 </h3>
+                  <span className="px-2 py-0.5 text-xs font-semibold bg-blue-100 text-blue-700 rounded">
+                    EWYP
+                  </span>
+                </div>
                 <p className="text-sm text-gray-600 mb-4">
                   Podstawowe zgłoszenie wypadku przy pracy. Zawiera dane osobowe, 
                   informacje o wypadku oraz okolicznościach zdarzenia.
@@ -189,11 +191,10 @@ export const Krok0RodzajZgloszenia: React.FC<Krok0RodzajZgloszeniaProps> = React
         </Card>
       </div>
 
-      {/* Opcja "Oba" */}
-      <div className="flex justify-center">
+      {/* Opcja "Oba" - na całą szerokość */}
         <Card
           className={`
-            transition-all duration-200 w-full max-w-md cursor-pointer
+          transition-all duration-200 w-full cursor-pointer
             ${selectedType === "oba"
               ? "ring-4 ring-blue-500 border-blue-500 bg-blue-50"
               : "hover:shadow-lg hover:border-blue-300"
@@ -204,7 +205,7 @@ export const Krok0RodzajZgloszenia: React.FC<Krok0RodzajZgloszeniaProps> = React
           }}
         >
           <div className="p-6">
-            <div className="flex items-center justify-center space-x-4">
+          <div className="flex items-center space-x-4">
               <div onClick={(e) => e.stopPropagation()}>
                 <Checkbox
                   checked={selectedType === "oba"}
@@ -213,14 +214,14 @@ export const Krok0RodzajZgloszenia: React.FC<Krok0RodzajZgloszeniaProps> = React
                   }}
                 />
               </div>
-              <div className="text-center">
+            <div className="flex-1">
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">
                   Złóż oba dokumenty
                 </h3>
                 <div className="text-sm text-gray-600 space-y-1">
                   <p className="font-medium">Formularze do złożenia:</p>
                   <ul className="list-disc list-inside text-left space-y-0.5">
-                    <li>Zawiadomienie o wypadku</li>
+                  <li>Zawiadomienie o wypadku (EWYP)</li>
                     <li>Zapis wyjaśnień poszkodowanego</li>
                   </ul>
                 </div>
@@ -228,7 +229,6 @@ export const Krok0RodzajZgloszenia: React.FC<Krok0RodzajZgloszeniaProps> = React
             </div>
           </div>
         </Card>
-      </div>
 
       {errors.rodzajZgloszenia && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4">
