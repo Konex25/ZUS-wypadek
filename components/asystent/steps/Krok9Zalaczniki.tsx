@@ -22,6 +22,7 @@ interface Krok9ZalacznikiProps {
   initialSignatureDate?: string;
   initialDocumentCommitments?: string[];
   initialDocumentCommitmentDate?: string;
+  isWyjasnienia?: boolean; // Flaga wskazująca, czy to formularz wyjaśnień
 }
 
 export const Krok9Zalaczniki: React.FC<Krok9ZalacznikiProps> = React.memo(({
@@ -32,6 +33,7 @@ export const Krok9Zalaczniki: React.FC<Krok9ZalacznikiProps> = React.memo(({
   initialSignatureDate,
   initialDocumentCommitments,
   initialDocumentCommitmentDate,
+  isWyjasnienia = false,
 }) => {
   const [attachments, setAttachments] = useState<AttachmentInfo[]>(initialAttachments);
   const [responseDeliveryMethod, setResponseDeliveryMethod] = useState<"zus_office" | "pue_zus" | "poczta" | "osoba_upowazniona" | undefined>(
@@ -99,43 +101,51 @@ export const Krok9Zalaczniki: React.FC<Krok9ZalacznikiProps> = React.memo(({
         {/* Załączniki */}
         <Card>
           <div className="space-y-4">
-            <h4 className="font-bold text-gray-900">Załączniki do zawiadomienia</h4>
+            <h4 className="font-bold text-gray-900">
+              {isWyjasnienia ? "Załączniki do zapisu wyjaśnień" : "Załączniki do zawiadomienia"}
+            </h4>
             <p className="text-sm text-gray-600">
-              Zaznacz, które dokumenty dołączasz do zawiadomienia o wypadku
+              {isWyjasnienia 
+                ? "Jeśli masz dodatkowe dokumenty związane z wyjaśnieniami, możesz je tutaj opisać"
+                : "Zaznacz, które dokumenty dołączasz do zawiadomienia o wypadku"}
             </p>
 
             <div className="space-y-3">
-              <div className="w-full">
-                <Checkbox
-                  label="Kserokopia karty informacyjnej ze szpitala / zaświadczenia o udzieleniu pierwszej pomocy z pogotowia ratunkowego wraz z wywiadem"
-                  checked={attachments.some(a => a.type === "hospital_card")}
-                  onCheckedChange={(checked) => handleAttachmentChange("hospital_card", checked || false)}
-                />
-              </div>
-              
-              <div className="w-full">
-                <Checkbox
-                  label="Kserokopia postanowienia prokuratury o wszczęciu postępowania karnego lub zawieszeniu/umorzeniu postępowania"
-                  checked={attachments.some(a => a.type === "prosecutor_decision")}
-                  onCheckedChange={(checked) => handleAttachmentChange("prosecutor_decision", checked || false)}
-                />
-              </div>
-              
-              <div className="w-full">
-                <Checkbox
-                  label="Kserokopia statystycznej karty zgonu lub zaświadczenie lekarskie stwierdzające przyczynę zgonu, skrócony odpis aktu zgonu (w przypadku wypadku ze skutkiem śmiertelnym)"
-                  checked={attachments.some(a => a.type === "death_certificate")}
-                  onCheckedChange={(checked) => handleAttachmentChange("death_certificate", checked || false)}
-                />
-              </div>
-              
-              <div className="w-full">
-                <Checkbox
-                  label="Dokumenty potwierdzające prawo do wydania karty wypadku osobie innej niż poszkodowany (m.in. skrócony odpis aktu urodzenia, skrócony odpis aktu małżeństwa, pełnomocnictwo)"
-                  checked={attachments.some(a => a.type === "power_of_attorney")}
-                  onCheckedChange={(checked) => handleAttachmentChange("power_of_attorney", checked || false)}
-                />
-              </div>
+              {!isWyjasnienia && (
+                <>
+                  <div className="w-full">
+                    <Checkbox
+                      label="Kserokopia karty informacyjnej ze szpitala / zaświadczenia o udzieleniu pierwszej pomocy z pogotowia ratunkowego wraz z wywiadem"
+                      checked={attachments.some(a => a.type === "hospital_card")}
+                      onCheckedChange={(checked) => handleAttachmentChange("hospital_card", checked || false)}
+                    />
+                  </div>
+                  
+                  <div className="w-full">
+                    <Checkbox
+                      label="Kserokopia postanowienia prokuratury o wszczęciu postępowania karnego lub zawieszeniu/umorzeniu postępowania"
+                      checked={attachments.some(a => a.type === "prosecutor_decision")}
+                      onCheckedChange={(checked) => handleAttachmentChange("prosecutor_decision", checked || false)}
+                    />
+                  </div>
+                  
+                  <div className="w-full">
+                    <Checkbox
+                      label="Kserokopia statystycznej karty zgonu lub zaświadczenie lekarskie stwierdzające przyczynę zgonu, skrócony odpis aktu zgonu (w przypadku wypadku ze skutkiem śmiertelnym)"
+                      checked={attachments.some(a => a.type === "death_certificate")}
+                      onCheckedChange={(checked) => handleAttachmentChange("death_certificate", checked || false)}
+                    />
+                  </div>
+                  
+                  <div className="w-full">
+                    <Checkbox
+                      label="Dokumenty potwierdzające prawo do wydania karty wypadku osobie innej niż poszkodowany (m.in. skrócony odpis aktu urodzenia, skrócony odpis aktu małżeństwa, pełnomocnictwo)"
+                      checked={attachments.some(a => a.type === "power_of_attorney")}
+                      onCheckedChange={(checked) => handleAttachmentChange("power_of_attorney", checked || false)}
+                    />
+                  </div>
+                </>
+              )}
               
               <div className="w-full space-y-2">
                 <Checkbox
@@ -153,7 +163,9 @@ export const Krok9Zalaczniki: React.FC<Krok9ZalacznikiProps> = React.memo(({
                     <textarea
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       rows={3}
-                      placeholder="Np. dokumenty dotyczące udzielonej pomocy medycznej, umowa na wykonywaną usługę, faktura, rachunek, notatka z policji, ksero mandatu karnego itp."
+                      placeholder={isWyjasnienia 
+                        ? "Np. dokumenty medyczne, notatki, zdjęcia, inne dokumenty związane z wyjaśnieniami dotyczącymi wypadku"
+                        : "Np. dokumenty dotyczące udzielonej pomocy medycznej, umowa na wykonywaną usługę, faktura, rachunek, notatka z policji, ksero mandatu karnego itp."}
                       value={otherDescription}
                       onChange={(e) => {
                         setOtherDescription(e.target.value);

@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
+import { Chatbot } from "@/components/ui/chatbot";
 import { KartaWypadku } from "@/types/karta-wypadku";
 
 interface FormularzKartyWypadkuProps {
@@ -18,6 +19,12 @@ export const FormularzKartyWypadku: React.FC<FormularzKartyWypadkuProps> = ({
   onSubmit,
   onSave,
 }) => {
+  const [activeField, setActiveField] = useState<{
+    fieldName: string;
+    fieldLabel: string;
+    currentValue: string;
+    fieldType?: "textarea" | "input" | "select";
+  } | null>(null);
   const [formData, setFormData] = useState<Partial<KartaWypadku>>({
     nazwaIAdresPodmiotuSporzadzajacego: "",
     daneIdentyfikacyjnePlatnika: {
@@ -107,8 +114,28 @@ export const FormularzKartyWypadku: React.FC<FormularzKartyWypadkuProps> = ({
     }
   };
 
+  const handleSuggestion = (suggestion: string) => {
+    if (activeField) {
+      const path = activeField.fieldName.split(".");
+      updateField(path, suggestion);
+    }
+  };
+
+  const getFieldValue = (path: string[]): string => {
+    let current: any = formData;
+    for (const key of path) {
+      current = current?.[key];
+      if (current === undefined || current === null) return "";
+    }
+    return typeof current === "string" ? current : "";
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
+      <Chatbot
+        fieldContext={activeField || undefined}
+        onSuggestion={handleSuggestion}
+      />
       {/* Nagłówek */}
       <div className="bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 p-6 rounded-2xl border border-blue-200/50 shadow-lg backdrop-blur-sm">
         <div className="flex items-center gap-3 mb-4">
@@ -528,6 +555,15 @@ export const FormularzKartyWypadku: React.FC<FormularzKartyWypadkuProps> = ({
             </label>
             <textarea
               value={formData.informacjeOWypadku?.informacjeOWypadku || ""}
+              onFocus={() =>
+                setActiveField({
+                  fieldName: "informacjeOWypadku.informacjeOWypadku",
+                  fieldLabel: "Informacje dotyczące okoliczności, przyczyn, czasu i miejsca wypadku, rodzaju i umiejscowienia urazu",
+                  currentValue: formData.informacjeOWypadku?.informacjeOWypadku || "",
+                  fieldType: "textarea",
+                })
+              }
+              onBlur={() => setActiveField(null)}
               onChange={(e) =>
                 updateField(
                   ["informacjeOWypadku", "informacjeOWypadku"],
@@ -660,6 +696,15 @@ export const FormularzKartyWypadku: React.FC<FormularzKartyWypadkuProps> = ({
                     value={
                       formData.informacjeOWypadku?.uzasadnienieNieUznano || ""
                     }
+                    onFocus={() =>
+                      setActiveField({
+                        fieldName: "informacjeOWypadku.uzasadnienieNieUznano",
+                        fieldLabel: "Uzasadnienie i wskazanie dowodów, jeżeli zdarzenia nie uznano za wypadek przy pracy",
+                        currentValue: formData.informacjeOWypadku?.uzasadnienieNieUznano || "",
+                        fieldType: "textarea",
+                      })
+                    }
+                    onBlur={() => setActiveField(null)}
                     onChange={(e) =>
                       updateField(
                         ["informacjeOWypadku", "uzasadnienieNieUznano"],
@@ -686,6 +731,15 @@ export const FormularzKartyWypadku: React.FC<FormularzKartyWypadkuProps> = ({
                 formData.informacjeOWypadku?.wykluczajacaPrzyczynaNaruszenie ||
                 ""
               }
+              onFocus={() =>
+                setActiveField({
+                  fieldName: "informacjeOWypadku.wykluczajacaPrzyczynaNaruszenie",
+                  fieldLabel: "Stwierdzono, że wyłączną przyczyną wypadku było udowodnione naruszenie przez poszkodowanego przepisów dotyczących ochrony życia i zdrowia",
+                  currentValue: formData.informacjeOWypadku?.wykluczajacaPrzyczynaNaruszenie || "",
+                  fieldType: "textarea",
+                })
+              }
+              onBlur={() => setActiveField(null)}
               onChange={(e) =>
                 updateField(
                   [
@@ -713,6 +767,15 @@ export const FormularzKartyWypadku: React.FC<FormularzKartyWypadkuProps> = ({
               value={
                 formData.informacjeOWypadku?.przyczynienieSieNietrzezwosc || ""
               }
+              onFocus={() =>
+                setActiveField({
+                  fieldName: "informacjeOWypadku.przyczynienieSieNietrzezwosc",
+                  fieldLabel: "Stwierdzono, że poszkodowany, będąc w stanie nietrzeźwości lub pod wpływem środków odurzających, przyczynił się w znacznym stopniu do spowodowania wypadku",
+                  currentValue: formData.informacjeOWypadku?.przyczynienieSieNietrzezwosc || "",
+                  fieldType: "textarea",
+                })
+              }
+              onBlur={() => setActiveField(null)}
               onChange={(e) =>
                 updateField(
                   ["informacjeOWypadku", "przyczynienieSieNietrzezwosc"],

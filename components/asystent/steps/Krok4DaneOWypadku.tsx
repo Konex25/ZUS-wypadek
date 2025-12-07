@@ -9,6 +9,7 @@ import { Select } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Chatbot } from "@/components/ui/chatbot";
 import { ExampleDataButton } from "@/components/asystent/ExampleDataButton";
 
 interface Krok4DaneOWypadkuProps {
@@ -31,6 +32,12 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
   const [postepowanieOrganow, setPostepowanieOrganow] = useState(
     initialData?.postepowanieOrganow?.prowadzone || false
   );
+  const [activeField, setActiveField] = useState<{
+    fieldName: string;
+    fieldLabel: string;
+    currentValue: string;
+    fieldType?: "textarea" | "input" | "select";
+  } | null>(null);
 
   const {
     register,
@@ -142,8 +149,23 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
     setValue("maszynyUrzadzenia.wEwidencjiSrodkowTrwalych", false);
   };
 
+  const handleSuggestion = (suggestion: string) => {
+    if (activeField) {
+      const fieldPath = activeField.fieldName.split(".");
+      if (fieldPath.length === 1) {
+        setValue(fieldPath[0] as any, suggestion);
+      } else if (fieldPath.length === 2) {
+        setValue(`${fieldPath[0]}.${fieldPath[1]}` as any, suggestion);
+      }
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 relative">
+      <Chatbot
+        fieldContext={activeField || undefined}
+        onSuggestion={handleSuggestion}
+      />
       <ExampleDataButton onFill={fillExampleData} />
       <div className="space-y-6">
         {/* Podstawowe informacje o wypadku */}
@@ -233,6 +255,15 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
                 rows={5}
                 required
                 placeholder="Opisz dokładnie, co się stało i w jakich okolicznościach doszło do wypadku..."
+                onFocus={() =>
+                  setActiveField({
+                    fieldName: "szczegolowyOpisOkolicznosci",
+                    fieldLabel: "Szczegółowy opis okoliczności wypadku",
+                    currentValue: watch("szczegolowyOpisOkolicznosci") || "",
+                    fieldType: "textarea",
+                  })
+                }
+                onBlur={() => setActiveField(null)}
                 {...register("szczegolowyOpisOkolicznosci")}
               />
               {errors.szczegolowyOpisOkolicznosci && (
@@ -252,6 +283,15 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
                 rows={5}
                 required
                 placeholder="Opisz przyczyny, które doprowadziły do wypadku..."
+                onFocus={() =>
+                  setActiveField({
+                    fieldName: "szczegolowyOpisPrzyczyn",
+                    fieldLabel: "Szczegółowy opis przyczyn wypadku",
+                    currentValue: watch("szczegolowyOpisPrzyczyn") || "",
+                    fieldType: "textarea",
+                  })
+                }
+                onBlur={() => setActiveField(null)}
                 {...register("szczegolowyOpisPrzyczyn")}
               />
               {errors.szczegolowyOpisPrzyczyn && (
@@ -289,6 +329,15 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
                   rows={3}
                   required
                   placeholder="Opisz, czy zdarzenie było nagłe (np. wybuch, upadek, zderzenie)..."
+                  onFocus={() =>
+                    setActiveField({
+                      fieldName: "naglosc.opis",
+                      fieldLabel: "Opis nagłości zdarzenia",
+                      currentValue: watch("naglosc.opis") || "",
+                      fieldType: "textarea",
+                    })
+                  }
+                  onBlur={() => setActiveField(null)}
                   {...register("naglosc.opis")}
                 />
                 {errors.naglosc?.opis && (
@@ -340,6 +389,15 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
                     rows={3}
                     required
                     placeholder="Opisz, jaki czynnik zewnętrzny spowodował uraz..."
+                    onFocus={() =>
+                      setActiveField({
+                        fieldName: "przyczynaZewnetrzna.opis",
+                        fieldLabel: "Opis przyczyny zewnętrznej",
+                        currentValue: watch("przyczynaZewnetrzna.opis") || "",
+                        fieldType: "textarea",
+                      })
+                    }
+                    onBlur={() => setActiveField(null)}
                     {...register("przyczynaZewnetrzna.opis")}
                   />
                   {errors.przyczynaZewnetrzna?.opis && (
@@ -428,6 +486,15 @@ export const Krok4DaneOWypadku: React.FC<Krok4DaneOWypadkuProps> = React.memo(({
                     rows={3}
                     required
                     placeholder="Opisz, jak wypadek wiąże się z wykonywaną pracą..."
+                    onFocus={() =>
+                      setActiveField({
+                        fieldName: "zwiazekZPraca.opis",
+                        fieldLabel: "Opis związku z pracą",
+                        currentValue: watch("zwiazekZPraca.opis") || "",
+                        fieldType: "textarea",
+                      })
+                    }
+                    onBlur={() => setActiveField(null)}
                     {...register("zwiazekZPraca.opis")}
                   />
                   {errors.zwiazekZPraca?.opis && (

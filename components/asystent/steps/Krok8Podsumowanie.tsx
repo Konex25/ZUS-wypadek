@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { AccidentReport } from "@/types";
@@ -16,6 +17,7 @@ export const Krok8Podsumowanie: React.FC<Krok8PodsumowanieProps> = React.memo(({
   onGenerateDocuments,
   formData,
 }) => {
+  const router = useRouter();
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -69,6 +71,51 @@ export const Krok8Podsumowanie: React.FC<Krok8PodsumowanieProps> = React.memo(({
     if (formData.notificationType === "wyjasnienia" || formData.notificationType === "oba") {
       await handleGeneratePDF("statement");
     }
+  };
+
+  const handleGenerateWyjasnieniaPDF = async () => {
+    setIsGenerating(true);
+    setError(null);
+
+    try {
+      // Dynamiczny import funkcji generującej PDF z HTML (działa tylko w przeglądarce)
+      if (typeof window === "undefined") {
+        throw new Error("Generowanie PDF dostępne tylko w przeglądarce");
+      }
+
+      const { generateWyjasnieniaPDF } = await import("@/lib/wyjasnienia/generateDocument");
+      const pdfBlob = await generateWyjasnieniaPDF(formData);
+      
+      // Pobierz PDF
+      const url = window.URL.createObjectURL(pdfBlob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `zapis-wyjasnien-${new Date().toISOString().split("T")[0]}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (err: any) {
+      console.error("Błąd podczas generowania PDF wyjaśnień:", err);
+      setError(err.message || "Nie udało się wygenerować PDF");
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const handleGoToWyjasnienia = () => {
+    // Zapisz dane z EWYP do localStorage, aby można było je wykorzystać w formularzu wyjaśnień
+    const dataToSave = {
+      personalData: formData.personalData,
+      addresses: formData.addresses,
+      accidentData: formData.accidentData,
+      witnesses: formData.witnesses,
+      fromEwyp: true, // Flaga wskazująca, że dane pochodzą z EWYP
+    };
+    localStorage.setItem("ewyp-to-wyjasnienia", JSON.stringify(dataToSave));
+    
+    // Przekieruj do strony wyjaśnień
+    router.push("/asystent/wyjasnienia?fromEwyp=true");
   };
   const SummarySection = ({ title, children }: { title: string; children: React.ReactNode }) => (
     <Card className="p-6">
@@ -256,17 +303,29 @@ export const Krok8Podsumowanie: React.FC<Krok8PodsumowanieProps> = React.memo(({
               {isGenerating ? "Generowanie..." : "Pobierz zawiadomienie PDF"}
             </Button>
           )}
-          {/* Przycisk dla zapisu wyjaśnień - ukryty na razie, dopóki nie będzie pliku */}
-          {/* {(formData.notificationType === "wyjasnienia" || formData.notificationType === "oba") && (
+          {/* Przycisk do przejścia do formularza wyjaśnień (tylko dla zawiadomienia) */}
+          {(formData.notificationType === "zawiadomienie" || formData.notificationType === "oba") && (
             <Button 
               variant="primary" 
               size="lg" 
-              onClick={() => handleGeneratePDF("statement")}
+              onClick={handleGoToWyjasnienia}
+              disabled={isGenerating}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              Generuj i przejdź do zapisu wyjaśnień →
+            </Button>
+          )}
+          {/* Przycisk dla zapisu wyjaśnień - używa generowania PDF z HTML */}
+          {(formData.notificationType === "wyjasnienia" || formData.notificationType === "oba") && (
+            <Button 
+              variant="primary" 
+              size="lg" 
+              onClick={handleGenerateWyjasnieniaPDF}
               disabled={isGenerating}
             >
               {isGenerating ? "Generowanie..." : "Pobierz zapis wyjaśnień PDF"}
             </Button>
-          )} */}
+          )}
         </div>
       </div>
     </div>

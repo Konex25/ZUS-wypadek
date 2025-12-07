@@ -1,28 +1,58 @@
 "use client";
 
-import React, { useState, useMemo, useCallback, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import React, { useState, useMemo, useCallback, useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Wizard, WizardStep } from "@/components/asystent/Wizard";
 import { Krok1DaneOsobowe } from "@/components/asystent/steps/Krok1DaneOsobowe";
 import { Krok2Adresy } from "@/components/asystent/steps/Krok2Adresy";
 import { Krok6Wyjasnienia } from "@/components/asystent/steps/Krok6Wyjasnienia";
 import { Krok7Swiadkowie } from "@/components/asystent/steps/Krok7Swiadkowie";
 import { Krok8Podsumowanie } from "@/components/asystent/steps/Krok8Podsumowanie";
-import { Krok9Zalaczniki } from "@/components/asystent/steps/Krok9Zalaczniki";
 import { DaneOsoboweForm, WyjasnieniaForm, SwiadkowieForm } from "@/lib/validation/schemas";
 import { AccidentReport } from "@/types";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import { ProgressBar } from "@/components/asystent/ProgressBar";
 
-export default function WyjasnieniaPage() {
+function WyjasnieniaPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [formData, setFormData] = useState<Partial<AccidentReport>>({
     notificationType: "wyjasnienia", // Ustawiamy typ na wyjaśnienia
   });
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [isDataLoaded, setIsDataLoaded] = useState(false);
 
   // Auto-save z kluczem specyficznym dla wyjaśnień
   useAutoSave(formData, true, "wyjasnienia-form");
+
+  // Załaduj dane z EWYP jeśli istnieją
+  useEffect(() => {
+    const fromEwyp = searchParams.get("fromEwyp");
+    if (fromEwyp === "true") {
+      const savedData = localStorage.getItem("ewyp-to-wyjasnienia");
+      if (savedData) {
+        try {
+          const parsedData = JSON.parse(savedData);
+          if (parsedData.fromEwyp) {
+            // Prewypełnij formularz danymi z EWYP
+            setFormData((prev) => ({
+              ...prev,
+              personalData: parsedData.personalData,
+              addresses: parsedData.addresses,
+              accidentData: parsedData.accidentData,
+              witnesses: parsedData.witnesses,
+            }));
+            // Usuń dane z localStorage po załadowaniu
+            localStorage.removeItem("ewyp-to-wyjasnienia");
+            setIsDataLoaded(true);
+          }
+        } catch (error) {
+          console.error("Błąd podczas ładowania danych z EWYP:", error);
+        }
+      }
+    }
+    setIsDataLoaded(true);
+  }, [searchParams]);
 
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
@@ -266,9 +296,30 @@ export default function WyjasnieniaPage() {
     }));
   }, []);
 
-  const handleGenerateDocuments = useCallback(() => {
-    console.log("Generowanie dokumentów wyjaśnień dla:", formData);
-    alert("Funkcjonalność generowania dokumentów PDF będzie dostępna wkrótce!");
+  const handleGenerateDocuments = useCallback(async () => {
+    try {
+      // Dynamiczny import funkcji generującej PDF (działa tylko w przeglądarce)
+      if (typeof window === "undefined") {
+        alert("Generowanie PDF dostępne tylko w przeglądarce");
+        return;
+      }
+
+      const { generateWyjasnieniaPDF } = await import("@/lib/wyjasnienia/generateDocument");
+      const pdfBlob = await generateWyjasnieniaPDF(formData);
+      
+      // Pobierz PDF
+      const url = window.URL.createObjectURL(pdfBlob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `zapis-wyjasnien-${new Date().toISOString().split("T")[0]}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error("Błąd podczas generowania PDF:", error);
+      alert("Wystąpił błąd podczas generowania dokumentu PDF");
+    }
   }, [formData]);
 
   const handleWizardComplete = useCallback(() => {
@@ -291,7 +342,7 @@ export default function WyjasnieniaPage() {
 
   const goToNextStep = useCallback(() => {
     setCurrentStepIndex((prev) => {
-      const MAX_STEP_INDEX = 5; // 6 kroków (0-5)
+      const MAX_STEP_INDEX = 4; // 5 kroków (0-4): dane osobowe, adresy, wyjaśnienia, świadkowie, podsumowanie
       if (prev < MAX_STEP_INDEX) {
         return prev + 1;
       }
@@ -479,31 +530,6 @@ export default function WyjasnieniaPage() {
       ),
     },
     {
-      id: "zalaczniki",
-      title: "Załączniki",
-      description: "Wybierz załączniki i sposób odbioru odpowiedzi",
-      component: () => (
-        <Krok9Zalaczniki
-          key="krok5"
-          onNext={(attachments, responseDeliveryMethod, signatureDate, documentCommitments) => {
-            setFormData((prev) => ({
-              ...prev,
-              attachments,
-              responseDeliveryMethod,
-              signatureDate,
-              documentCommitments,
-            }));
-            goToNextStep();
-          }}
-          onPrevious={goToPreviousStep}
-          initialAttachments={formData.attachments}
-          initialResponseDeliveryMethod={formData.responseDeliveryMethod}
-          initialSignatureDate={formData.signatureDate}
-          initialDocumentCommitments={formData.documentCommitments}
-        />
-      ),
-    },
-    {
       id: "podsumowanie",
       title: "Podsumowanie",
       description: "Sprawdź dane i wygeneruj dokumenty",
@@ -555,32 +581,42 @@ export default function WyjasnieniaPage() {
             </div>
           </div>
 
-          <Wizard
-            steps={steps}
-            onComplete={handleWizardComplete}
-            onStepChange={handleStepChange}
-            currentStep={currentStepIndex}
-            progressBar={
-              <ProgressBar
-                steps={steps.map((s) => ({
-                  id: s.id,
-                  title: s.title,
-                  description: s.description,
-                }))}
-                currentStep={currentStepIndex}
-                formData={formData}
-                onStepClick={(index) => {
-                  if (index <= currentStepIndex) {
-                    setCurrentStepIndex(index);
-                    handleStepChange(index);
-                  }
-                }}
-              />
-            }
-          />
+          {isDataLoaded && (
+            <Wizard
+              steps={steps}
+              onComplete={handleWizardComplete}
+              onStepChange={handleStepChange}
+              currentStep={currentStepIndex}
+              progressBar={
+                <ProgressBar
+                  steps={steps.map((s) => ({
+                    id: s.id,
+                    title: s.title,
+                    description: s.description,
+                  }))}
+                  currentStep={currentStepIndex}
+                  formData={formData}
+                  onStepClick={(index) => {
+                    if (index <= currentStepIndex) {
+                      setCurrentStepIndex(index);
+                      handleStepChange(index);
+                    }
+                  }}
+                />
+              }
+            />
+          )}
         </div>
       </div>
     </div>
+  );
+}
+
+export default function WyjasnieniaPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Ładowanie...</div>}>
+      <WyjasnieniaPageContent />
+    </Suspense>
   );
 }
 

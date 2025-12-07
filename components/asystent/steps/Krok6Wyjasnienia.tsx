@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { wyjasnieniaSchema, WyjasnieniaForm } from "@/lib/validation/schemas";
@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Chatbot } from "@/components/ui/chatbot";
 import { ExampleDataButton } from "@/components/asystent/ExampleDataButton";
 
 interface Krok6WyjasnieniaProps {
@@ -45,6 +46,22 @@ export const Krok6Wyjasnienia: React.FC<Krok6WyjasnieniaProps> = React.memo(({
   const [sickLeave, setSickLeave] = useState(
     initialData?.zwolnienieLekarskie?.wDniuWypadku || false
   );
+  const [activeField, setActiveField] = useState<{
+    fieldName: string;
+    fieldLabel: string;
+    currentValue: string;
+    fieldType?: "textarea" | "input" | "select";
+  } | null>(null);
+  const blurTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (blurTimeoutRef.current) {
+        clearTimeout(blurTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const {
     register,
@@ -99,8 +116,18 @@ export const Krok6Wyjasnienia: React.FC<Krok6WyjasnieniaProps> = React.memo(({
     setValue("bhp.szkoleniaBHP", true);
   };
 
+  const handleSuggestion = (suggestion: string) => {
+    if (activeField) {
+      setValue(activeField.fieldName as any, suggestion);
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 relative">
+      <Chatbot
+        fieldContext={activeField || undefined}
+        onSuggestion={handleSuggestion}
+      />
       <ExampleDataButton onFill={fillExampleData} />
       
       <div className="space-y-6">
@@ -122,6 +149,25 @@ export const Krok6Wyjasnienia: React.FC<Krok6WyjasnieniaProps> = React.memo(({
                 rows={4}
                 required
                 placeholder="Opisz, jakie czynności wykonywałeś przed wypadkiem..."
+                onFocus={() => {
+                  // Anuluj poprzedni timeout, jeśli istnieje
+                  if (blurTimeoutRef.current) {
+                    clearTimeout(blurTimeoutRef.current);
+                    blurTimeoutRef.current = null;
+                  }
+                  setActiveField({
+                    fieldName: "rodzajCzynnosciPrzedWypadkiem",
+                    fieldLabel: "Rodzaj czynności przed wypadkiem",
+                    currentValue: watch("rodzajCzynnosciPrzedWypadkiem") || "",
+                    fieldType: "textarea",
+                  });
+                }}
+                onBlur={() => {
+                  // Opóźnij resetowanie activeField, aby umożliwić kliknięcie w chatbota
+                  blurTimeoutRef.current = setTimeout(() => {
+                    setActiveField(null);
+                  }, 200);
+                }}
                 {...register("rodzajCzynnosciPrzedWypadkiem")}
               />
               {errors.rodzajCzynnosciPrzedWypadkiem && (
@@ -138,6 +184,34 @@ export const Krok6Wyjasnienia: React.FC<Krok6WyjasnieniaProps> = React.memo(({
                 rows={4}
                 required
                 placeholder="Opisz dokładnie okoliczności, w których doszło do wypadku..."
+                onFocus={() => {
+                  if (blurTimeoutRef.current) {
+                    clearTimeout(blurTimeoutRef.current);
+                    blurTimeoutRef.current = null;
+                  }
+                  setActiveField({
+                    fieldName: "okolicznosciWypadku",
+                    fieldLabel: "Okoliczności wypadku",
+                    currentValue: watch("okolicznosciWypadku") || "",
+                    fieldType: "textarea",
+                  });
+                }}
+                onBlur={(e) => {
+                  // Sprawdź, czy kliknięcie było w chatbocie
+                  const relatedTarget = e.relatedTarget as HTMLElement;
+                  if (relatedTarget && relatedTarget.closest('.fixed.bottom-24')) {
+                    // Jeśli kliknięto w chatbota, nie resetuj activeField
+                    if (blurTimeoutRef.current) {
+                      clearTimeout(blurTimeoutRef.current);
+                      blurTimeoutRef.current = null;
+                    }
+                    return;
+                  }
+                  // Opóźnij resetowanie activeField, aby umożliwić kliknięcie w chatbota
+                  blurTimeoutRef.current = setTimeout(() => {
+                    setActiveField(null);
+                  }, 300);
+                }}
                 {...register("okolicznosciWypadku")}
               />
               {errors.okolicznosciWypadku && (
@@ -154,6 +228,34 @@ export const Krok6Wyjasnienia: React.FC<Krok6WyjasnieniaProps> = React.memo(({
                 rows={4}
                 required
                 placeholder="Opisz przyczyny, które doprowadziły do wypadku..."
+                onFocus={() => {
+                  if (blurTimeoutRef.current) {
+                    clearTimeout(blurTimeoutRef.current);
+                    blurTimeoutRef.current = null;
+                  }
+                  setActiveField({
+                    fieldName: "przyczynyWypadku",
+                    fieldLabel: "Przyczyny wypadku",
+                    currentValue: watch("przyczynyWypadku") || "",
+                    fieldType: "textarea",
+                  });
+                }}
+                onBlur={(e) => {
+                  // Sprawdź, czy kliknięcie było w chatbocie
+                  const relatedTarget = e.relatedTarget as HTMLElement;
+                  if (relatedTarget && relatedTarget.closest('.fixed.bottom-24')) {
+                    // Jeśli kliknięto w chatbota, nie resetuj activeField
+                    if (blurTimeoutRef.current) {
+                      clearTimeout(blurTimeoutRef.current);
+                      blurTimeoutRef.current = null;
+                    }
+                    return;
+                  }
+                  // Opóźnij resetowanie activeField, aby umożliwić kliknięcie w chatbota
+                  blurTimeoutRef.current = setTimeout(() => {
+                    setActiveField(null);
+                  }, 300);
+                }}
                 {...register("przyczynyWypadku")}
               />
               {errors.przyczynyWypadku && (
@@ -166,7 +268,7 @@ export const Krok6Wyjasnienia: React.FC<Krok6WyjasnieniaProps> = React.memo(({
         {/* Maszyny i narzędzia */}
         <Card className="p-6">
           <div className="flex items-start gap-3 mb-4">
-            <div className="pt-1">
+            <div className="flex-shrink-0 pt-1">
               <Checkbox
                 checked={machineryTools}
                 onCheckedChange={(checked) => {
@@ -199,18 +301,22 @@ export const Krok6Wyjasnienia: React.FC<Krok6WyjasnieniaProps> = React.memo(({
                 error={errors.maszynyNarzedzia?.dataProdukcji?.message}
               />
               <div className="flex items-center gap-3">
-                <Checkbox
-                  checked={watch("maszynyNarzedzia.sprawne") || false}
-                  onCheckedChange={(checked) => setValue("maszynyNarzedzia.sprawne", checked as boolean)}
-                />
-                <label className="text-sm text-gray-700">Maszyna/narzędzie było sprawne</label>
+                <div className="flex-shrink-0">
+                  <Checkbox
+                    checked={watch("maszynyNarzedzia.sprawne") || false}
+                    onCheckedChange={(checked) => setValue("maszynyNarzedzia.sprawne", checked as boolean)}
+                  />
+                </div>
+                <label className="text-sm text-gray-700 flex-1">Maszyna/narzędzie było sprawne</label>
               </div>
               <div className="flex items-center gap-3">
-                <Checkbox
-                  checked={watch("maszynyNarzedzia.zgodneZProducentem") || false}
-                  onCheckedChange={(checked) => setValue("maszynyNarzedzia.zgodneZProducentem", checked as boolean)}
-                />
-                <label className="text-sm text-gray-700">Użytkowane zgodnie z zasadami producenta</label>
+                <div className="flex-shrink-0">
+                  <Checkbox
+                    checked={watch("maszynyNarzedzia.zgodneZProducentem") || false}
+                    onCheckedChange={(checked) => setValue("maszynyNarzedzia.zgodneZProducentem", checked as boolean)}
+                  />
+                </div>
+                <label className="text-sm text-gray-700 flex-1">Użytkowane zgodnie z zasadami producenta</label>
               </div>
               <Input
                 label="Sposób użycia"
@@ -224,7 +330,7 @@ export const Krok6Wyjasnienia: React.FC<Krok6WyjasnieniaProps> = React.memo(({
         {/* Środki ochrony */}
         <Card className="p-6">
           <div className="flex items-start gap-3 mb-4">
-            <div className="pt-1">
+            <div className="flex-shrink-0 pt-1">
               <Checkbox
                 checked={protectiveMeasures}
                 onCheckedChange={(checked) => {
@@ -246,18 +352,22 @@ export const Krok6Wyjasnienia: React.FC<Krok6WyjasnieniaProps> = React.memo(({
                 error={errors.srodkiOchrony?.rodzaj?.message}
               />
               <div className="flex items-center gap-3">
-                <Checkbox
-                  checked={watch("srodkiOchrony.wlasciwe") || false}
-                  onCheckedChange={(checked) => setValue("srodkiOchrony.wlasciwe", checked as boolean)}
-                />
-                <label className="text-sm text-gray-700">Środki były właściwe</label>
+                <div className="flex-shrink-0">
+                  <Checkbox
+                    checked={watch("srodkiOchrony.wlasciwe") || false}
+                    onCheckedChange={(checked) => setValue("srodkiOchrony.wlasciwe", checked as boolean)}
+                  />
+                </div>
+                <label className="text-sm text-gray-700 flex-1">Środki były właściwe</label>
               </div>
               <div className="flex items-center gap-3">
-                <Checkbox
-                  checked={watch("srodkiOchrony.sprawne") || false}
-                  onCheckedChange={(checked) => setValue("srodkiOchrony.sprawne", checked as boolean)}
-                />
-                <label className="text-sm text-gray-700">Środki były sprawne</label>
+                <div className="flex-shrink-0">
+                  <Checkbox
+                    checked={watch("srodkiOchrony.sprawne") || false}
+                    onCheckedChange={(checked) => setValue("srodkiOchrony.sprawne", checked as boolean)}
+                  />
+                </div>
+                <label className="text-sm text-gray-700 flex-1">Środki były sprawne</label>
               </div>
             </div>
           )}
@@ -266,7 +376,7 @@ export const Krok6Wyjasnienia: React.FC<Krok6WyjasnieniaProps> = React.memo(({
         {/* BHP */}
         <Card className="p-6">
           <div className="flex items-start gap-3 mb-4">
-            <div className="pt-1">
+            <div className="flex-shrink-0 pt-1">
               <Checkbox
                 checked={healthAndSafety}
                 onCheckedChange={(checked) => {
@@ -283,25 +393,31 @@ export const Krok6Wyjasnienia: React.FC<Krok6WyjasnieniaProps> = React.memo(({
           {healthAndSafety && (
             <div className="space-y-4 mt-4">
               <div className="flex items-center gap-3">
-                <Checkbox
-                  checked={watch("bhp.przygotowanie") || false}
-                  onCheckedChange={(checked) => setValue("bhp.przygotowanie", checked as boolean)}
-                />
-                <label className="text-sm text-gray-700">Posiadasz przygotowanie do wykonywania zadań</label>
+                <div className="flex-shrink-0">
+                  <Checkbox
+                    checked={watch("bhp.przygotowanie") || false}
+                    onCheckedChange={(checked) => setValue("bhp.przygotowanie", checked as boolean)}
+                  />
+                </div>
+                <label className="text-sm text-gray-700 flex-1">Posiadasz przygotowanie do wykonywania zadań</label>
               </div>
               <div className="flex items-center gap-3">
-                <Checkbox
-                  checked={watch("bhp.szkoleniaBHP") || false}
-                  onCheckedChange={(checked) => setValue("bhp.szkoleniaBHP", checked as boolean)}
-                />
-                <label className="text-sm text-gray-700">Posiadasz szkolenia BHP</label>
+                <div className="flex-shrink-0">
+                  <Checkbox
+                    checked={watch("bhp.szkoleniaBHP") || false}
+                    onCheckedChange={(checked) => setValue("bhp.szkoleniaBHP", checked as boolean)}
+                  />
+                </div>
+                <label className="text-sm text-gray-700 flex-1">Posiadasz szkolenia BHP</label>
               </div>
               <div className="flex items-center gap-3">
-                <Checkbox
-                  checked={watch("bhp.ocenaRyzykaZawodowego") || false}
-                  onCheckedChange={(checked) => setValue("bhp.ocenaRyzykaZawodowego", checked as boolean)}
-                />
-                <label className="text-sm text-gray-700">Posiadasz ocenę ryzyka zawodowego</label>
+                <div className="flex-shrink-0">
+                  <Checkbox
+                    checked={watch("bhp.ocenaRyzykaZawodowego") || false}
+                    onCheckedChange={(checked) => setValue("bhp.ocenaRyzykaZawodowego", checked as boolean)}
+                  />
+                </div>
+                <label className="text-sm text-gray-700 flex-1">Posiadasz ocenę ryzyka zawodowego</label>
               </div>
               <Input
                 label="Środki zmniejszające ryzyko"
@@ -315,7 +431,7 @@ export const Krok6Wyjasnienia: React.FC<Krok6WyjasnieniaProps> = React.memo(({
         {/* Pierwsza pomoc */}
         <Card className="p-6">
           <div className="flex items-start gap-3 mb-4">
-            <div className="pt-1">
+            <div className="flex-shrink-0 pt-1">
               <Checkbox
                 checked={firstAid}
                 onCheckedChange={(checked) => {
