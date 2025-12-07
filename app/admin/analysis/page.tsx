@@ -317,11 +317,11 @@ function AnalysisPageContent() {
                   postalCode: "",
                   city: "",
                 };
-            
+
             const correspondenceAddr = mergedData.correspondenceAddress
-              ? (typeof mergedData.correspondenceAddress === "string"
-                  ? parseAddressString(mergedData.correspondenceAddress)
-                  : mergedData.correspondenceAddress)
+              ? typeof mergedData.correspondenceAddress === "string"
+                ? parseAddressString(mergedData.correspondenceAddress)
+                : mergedData.correspondenceAddress
               : residentialAddr; // Use residential address as default for correspondence
 
             if (
@@ -618,6 +618,16 @@ function AnalysisPageContent() {
 
   const isSectionExpanded = (sectionId: string) => {
     return expandedSections.has(sectionId);
+  };
+
+  // Helper function to get section number based on whether representativeData exists
+  const getSectionNumber = (baseNumber: number): number => {
+    const hasRepresentative = !!formData.representativeData;
+    if (baseNumber === 1) return 1; // Section 1 is always 1
+    if (baseNumber === 2) return hasRepresentative ? 2 : -1; // Section 2 only if representative exists
+    if (baseNumber === 3) return hasRepresentative ? 3 : 2; // Section 3 becomes 2 if no representative
+    if (baseNumber === 4) return hasRepresentative ? 4 : 3; // Section 4 becomes 3 if no representative
+    return baseNumber;
   };
 
   const updateFormData = (path: string[], value: any) => {
@@ -978,7 +988,104 @@ function AnalysisPageContent() {
                 <div className="flex justify-end mb-4">
                   <button
                     type="button"
+<<<<<<< HEAD
                     onClick={fillMissingFieldsWithTestData}
+=======
+                    onClick={() => {
+                      // Fill test data for personal data
+                      updateFormData(["personalData", "firstName"], "Anna");
+                      updateFormData(["personalData", "lastName"], "Nowak");
+                      updateFormData(["personalData", "pesel"], "90010112345");
+                      updateFormData(
+                        ["personalData", "dateOfBirth"],
+                        "1990-01-01"
+                      );
+                      updateFormData(
+                        ["personalData", "placeOfBirth"],
+                        "Kraków"
+                      );
+                      updateFormData(
+                        ["personalData", "phone"],
+                        "+48 987 654 321"
+                      );
+
+                      // Fill test data for residential address
+                      updateFormData(
+                        ["addresses", "residentialAddress", "street"],
+                        "Testowa"
+                      );
+                      updateFormData(
+                        ["addresses", "residentialAddress", "houseNumber"],
+                        "10"
+                      );
+                      updateFormData(
+                        ["addresses", "residentialAddress", "apartmentNumber"],
+                        "5"
+                      );
+                      updateFormData(
+                        ["addresses", "residentialAddress", "postalCode"],
+                        "00-001"
+                      );
+                      updateFormData(
+                        ["addresses", "residentialAddress", "city"],
+                        "Warszawa"
+                      );
+                      updateFormData(
+                        ["addresses", "residentialAddress", "country"],
+                        "Polska"
+                      );
+
+                      // Fill test data for correspondence address (same as residential)
+                      updateFormData(
+                        ["addresses", "correspondenceAddress", "street"],
+                        "Testowa"
+                      );
+                      updateFormData(
+                        ["addresses", "correspondenceAddress", "houseNumber"],
+                        "10"
+                      );
+                      updateFormData(
+                        [
+                          "addresses",
+                          "correspondenceAddress",
+                          "apartmentNumber",
+                        ],
+                        "5"
+                      );
+                      updateFormData(
+                        ["addresses", "correspondenceAddress", "postalCode"],
+                        "00-001"
+                      );
+                      updateFormData(
+                        ["addresses", "correspondenceAddress", "city"],
+                        "Warszawa"
+                      );
+                      updateFormData(
+                        ["addresses", "correspondenceAddress", "country"],
+                        "Polska"
+                      );
+                      updateFormData(
+                        ["addresses", "businessAddress", "street"],
+                        "Testowa"
+                      );
+                      updateFormData(
+                        ["addresses", "businessAddress", "city"],
+                        "Warszawa"
+                      );
+                      updateFormData(
+                        ["addresses", "businessAddress", "houseNumber"],
+                        "10"
+                      );
+                      updateFormData(
+                        ["addresses", "businessAddress", "apartmentNumber"],
+                        "5"
+                      );
+                      updateFormData(
+                        ["addresses", "businessAddress", "postalCode"],
+                        "00-001"
+                      );
+                    }}
+>>>>>>> 3b6122bd8863c759c81300924250fbd06867769a
                     className="px-4 py-2 text-sm font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded-lg hover:bg-blue-100 transition-colors flex items-center gap-2"
                   >
                     <svg
@@ -1494,7 +1601,7 @@ function AnalysisPageContent() {
                     />
                   </svg>
                   <span className="font-semibold text-slate-900">
-                    Sekcja 3: Dane wypadku
+                    Sekcja {getSectionNumber(3)}: Dane wypadku
                   </span>
                 </div>
                 <svg
@@ -1658,7 +1765,7 @@ function AnalysisPageContent() {
                   />
                 </svg>
                 <span className="font-semibold text-slate-900">
-                  Sekcja 4: Dane działalności gospodarczej
+                  Sekcja {getSectionNumber(4)}: Dane działalności gospodarczej
                 </span>
               </div>
               <svg
