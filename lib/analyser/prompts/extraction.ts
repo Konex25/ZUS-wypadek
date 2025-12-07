@@ -28,6 +28,32 @@ Przeanalizuj dostarczone dokumenty dotyczące zgłoszenia wypadku przy pracy.
 
 ## Format odpowiedzi JSON:
 {
+  "name": "imię",
+  "surname": "nazwisko",
+  "businessAddress": "adres siedziby",
+  "nip": "nip",
+  "regon": "regon",
+  "pesel": "PESEL",
+  "documentType": "typ dokumentu",
+  "documentId": "numer i seria dokumentu",
+  "birthDate": "data urodzenia",
+  "birthPlace": "miejsce urodzenia",
+  "address": "adres zamieszkania",
+  "address": "adres",
+  "lastAddress": "ostatni adres",
+  "correspondenceAddress": "adres korespondencji",
+  "notifier": {
+    "name": "imię",
+    "surname": "nazwisko",
+    "pesel": "PESEL",
+    "documentType": "typ dokumentu",
+    "documentId": "numer i seria dokumentu",
+    "phoneNumber": "numer telefonu",
+    "address": "adres",
+    "lastAddress": "ostatni adres",
+    "correspondenceAddress": "adres korespondencji",
+  },
+
   "date": "YYYY-MM-DD",
   "time": "HH:MM",
   "place": "miejsce wypadku",
