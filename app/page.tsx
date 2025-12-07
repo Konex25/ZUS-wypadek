@@ -9,19 +9,19 @@ export default function Home() {
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (!canvasRef.current) return;
-      
+
       const { clientX, clientY } = e;
       const { innerWidth, innerHeight } = window;
-      
+
       const xPercent = (clientX / innerWidth) * 100;
       const yPercent = (clientY / innerHeight) * 100;
-      
-      canvasRef.current.style.setProperty('--mouse-x', `${xPercent}%`);
-      canvasRef.current.style.setProperty('--mouse-y', `${yPercent}%`);
+
+      canvasRef.current.style.setProperty("--mouse-x", `${xPercent}%`);
+      canvasRef.current.style.setProperty("--mouse-y", `${yPercent}%`);
     };
 
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
+    window.addEventListener("mousemove", handleMouseMove);
+    return () => window.removeEventListener("mousemove", handleMouseMove);
   }, []);
 
   return (
@@ -589,7 +589,7 @@ export default function Home() {
           <div className="container mx-auto px-4">
             <div className="max-w-4xl mx-auto">
               <Link
-                href="/admin/case"
+                href="/admin"
                 className="block bg-white/90 backdrop-blur-sm rounded-xl shadow-lg p-8 hover:shadow-xl transition-all duration-300 border-2 border-transparent hover:border-indigo-500 hover:scale-[1.02]"
               >
                 <div className="flex items-center mb-4">
